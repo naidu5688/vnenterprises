@@ -1,0 +1,328 @@
+﻿@{
+    Layout = "~/Views/Shared/_SharedLayout_Admin.cshtml";
+}
+@model vnenterprises.Models.ManagerModel
+
+<style>
+    body {
+        /* background-color: #2e7d5d; */
+        font-family: 'Segoe UI', sans-serif;
+        /* color: white; */
+    }
+
+    .page-container {
+        max-width: 100%;
+        background: #17362e; /* dark green */
+        padding: 25px;
+    }
+
+    h3, h4 {
+        color: #d4af37;
+        margin-bottom: 18px;
+        font-weight: 600;
+    }
+
+    label {
+        font-size: 13px;
+        font-weight: 500;
+        color: white;
+    }
+
+    .form-control {
+        height: 38px;
+        border-radius: 6px;
+        border: 1px solid #d4af37;
+        background: #1e4a37;
+        color: white;
+        padding: 6px 10px;
+        font-size: 13px;
+        width: 100%;
+    }
+
+    input::placeholder {
+        color: #ccc;
+    }
+
+    /* Slightly bigger checkboxes (~15px) */
+    input[type="checkbox"] {
+        transform: scale(1.2);
+        cursor: pointer;
+        margin-right: 5px;
+    }
+
+    /* Manager Details: 2-column layout */
+    .manager-details {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 18px;
+        margin-bottom: 20px;
+    }
+
+    /* Platform & Gateway cards */
+    .card {
+        border: 1px solid #d4af37;
+        border-radius: 10px;
+        margin-bottom: 12px;
+        background: #1e4a37;
+    }
+
+    .card-header {
+        padding: 10px 14px;
+        font-weight: 600;
+        color: white;
+        border-bottom: 1px solid #d4af37;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .card-body {
+        padding: 10px 12px;
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 10px;
+    }
+
+    .form-check-label {
+        color: white;
+        font-size: 12px;
+    }
+
+    /* Bank & Branch allocation */
+    .bank-box {
+        border: 1px solid #d4af37;
+        border-radius: 6px;
+        padding: 8px 10px;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        color: white;
+        font-size: 12px;
+        background: #1e4a37;
+    }
+
+    /* Permissions */
+    .permission-card {
+        background: #1e4a37;
+        border: 1px solid #d4af37;
+        border-radius: 10px;
+        padding: 12px;
+        margin-top: 12px;
+    }
+
+    .permission-row {
+        display: grid;
+        grid-template-columns: 2fr 1fr 1fr 1fr;
+        align-items: center;
+        gap: 10px;
+        padding: 8px 0;
+        font-size: 12px;
+    }
+
+        .permission-row strong {
+            color: #d4af37;
+        }
+
+    .btn-primary {
+        background-color: #d4af37;
+        color: #1e4a37;
+        border-radius: 30px;
+        padding: 10px 30px;
+        border: 2px solid #1b5e20;
+        font-weight: 600;
+        cursor: pointer;
+        margin-top: 12px;
+    }
+
+        .btn-primary:hover {
+            background-color: #c29f2f;
+        }
+
+    /* 2-column layout for Platforms/Banks/Branches */
+    .two-column {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 18px;
+        margin-bottom: 15px;
+    }
+
+    .three-column {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 18px;  
+        margin-bottom: 15px;
+    }
+    /* Permissions */
+    .permission-card {
+        background: #1e4a37;
+        border: 1px solid #d4af37;
+        border-radius: 10px;
+        padding: 12px;
+        margin-top: 12px;
+    }
+
+    .permission-row {
+        display: grid;
+        grid-template-columns: 2fr 1fr 1fr 1fr;
+        align-items: center;
+        gap: 10px;
+        padding: 8px 0;
+        font-size: 15px;
+        color: white;
+    }
+
+        /* Align checkboxes to the left in each column */
+        .permission-row input[type="checkbox"] {
+            justify-self: start;
+        }
+
+        .permission-row strong {
+            color: #d4af37;
+        }
+
+</style>
+
+<div class="page-container">
+
+    <h3>Add Manager</h3>
+
+    <form asp-action="AddManager" asp-controller="Admin" method="post" onsubmit="return validateForm()">
+
+        <!-- Manager Details -->
+        <div class="manager-details">
+            <div>
+                <label>First Name</label>
+                <input asp-for="UserFirstName" class="form-control" placeholder="First Name" required/>
+            </div>
+            <div>
+                <label>Last Name</label>
+                <input asp-for="UserLastName" class="form-control" placeholder="Last Name" required />
+            </div>
+            <div>
+                <label>Mobile Number</label>
+                <input asp-for="MobileNumber" class="form-control" type="text" placeholder="10 Digit Mobile Number" maxlength="10" oninput="this.value=this.value.replace(/[^0-9]/g,'').slice(0,10)" required />
+            </div>
+            <div>
+                <label>MPIN</label>
+                <input asp-for="MPIN" type="text" class="form-control" placeholder="4 Digit MPIN" maxlength="4" oninput="this.value=this.value.replace(/[^0-9]/g,'').slice(0,4)" required />
+            </div>
+            <div>
+                <label>Password</label>
+                <input asp-for="Password" type="text" class="form-control" placeholder="Password" required />
+            </div>
+            <div>
+                <label>Confirm Password</label>
+                <input asp-for="ConfirmPassword" type="text" class="form-control" placeholder="Confirm Password" required />
+            </div>
+            
+        </div>
+
+        <!-- Platforms & Gateways -->
+       @*  <h4>Platform & Gateway Allocation</h4>
+        <div class="two-column">
+            @foreach (var platform in Model.platformgatwaymodel.Platforms)
+            {
+                <div class="card">
+                    <div class="card-header">
+                        @platform.Name
+                    </div>
+                    <div class="card-body">
+                        @foreach (var gateway in Model.platformgatwaymodel.Gateways.Where(g => g.PlatformName == platform.Name))
+                        {
+                            <div class="form-check">
+                                <input type="checkbox" class="form-check-input" name="SelectedGateways" value="@gateway.Id" />
+                                <label class="form-check-label">@gateway.Name</label>
+                            </div>
+                        }
+                    </div>
+                </div>
+            }
+        </div> *@
+
+        <!-- Banks -->
+        
+
+        <!-- Branches -->
+        <h4>Branch Allocation</h4>
+        <div class="three-column">
+            @foreach (var branch in Model.branchmodel)
+            {
+                <div class="bank-box">
+                    <input type="checkbox" name="SelectedBranches" value="@branch.BranchId" />
+                    @branch.BranchName
+                </div>
+            }
+        </div>
+
+        <!-- Permissions -->
+        <h4>Access Permissions</h4>
+        <div class="permission-card">
+            <div class="permission-row">
+                <strong>Module</strong>
+                <strong>View</strong>
+                <strong>Add</strong>
+                <strong>Edit</strong>
+            </div>
+            <div class="permission-row">
+                <span>Employee</span>
+                <input asp-for="IsEmployeeViewAccess" type="checkbox" />
+                <input asp-for="IsEmployeeAddAccess" type="checkbox" />
+                <input asp-for="IsEmployeeEditAccess" type="checkbox" />
+            </div>
+            <div class="permission-row">
+                <span>Retailer</span>
+                <input asp-for="IsRetailerViewAccess" type="checkbox" />
+                <input asp-for="IsRetailerAddAccess" type="checkbox" />
+                <input asp-for="IsRetailerEditAccess" type="checkbox" />
+            </div>
+            <div class="permission-row">
+                <span>KYC</span>
+                <input asp-for="IsKycViewAccess" type="checkbox" />
+                <input asp-for="IsKycAddAccess" type="checkbox" />
+                <input asp-for="IsKycEditAccess" type="checkbox" />
+            </div>
+        </div>
+
+        <div class="text-end">
+            <button type="submit" class="btn-primary">Add Manager</button>
+        </div>
+
+    </form>
+   
+</div>
+
+<script>
+    function validateForm() {
+        var password = document.querySelector('[name="Password"]').value;
+        var confirmPassword = document.querySelector('[name="ConfirmPassword"]').value;
+
+        if (password.indexOf(' ') >= 0 || confirmPassword.indexOf(' ') >= 0) {
+            alert("Password and Confirm Password cannot contain spaces.");
+            return false;
+        }
+
+        if (password !== confirmPassword) {
+            alert("Password and Confirm Password must match.");
+            return false;
+        }
+    var mobile = document.querySelector('[name="MobileNumber"]').value;
+    var mpin = document.querySelector('[name="MPIN"]').value;
+
+    if (mobile.length !== 10) {
+        alert("Mobile number must be exactly 10 digits.");
+        return false;
+    }
+
+    if (mpin.length !== 4) {
+        alert("MPIN must be exactly 4 digits.");
+        return false;
+    }
+     var selectedBranches = document.querySelectorAll('input[name="SelectedBranches"]:checked');
+
+        if (selectedBranches.length === 0) {
+            alert("Please select at least one Branch.");
+            return false;
+        }
+        return true;
+    }
+</script>

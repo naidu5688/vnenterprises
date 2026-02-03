@@ -1,0 +1,53 @@
+﻿@{
+    Layout = "~/Views/Shared/_SharedLayout_Admin.cshtml";
+}
+<style>
+    /* Full page container */
+    .gateway-page {
+        min-height: 100vh; /* full screen height */
+        display: flex;
+        align-items: center; /* center vertically */
+        background-color: #17362e; /* greenish background */
+        color: white; /* default text white */
+        text-align: center; /* center text */
+        flex-direction: column; /* stack content vertically */
+        padding: 20px;
+        position: relative; /* allow absolute positioning for button */
+    }
+
+        .gateway-page h1 {
+            margin: 0;
+            font-size: 36px;
+            margin-bottom: 10px;
+        }
+
+        .gateway-page h3 {
+            margin: 0;
+            font-size: 18px;
+            margin-bottom: 30px;
+        }
+
+        /* Top-right button */
+        .gateway-page .top-right-btn {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            padding: 12px 25px;
+            font-size: 16px;
+            border: none;
+            border-radius: 6px;
+            background-color: #d4af37; /* gold color */
+            color: white;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+            .gateway-page .top-right-btn:hover {
+                background-color: #c29f2f; /* darker gold on hover */
+            }
+</style>
+
+<div class="gateway-page">
+    <button class="top-right-btn" onclick="window.location.href='/Admin/AddEmployee'">+ Add Employee</button>
+
+</div>

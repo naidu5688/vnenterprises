@@ -1,0 +1,585 @@
+﻿@{
+    Layout = "~/Views/Shared/_SharedLayout_Admin.cshtml";
+}
+@model vnenterprises.Models.EmployeeModel
+
+<style>
+    body {
+        /* background-color: #2e7d5d; */
+        font-family: 'Segoe UI', sans-serif;
+        /* color: white; */
+    }
+
+    .page-container {
+        max-width: 100%;
+        background: #17362e; /* dark green */
+        padding: 25px;
+    }
+
+    h3, h4 {
+        color: #d4af37;
+        margin-bottom: 18px;
+        font-weight: 600;
+    }
+
+    label {
+        font-size: 13px;
+        font-weight: 500;
+        color: white;
+    }
+
+    .form-control {
+        height: 38px;
+        border-radius: 6px;
+        border: 1px solid #d4af37;
+        background: #1e4a37;
+        color: white;
+        padding: 6px 10px;
+        font-size: 13px;
+        width: 100%;
+    }
+
+    input::placeholder {
+        color: #ccc;
+    }
+
+    /* Slightly bigger checkboxes (~15px) */
+    input[type="checkbox"] {
+        transform: scale(1.2);
+        cursor: pointer;
+        margin-right: 5px;
+    }
+
+    /* Manager Details: 2-column layout */
+    .manager-details {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 18px;
+        margin-bottom: 20px;
+    }
+
+    .img-details {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 18px;
+        margin-bottom: 20px;
+    }
+    /* Platform & Gateway cards */
+    .card {
+        border: 1px solid #d4af37;
+        border-radius: 10px;
+        margin-bottom: 12px;
+        background: #1e4a37;
+    }
+
+    .card-header {
+        padding: 10px 14px;
+        font-weight: 600;
+        color: white;
+        border-bottom: 1px solid #d4af37;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .card-body {
+        padding: 10px 12px;
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 10px;
+    }
+
+    .form-check-label {
+        color: white;
+        font-size: 12px;
+    }
+
+    /* Bank & Branch allocation */
+    .bank-box {
+        border: 1px solid #d4af37;
+        border-radius: 6px;
+        padding: 8px 10px;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        color: white;
+        font-size: 12px;
+        background: #1e4a37;
+    }
+
+    /* Permissions */
+    .permission-card {
+        background: #1e4a37;
+        border: 1px solid #d4af37;
+        border-radius: 10px;
+        padding: 12px;
+        margin-top: 12px;
+    }
+
+    .permission-row {
+        display: grid;
+        grid-template-columns: 2fr 1fr 1fr 1fr;
+        align-items: center;
+        gap: 10px;
+        padding: 8px 0;
+        font-size: 12px;
+    }
+
+        .permission-row strong {
+            color: #d4af37;
+        }
+
+    .btn-primary {
+        background-color: #d4af37;
+        color: #1e4a37;
+        border-radius: 30px;
+        padding: 10px 30px;
+        border: 2px solid #1b5e20;
+        font-weight: 600;
+        cursor: pointer;
+        margin-top: 12px;
+    }
+
+        .btn-primary:hover {
+            background-color: #c29f2f;
+        }
+
+    /* 2-column layout for Platforms/Banks/Branches */
+    .two-column {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 18px;
+        margin-bottom: 15px;
+    }
+
+    .three-column {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 18px;
+        margin-bottom: 15px;
+    }
+    /* Permissions */
+    .permission-card {
+        background: #1e4a37;
+        border: 1px solid #d4af37;
+        border-radius: 10px;
+        padding: 12px;
+        margin-top: 12px;
+    }
+
+    .permission-row {
+        display: grid;
+        grid-template-columns: 2fr 1fr 1fr 1fr;
+        align-items: center;
+        gap: 10px;
+        padding: 8px 0;
+        font-size: 15px;
+        color: white;
+    }
+
+        /* Align checkboxes to the left in each column */
+        .permission-row input[type="checkbox"] {
+            justify-self: start;
+        }
+
+        .permission-row strong {
+            color: #d4af37;
+        }
+
+    .image-upload-box {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start; /* align everything to left */
+        margin-bottom: 15px;
+    }
+
+    .btn-upload {
+        padding: 6px 12px;
+        font-size: 13px;
+        background: #d4af37;
+        color: #1e4a37;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+    }
+
+        .btn-upload:hover {
+            background: #c29f2f;
+        }
+
+    .image-preview {
+        max-height: 80px;
+        border: 1px solid #d4af37;
+        border-radius: 6px;
+        display: block;
+        margin-top: 6px;
+    }
+
+    .delete-btn {
+        padding: 4px 10px;
+        font-size: 12px;
+        background: #8d2525;
+        color: #1e4a37;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        display: none; /* hidden until image is loaded */
+        margin-top: 6px; /* ensures below image */
+    }
+
+        .delete-btn:hover {
+            background: #c29f2f;
+        }
+
+    .file-name {
+        color: white;
+        font-size: 12px;
+        margin-top: 4px;
+    }
+
+
+</style>
+
+<div class="page-container">
+
+    <h3>Add Reatailer</h3>
+
+    <form asp-action="AddRetailer"  asp-controller="Admin"   method="post" enctype="multipart/form-data" onsubmit="return validateForm()">
+
+        <!-- Manager Details -->
+        <div class="manager-details">
+            <div>
+                <label>First Name</label>
+                <input asp-for="FirstName" class="form-control" placeholder="First Name" required />
+            </div>
+            <div>
+                <label>Last Name</label>
+                <input asp-for="LastName" class="form-control" placeholder="Last Name" required />
+            </div>
+            <div>
+                <label>Mobile Number</label>
+                <input asp-for="MobileNumber" class="form-control" type="text" placeholder="10 Digit Mobile Number" maxlength="10" oninput="this.value=this.value.replace(/[^0-9]/g,'').slice(0,10)" required />
+            </div>
+            <div>
+                <label>MPIN</label>
+                <input asp-for="MPIN" type="text" class="form-control" placeholder="4 Digit MPIN" maxlength="4" oninput="this.value=this.value.replace(/[^0-9]/g,'').slice(0,4)" required />
+            </div>
+            <div>
+                <label>Password</label>
+                <input asp-for="Password" type="password" class="form-control" placeholder="Password" required />
+            </div>
+            <div>
+                <label>Confirm Password</label>
+                <input asp-for="ConfirmPassword" type="password" class="form-control" placeholder="Confirm Password" required />
+            </div>
+            <div>
+                <label>Aadhar Number</label>
+                <input asp-for="AadhaarNumber" type="password" class="form-control" placeholder="Aadhar Number" required />
+            </div>
+            <div>
+                <label>PAN Number</label>
+                <input asp-for="PanNumber" type="password" class="form-control" placeholder="PAN Number" required />
+            </div>
+        </div>
+        <h4>Documents</h4>
+
+        <div class="img-details">
+
+            <div>
+                <label>Aadhaar Front Image *</label>
+                <div class="image-upload-box">
+                    <!-- Hidden file input -->
+                    <input asp-for="AadhaarFrontImage"
+                           type="file"
+                           class="image-input"
+                           accept="image/*"
+                           style="display:none;" />
+
+                    <!-- Custom upload button -->
+                    <button type="button" class="btn-upload" style="color:white;">Upload Image</button>
+
+                    <!-- Display filename -->
+                    <div class="file-name" style="color:white; font-size:12px; margin-top:4px;"></div>
+
+                    <!-- Image preview -->
+                    <div class="image-preview-wrapper" style="margin-top:4px;">
+                        <img class="image-preview" style="display:none;" />
+                    </div>
+
+                    <!-- Delete button -->
+                    <button type="button" class="delete-btn" style="display:none; color:white; margin-top:4px;">Delete</button>
+                </div>
+            </div>
+
+            <div>
+                <label>Aadhaar Back Image *</label>
+                <div class="image-upload-box">
+                    <input asp-for="AadhaarBackImage"
+                           type="file"
+                           class="image-input"
+                           accept="image/*"
+                           style="display:none;" />
+
+                    <!-- Custom upload button -->
+                    <button type="button" class="btn-upload" style="color:white;">Upload Image</button>
+
+                    <!-- Display filename -->
+                    <div class="file-name" style="color:white; font-size:12px; margin-top:4px;"></div>
+
+                    <!-- Image preview -->
+                    <div class="image-preview-wrapper" style="margin-top:4px;">
+                        <img class="image-preview" style="display:none;" />
+                    </div>
+
+                    <!-- Delete button -->
+                    <button type="button" class="delete-btn" style="display:none; color:white;margin-top:4px;">Delete</button>
+                </div>
+
+            </div>
+
+            <div>
+                <label>PAN Front Image *</label>
+                <div class="image-upload-box">
+                    <input asp-for="PanFrontImage"
+                           type="file"
+                           class="image-input"
+                           accept="image/*"
+                           style="display:none;" />
+
+                    <!-- Custom upload button -->
+                    <button type="button" class="btn-upload" style="color:white;">Upload Image</button>
+
+                    <!-- Display filename -->
+                    <div class="file-name" style="color:white; font-size:12px; margin-top:4px;"></div>
+
+                    <!-- Image preview -->
+                    <div class="image-preview-wrapper" style="margin-top:4px;">
+                        <img class="image-preview" style="display:none;" />
+                    </div>
+
+                    <!-- Delete button -->
+                    <button type="button" class="delete-btn" style="display:none; color:white;margin-top:4px;">Delete</button>
+                </div>
+
+            </div>
+
+            <div>
+                <label>PAN Back Image (Optional)</label>
+                <div class="image-upload-box">
+                    <input asp-for="PanBackImage"
+                           type="file"
+                           class="image-input"
+                           accept="image/*"
+                           style="display:none;" />
+
+                    <!-- Custom upload button -->
+                    <button type="button" class="btn-upload" style="color:white;">Upload Image</button>
+
+                    <!-- Display filename -->
+                    <div class="file-name" style="color:white; font-size:12px; margin-top:4px;"></div>
+
+                    <!-- Image preview -->
+                    <div class="image-preview-wrapper" style="margin-top:4px;">
+                        <img class="image-preview" style="display:none;" />
+                    </div>
+
+                    <!-- Delete button -->
+                    <button type="button" class="delete-btn" style="display:none; color:white;margin-top:4px;">Delete</button>
+                </div>
+
+            </div>
+
+        </div>
+
+        <!-- Platforms & Gateways -->
+        <h4>Platform & Gateway Allocation</h4>
+        <div class="two-column">
+            @foreach (var platform in Model.PlatformGatewayModel.Platforms)
+            {
+                <div class="card">
+                    <div class="card-header">
+                        @platform.Name
+                    </div>
+                    <div class="card-body">
+                        @foreach (var gateway in Model.PlatformGatewayModel.Gateways.Where(g => g.PlatformName == platform.Name))
+                        {
+                            <div class="form-check">
+                                <input type="checkbox" class="form-check-input" name="SelectedGateways" value="@gateway.Id" />
+                                <label class="form-check-label">@gateway.Name</label>
+                            </div>
+                        }
+                    </div>
+                </div>
+            }
+        </div>
+
+
+        <!-- Banks -->
+        <!-- Branches -->
+        @* <h4>Branch Allocation</h4>
+        <div class="three-column">
+            @foreach (var branch in Model.branchmodel)
+            {
+                <div class="bank-box">
+                    <input type="checkbox" name="SelectedBranches" class="branch-checkbox"  value="@branch.BranchId" />
+                    @branch.BranchName
+                </div>
+            }
+        </div> *@
+
+
+
+        <div class="text-end">
+            <button type="submit" class="btn-primary">Add Retailer</button>
+        </div>
+
+    </form>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+
+        // ---------------- IMAGE UPLOAD ----------------
+        document.querySelectorAll('.image-upload-box').forEach(box => {
+            const fileInput = box.querySelector('.image-input');
+            const uploadBtn = box.querySelector('.btn-upload');
+            const preview = box.querySelector('.image-preview');
+            const deleteBtn = box.querySelector('.delete-btn');
+            const fileNameDiv = box.querySelector('.file-name');
+
+            // Click on custom button opens file input
+            uploadBtn.addEventListener('click', () => fileInput.click());
+
+            // Show preview & filename when file selected
+            fileInput.addEventListener('change', () => {
+                if (fileInput.files && fileInput.files[0]) {
+                    const reader = new FileReader();
+                    reader.onload = function (e) {
+                        preview.src = e.target.result;
+                        preview.style.display = 'block';
+                        deleteBtn.style.display = 'inline-block';
+                        fileNameDiv.textContent = fileInput.files[0].name;
+                    };
+                    reader.readAsDataURL(fileInput.files[0]);
+                }
+            });
+
+            // Delete image
+            deleteBtn.addEventListener('click', () => {
+                fileInput.value = '';
+                preview.src = '';
+                preview.style.display = 'none';
+                deleteBtn.style.display = 'none';
+                fileNameDiv.textContent = '';
+            });
+
+            // Fullscreen image click
+            preview.addEventListener('click', () => openFullscreen(preview.src));
+        });
+
+        function openFullscreen(src) {
+            const overlay = document.createElement('div');
+            overlay.style.position = 'fixed';
+            overlay.style.top = '0';
+            overlay.style.left = '0';
+            overlay.style.width = '100%';
+            overlay.style.height = '100%';
+            overlay.style.background = 'rgba(0,0,0,0.9)';
+            overlay.style.display = 'flex';
+            overlay.style.alignItems = 'center';
+            overlay.style.justifyContent = 'center';
+            overlay.style.zIndex = '99999';
+            overlay.style.cursor = 'zoom-out';
+
+            const img = document.createElement('img');
+            img.src = src;
+            img.style.maxWidth = '80%';
+            img.style.maxHeight = '80%';
+            img.style.borderRadius = '10px';
+            img.style.boxShadow = '0 0 20px #000';
+
+            overlay.appendChild(img);
+            overlay.onclick = () => document.body.removeChild(overlay);
+            document.body.appendChild(overlay);
+        }
+
+        // ---------------- BRANCH SELECTION ----------------
+        const branchCheckboxes = document.querySelectorAll('.branch-checkbox');
+
+        branchCheckboxes.forEach(chk => {
+            chk.addEventListener('change', function () {
+
+                // If trying to select another when one is already selected
+                if (this.checked) {
+                    const checkedCount = document.querySelectorAll('.branch-checkbox:checked').length;
+
+                    if (checkedCount > 1) {
+                        this.checked = false;
+                        alert("You can select only ONE branch");
+                    }
+                }
+            });
+        });
+
+        // ---------------- FORM VALIDATION ----------------
+        const form = document.querySelector('form');
+        form.onsubmit = function validateForm() {
+
+            const password = document.querySelector('[name="Password"]').value;
+            const confirmPassword = document.querySelector('[name="ConfirmPassword"]').value;
+            const mobile = document.querySelector('[name="MobileNumber"]').value;
+            const mpin = document.querySelector('[name="MPIN"]').value;
+
+            if (password !== confirmPassword) {
+                alert("Passwords do not match");
+                return false;
+            }
+
+            if (mobile.length !== 10) {
+                alert("Mobile number must be 10 digits");
+                return false;
+            }
+
+            if (mpin.length !== 4) {
+                alert("MPIN must be 4 digits");
+                return false;
+            }
+
+            const aadhaarFront = document.querySelector('[name="AadhaarFrontImage"]');
+            const aadhaarBack  = document.querySelector('[name="AadhaarBackImage"]');
+            const panFront     = document.querySelector('[name="PanFrontImage"]');
+
+            if (!aadhaarFront.files || aadhaarFront.files.length === 0) {
+                alert("Please upload Aadhaar Front Image");
+                return false;
+            }
+
+            if (!aadhaarBack.files || aadhaarBack.files.length === 0) {
+                alert("Please upload Aadhaar Back Image");
+                return false;
+            }
+
+            if (!panFront.files || panFront.files.length === 0) {
+                alert("Please upload PAN Front Image");
+                return false;
+            }
+            // At least one Gateway
+            if (document.querySelectorAll('input[name="SelectedGateways"]:checked').length === 0) {
+                alert("Select at least one Gateway");
+                return false;
+            }
+
+            // Exactly one Branch
+            const selectedBranches = document.querySelectorAll('.branch-checkbox:checked');
+            if (selectedBranches.length === 0) {
+                alert("Select one Branch");
+                return false;
+            }
+
+            return true;
+        }
+
+    });
+</script>
+
+

@@ -1,0 +1,432 @@
+﻿@{
+    Layout = "~/Views/Shared/_SharedLayout_Admin.cshtml";
+}
+@model vnenterprises.Models.CustomerModel
+
+<style>
+    body {
+        font-family: 'Segoe UI', sans-serif;
+        background: #17362e;
+        margin: 0;
+    }
+
+    .page-container {
+        padding: 25px;
+        max-width: 1200px;
+        margin: auto;
+        background: #17362e;
+    }
+
+    h3, h4 {
+        color: #d4af37;
+        margin-bottom: 18px;
+        font-weight: 600;
+    }
+
+    label {
+        color: white;
+        font-size: 13px;
+        font-weight: 500;
+        display: block;
+        margin-bottom: 5px;
+    }
+
+    .form-control {
+        height: 38px;
+        border-radius: 6px;
+        border: 1px solid #d4af37;
+        background: #1e4a37;
+        color: white;
+        font-size: 13px;
+        width: 100%;
+        padding: 6px 10px;
+    }
+
+    input::placeholder {
+        color: #ccc;
+    }
+
+    /* Grid Layouts */
+    .manager-details {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 18px;
+        margin-bottom: 20px;
+    }
+
+    .img-details {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 18px;
+        margin-bottom: 20px;
+    }
+
+    /* IMAGE UPLOAD */
+    .image-upload-box {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        margin-bottom: 15px;
+    }
+
+    .btn-upload {
+        padding: 6px 12px;
+        font-size: 13px;
+        background: #d4af37;
+        color: #1e4a37;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+    }
+
+        .btn-upload:hover {
+            background: #c29f2f;
+        }
+
+    .image-preview {
+        max-height: 80px;
+        border: 1px solid #d4af37;
+        border-radius: 6px;
+        display: block;
+        margin-top: 6px;
+    }
+
+    .delete-btn {
+        padding: 4px 10px;
+        font-size: 12px;
+        background: #8d2525;
+        color: #1e4a37;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        display: none;
+        margin-top: 6px;
+    }
+
+        .delete-btn:hover {
+            background: #c29f2f;
+        }
+
+    .file-name {
+        color: white;
+        font-size: 12px;
+        margin-top: 4px;
+    }
+
+    /* Credit Card Table */
+    .card-section {
+        background: #1e4a37;
+        border: 1px solid #d4af37;
+        border-radius: 10px;
+        padding: 12px;
+        margin-top: 20px;
+    }
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 10px;
+        table-layout: fixed;
+        word-wrap: break-word;
+    }
+
+    th, td {
+        border: 1px solid #d4af37;
+        padding: 10px;
+        text-align: center;
+        color: white;
+        font-size: 13px;
+    }
+
+    th {
+        color: #d4af37;
+    }
+
+    .action-btns button {
+        margin: 0 2px;
+        min-width: 60px;
+    }
+
+    .btn-primary {
+        background-color: #d4af37;
+        color: #1e4a37;
+        border-radius: 30px;
+        padding: 10px 30px;
+        border: 2px solid #1b5e20;
+        font-weight: 600;
+        cursor: pointer;
+        margin-top: 12px;
+    }
+
+        .btn-primary:hover {
+            background-color: #c29f2f;
+        }
+
+    .btn-danger {
+        background: #8d2525;
+        color: white;
+        padding: 10px 20px;
+        border: none;
+        cursor: pointer;
+        border-radius: 6px;
+    }
+
+    /* Modal */
+    .modal-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(0,0,0,0.75);
+        display: none;
+        align-items: center;
+        justify-content: center;
+        z-index: 9999;
+    }
+
+    .modal-box {
+        background: #17362e;
+        border: 1px solid #d4af37;
+        border-radius: 12px;
+        padding: 20px;
+        width: 520px;
+    }
+
+    .modal-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 10px;
+        margin-top: 15px;
+    }
+
+    .grid-2 {
+        display: grid;
+        grid-template-columns: repeat(2,1fr);
+        gap: 18px;
+        margin-bottom: 15px;
+    }
+</style>
+
+<div class="page-container">
+    <h3>Add Customer</h3>
+    <form asp-action="AddCustomer" asp-controller="Admin" method="post" enctype="multipart/form-data">
+
+        <!-- Customer Details -->
+        <div class="manager-details">
+            <div>
+                <label>First Name</label>
+                <input asp-for="FirstName" class="form-control" placeholder="First Name" required />
+            </div>
+            <div>
+                <label>Last Name</label>
+                <input asp-for="LastName" class="form-control" placeholder="Last Name" required />
+            </div>
+            <div>
+                <label>Mobile Number</label>
+                <input asp-for="PhoneNumber" class="form-control" type="text" placeholder="10 Digit Mobile Number" maxlength="10" oninput="this.value=this.value.replace(/[^0-9]/g,'').slice(0,10)" required />
+            </div>
+            <div>
+                <label>Aadhar Number</label>
+                <input asp-for="aadharnumber" type="number" class="form-control" placeholder="Aadhar Number" required />
+            </div>
+            <div>
+                <label>PAN Number</label>
+                <input asp-for="pannumber" type="text" class="form-control" placeholder="PAN Number" required />
+            </div>
+        </div>
+
+        <!-- Documents -->
+        <h4>Documents</h4>
+        <div class="img-details">
+            @foreach (var doc in new[] { "AadhaarFrontImage", "AadhaarBackImage", "PanFrontImage", "PanBackImage" })
+            {
+                <div>
+                    <label>@(doc.Contains("Back") && !doc.Contains("Pan") ? "Aadhaar Back Image *" : doc.Contains("Front") ? doc.Replace("Image", "") + " *" : doc.Replace("Image", ""))</label>
+                    <div class="image-upload-box">
+                        <input asp-for="@doc" type="file" class="image-input" accept="image/*" style="display:none;" />
+                        <button type="button" class="btn-upload">Upload Image</button>
+                        <div class="file-name"></div>
+                        <div class="image-preview-wrapper">
+                            <img class="image-preview" style="display:none;" />
+                        </div>
+                        <button type="button" class="delete-btn">Delete</button>
+                    </div>
+                </div>
+            }
+        </div>
+
+        <!-- Credit Cards -->
+        <h4>Credit Cards</h4>
+        <div class="card-section">
+            <table id="cardTable">
+                <thead>
+                    <tr>
+                        <th>Name On Card</th>
+                        <th>Card Number</th>
+                        <th>Expiry</th>
+                        <th>Type</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+            <div style="text-align:right; margin-top:12px;">
+                <button type="button" class="btn-primary" onclick="openCardModal()">+ Add More Cards</button>
+            </div>
+        </div>
+
+        <div id="hiddenCards"></div>
+        <br />
+        <button type="submit" class="btn-primary">Save Customer</button>
+    </form>
+</div>
+
+<!-- CARD MODAL -->
+<div class="modal-overlay" id="cardModal">
+    <div class="modal-box">
+        <h4>Add/Edit Credit Card</h4>
+        <div class="grid-2">
+            <div><label>Card Holder</label><input id="cardHolder" class="form-control" /></div>
+            <div><label>Card Number</label><input id="cardNumber" class="form-control" maxlength="16" oninput="this.value=this.value.replace(/[^0-9]/g,'')" /></div>
+            <div><label>Expiry (MM/YY)</label><input id="cardExpiry" class="form-control" /></div>
+            <div>
+                <label>Card Type</label>
+                <select id="cardType" class="form-control">
+                    <option value="">Select</option>
+                    <option>Visa</option>
+                    <option>Master</option>
+                    <option>RuPay</option>
+                    <option>Amex</option>
+                </select>
+            </div>
+        </div>
+        <div class="modal-actions">
+            <button type="button" class="btn-danger" onclick="closeCardModal()">Cancel</button>
+            <button type="button" class="btn-primary" onclick="saveCard()">Save</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        // ---------------- IMAGE UPLOAD ----------------
+        document.querySelectorAll('.image-upload-box').forEach(box => {
+            const fileInput = box.querySelector('.image-input');
+            const uploadBtn = box.querySelector('.btn-upload');
+            const preview = box.querySelector('.image-preview');
+            const deleteBtn = box.querySelector('.delete-btn');
+            const fileNameDiv = box.querySelector('.file-name');
+
+            uploadBtn.addEventListener('click', () => fileInput.click());
+
+            fileInput.addEventListener('change', () => {
+                if (fileInput.files && fileInput.files[0]) {
+                    const reader = new FileReader();
+                    reader.onload = function (e) {
+                        preview.src = e.target.result;
+                        preview.style.display = 'block';
+                        deleteBtn.style.display = 'inline-block';
+                        fileNameDiv.textContent = fileInput.files[0].name;
+                    };
+                    reader.readAsDataURL(fileInput.files[0]);
+                }
+            });
+
+            deleteBtn.addEventListener('click', () => {
+                fileInput.value = '';
+                preview.src = '';
+                preview.style.display = 'none';
+                deleteBtn.style.display = 'none';
+                fileNameDiv.textContent = '';
+            });
+
+            preview.addEventListener('click', () => {
+                const overlay = document.createElement('div');
+                overlay.style.position = 'fixed';
+                overlay.style.top = 0;
+                overlay.style.left = 0;
+                overlay.style.width = '100%';
+                overlay.style.height = '100%';
+                overlay.style.background = 'rgba(0,0,0,0.9)';
+                overlay.style.display = 'flex';
+                overlay.style.alignItems = 'center';
+                overlay.style.justifyContent = 'center';
+                overlay.style.zIndex = 99999;
+                overlay.style.cursor = 'zoom-out';
+
+                const img = document.createElement('img');
+                img.src = preview.src;
+                img.style.maxWidth = '80%';
+                img.style.maxHeight = '80%';
+                img.style.borderRadius = '10px';
+                img.style.boxShadow = '0 0 20px #000';
+                overlay.appendChild(img);
+
+                overlay.onclick = () => document.body.removeChild(overlay);
+                document.body.appendChild(overlay);
+            });
+        });
+
+        // ---------------- CREDIT CARDS ----------------
+        let cardIndex = 0, editIndex = null;
+
+        window.openCardModal = function(holder='',number='',expiry='',type='',index=null){
+            document.getElementById('cardModal').style.display='flex';
+            cardHolder.value=holder; cardNumber.value=number; cardExpiry.value=expiry; cardType.value=type;
+            editIndex = index;
+        }
+
+        window.closeCardModal = function(){ document.getElementById('cardModal').style.display='none'; }
+
+        window.saveCard = function(){
+            if(!cardHolder.value || !cardNumber.value || !cardExpiry.value || !cardType.value){ alert("Fill all card details"); return; }
+
+            if(editIndex!==null){
+                let row = cardTable.querySelectorAll('tbody tr')[editIndex];
+                row.cells[0].innerText=cardHolder.value;
+                row.cells[1].innerText=cardNumber.value; // Visible
+                row.cells[2].innerText=cardExpiry.value;
+                row.cells[3].innerText=cardType.value;
+
+                let hidden = hiddenCards.querySelectorAll('input[name^="CreditCards"]');
+                hidden[editIndex*4].value=cardHolder.value;
+                hidden[editIndex*4+1].value=cardNumber.value;
+                hidden[editIndex*4+2].value=cardExpiry.value;
+                hidden[editIndex*4+3].value=cardType.value;
+            } else {
+                const rowIndex = cardTable.querySelectorAll('tbody tr').length;
+                cardTable.querySelector('tbody').insertAdjacentHTML('beforeend',`
+                    <tr>
+                        <td>${cardHolder.value}</td>
+                        <td style="text-align:left; padding-left:10px;">${cardNumber.value}</td>
+                        <td>${cardExpiry.value}</td>
+                        <td>${cardType.value}</td>
+                        <td class="action-btns">
+                            <button type="button" class="btn-primary" onclick="editCard(${rowIndex})">Edit</button>
+                            <button type="button" class="btn-danger" onclick="removeCard(this)">Remove</button>
+                        </td>
+                    </tr>
+                `);
+                hiddenCards.insertAdjacentHTML('beforeend',`
+                    <input type="hidden" name="CreditCards[${cardIndex}].CardHolderName" value="${cardHolder.value}" />
+                    <input type="hidden" name="CreditCards[${cardIndex}].CardNumber" value="${cardNumber.value}" />
+                    <input type="hidden" name="CreditCards[${cardIndex}].ExpiryDate" value="${cardExpiry.value}" />
+                    <input type="hidden" name="CreditCards[${cardIndex}].CardType" value="${cardType.value}" />
+                `);
+                cardIndex++;
+            }
+            closeCardModal();
+        }
+
+        window.editCard = function(rowIndex){
+            const row = cardTable.querySelectorAll('tbody tr')[rowIndex];
+            const hidden = hiddenCards.querySelectorAll('input[name^="CreditCards"]');
+            openCardModal(row.cells[0].innerText, hidden[rowIndex*4+1].value, row.cells[2].innerText, row.cells[3].innerText, rowIndex);
+        }
+
+        window.removeCard = function(btn){
+            const rowIndex=[...btn.closest('tr').parentNode.children].indexOf(btn.closest('tr'));
+            btn.closest('tr').remove();
+            const hidden = hiddenCards.querySelectorAll('input[name^="CreditCards"]');
+            for(let i=0;i<4;i++) hidden[rowIndex*4].remove();
+        }
+    });
+</script>

@@ -1,0 +1,531 @@
+﻿@model vnenterprises.Models.AccountModelHandle;
+<head>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+
+<style>
+    /* Full-page background */
+    .homepage {
+        background-color: #0d3b30;
+        min-height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+    /* Container for form + logo */
+    .form-page {
+        width: 500px;
+        padding: 30px;
+        background-color: #235c4e; /* Slight transparent bg */
+        border-radius: 10px;
+        text-align: center; /* center content */
+    }
+
+    /* Logo image */
+    .logo-img img {
+        height: 90px;
+        width: 90px;
+            
+    }
+
+    h2, h3  {
+        color: white;
+        margin: 5px 0;
+    }
+    .h4 {
+        margin-top: 20px;
+    }
+    h4, h5 {
+        margin: 5px 0;
+    }
+    .form-group {
+        margin-bottom: 15px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .form-control {
+        width: 70%;
+        padding: 10px;
+        border-radius: 10px;
+        border: 1px solid #ccc;
+    }
+
+    .btn-primary {
+        width: 33%;
+        padding: 10px;
+        border-radius: 6px;
+        font-weight: 500;
+        background-color: #a27e12;
+        border: none;
+        color: white;
+        cursor: pointer;
+        margin-top: 20px;
+    }
+
+    .register-link {
+        margin-top: 10px;
+    }
+
+        .register-link a {
+            color: #000;
+            text-decoration: underline;
+            cursor: pointer;
+        }
+    .form-class {
+         margin-top: 20px;
+        background-color: white;
+        border-radius: 15px;
+        width: 80%;
+        margin-left: 40px;
+        height: auto;
+        padding-bottom: 30px;
+    }
+
+    .detailsdiv {
+        background-color: #196351;
+        height: 115px;
+        border-bottom-right-radius: 10px;
+        border-bottom-left-radius: 10px;
+    }
+    #emailidlogin{
+        margin-top: 15px;
+    }
+    .para {
+        color: white;
+        font-size: 13px;
+        font-style: italic;
+    }
+
+    #RegisterForm, #ForgotPasswordForm , #MpinForm {
+        display: none;
+    }
+
+    .input-icon {
+        position: relative;
+        width: 100%;
+    }
+
+        .input-icon i {
+            position: absolute;
+            left: 50px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #888;
+            font-size: 16px;
+/*             pointer-events: none; /* prevents clicking icon */
+ */        }
+
+        .input-icon .form-control {
+            width: 80%;
+            padding-left: 45px; /* space for icon */
+            height: 35px;
+            border-radius: 10px;
+        }
+
+    .fas fa-phone{
+        margin-top: 8px;
+    }
+
+    .url-link {
+        display: flex;
+        justify-content: center;
+        gap: 110px; /* space between links */
+        margin-top: 10px;
+    }
+
+        .url-link p {
+            margin: 0;
+        }
+
+    .forgoturl-link p {
+            margin: 0;
+        }
+    .forgoturl-link{
+        display: flex;
+        justify-content: center;
+        gap: 175px; /* space between links */
+        margin-top: 10px;
+    }
+
+        .forgotmpinurl-link p {
+            margin: 0;
+        }
+
+    .forgotmpinurl-link {
+        display: flex;
+        justify-content: center;
+        gap: 155px; /* space between links */
+        margin-top: 10px;
+    }
+    .top-register-btn {
+        position: fixed;
+        top: 20px;
+        right: 25px;
+        padding: 8px 18px;
+        background-color: #a27e12;
+        color: white;
+        border: none;
+        border-radius: 6px;
+        font-weight: 500;
+        cursor: pointer;
+        z-index: 9999;
+    }
+
+        .top-register-btn:hover {
+            background-color: #8f6d0f;
+        }
+
+    .login-error-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        background-color: rgba(0, 0, 0, 0.4); /* dark overlay */
+        z-index: 9999;
+    }
+
+        .login-error-overlay .alert {
+            min-width: 300px;
+            max-width: 450px;
+            text-align: center;
+            font-size: 16px;
+            padding: 20px;
+            border-radius: 10px;
+            background-color: white;
+        }
+        .text-danger{
+            color: orangered;
+   
+        }
+
+    /* Wrapper */
+    .password-wrapper {
+        position: relative;
+        width: 100%;
+    }
+
+        /* LEFT ICON (lock) */
+        .password-wrapper .left-icon {
+            position: absolute;
+            left: 50px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #888;
+            font-size: 16px;
+            pointer-events: none;
+        }
+
+        /* INPUT */
+        .password-wrapper .form-control {
+            width: 80%;
+            padding-left: 45px;
+            padding-right: 10px; /* ✅ small normal padding */
+            height: 35px;
+            border-radius: 10px;
+        }
+
+    .passcheck {
+        margin-left: -120px;
+        font-size: 14px !important;
+        display: flex; /* enables flexbox */
+        justify-content: center; /* vertical centering */
+        align-items: center; /* horizontal centering (optional) */
+        height: 100%; /* take full height of parent div */
+    }
+
+
+</style>
+
+<div class="homepage">
+    @* <div>
+        <button class="top-register-btn" id="registerbtn" onclick="showForm('RegisterForm')">
+            Register
+        </button>
+    </div> *@
+    @* <div>
+        <button class="top-register-btn" id="signinbtn" onclick="showForm('LogInForm')">
+            SignIn
+        </button>
+    </div>
+    <div>
+        <button class="top-register-btn" id="forgotpasswordbtn" onclick="showForm('ForgotPasswordForm')">
+            Forgot Password
+        </button>
+    </div> *@
+    <div class="form-page" style="height: 700px;" id="LoginForm">
+        <div class="logo-img" style="height: 80px;">
+            <img src="https://images.liquorapps.com/Images/SeoBlog/846fb718-efe0-4a80-9c10-8ff9e9a0b291.webp" />
+        </div>
+        <h2>VN ENTERPRISES</h2>
+        <h4 style="color: white;">Login to your account</h4>
+
+        <form asp-controller="Home" asp-action="LogOn" method="post" class="form-class">
+            <div class="form-group input-icon  password-wrapper">
+                <i class="fas fa-phone" style="margin-top: 8px;"></i>
+                <input asp-for="login.PhoneNumber" type="number" id="emailidlogin" class="form-control" placeholder="Mobile Number"  required/>
+                <span asp-validation-for="login.PhoneNumber" class="text-danger"></span>
+            </div>
+
+            <div class="form-group input-icon  password-wrapper">
+                <i class="fas fa-lock  left-icon"></i>
+                <input asp-for="login.Password" type="password" class="form-control password-field" placeholder="Password" required />
+                <span asp-validation-for="login.Password" class="text-danger"></span>
+            </div>
+            <div class="form-group input-icon">
+                <i class="fas fa-key"></i>
+                <input asp-for="login.MPIN" type="number" class="form-control" placeholder="MPIN (4-digit)" maxlength="4" required oninput="limitMpin(this)" />
+                <span asp-validation-for="login.MPIN" class="text-danger"></span>
+            </div>
+            <div class="form-group" style="width:80%; margin-top:5px;">
+                <label class="passcheck" style="font-size:13px; cursor:pointer;">
+                    <input type="checkbox" onclick="toggleShowPassword(this)">
+                    Show Password
+                </label>
+            </div>
+            <span id="error-msg-signup" class="text-danger">
+                @TempData["LogInError"]
+            </span>
+            <div class="url-link">
+                <p>
+                    <a href="javascript:void(0);" onclick="showForm('MpinForm')">Forgot MPIN?</a>
+                </p><p> 
+                    <a href="javascript:void(0);" onclick="showForm('ForgotPasswordForm')">Forgot Password?</a>
+                </p>
+            </div>
+            <button type="submit" class="btn-primary">Sign In</button>
+
+            @* <h4 style="color: #0d3b30; margin-top: 20px;">2026 VN ENTERPRISES</h4>
+            <h5 style="color: #0d3b30"> Payment Solutions | Stationery | Real Estate</h5>
+            <div class="detailsdiv">
+                <p class="para" style="padding-top: 10px;"><i class="fas fa-map-marker-alt"></i> Amba Complex, Bheemaram, Hanamkonda, 506015</p>
+                <p class="para"><i class="fas fa-envelope"></i> vnenterprisesservices@gmail.com</p>
+                <p class="para"><i class="fas fa-phone"></i> 9392839996  |  7569553725</p>
+            </div> *@
+@*             <div asp-validation-summary="All" class="text-danger"></div>
+ *@
+        </form>
+    </div>
+    <div class="form-page" style="height: 700px;" id="MpinForm">
+        <div class="logo-img">
+            <img src="https://images.liquorapps.com/Images/SeoBlog/846fb718-efe0-4a80-9c10-8ff9e9a0b291.webp" />
+        </div>
+        <h2>VN ENTERPRISES</h2>
+        <h3>Forgot MPIN</h3>
+
+        <form asp-controller="Home" asp-action="MPin" method="post" class="form-class" onsubmit="return validateMpin()">
+            <div class="form-group input-icon">
+                <i class="fas fa-phone" style="margin-top: 8px;"></i>
+                <input asp-for="mpin.PhoneNumber" id="emailidlogin" class="form-control" placeholder="Mobile Number " required />
+                <span asp-validation-for="mpin.PhoneNumber" class="text-danger"></span>
+            </div>
+            <div class="form-group input-icon password-wrapper">
+                <i class="fas fa-lock left-icon"></i>
+                <input asp-for="mpin.Password" type="password" class="form-control password-field" placeholder="Password" required />
+                <span asp-validation-for="mpin.Password" class="text-danger"></span>
+            </div>
+            <div class="form-group input-icon">
+                <i class="fas fa-key"></i>
+                <input asp-for="mpin.Mpin" type="number" class="form-control" placeholder="MPIN" maxlength="4" required oninput="limitMpin(this)" />
+                <span asp-validation-for="mpin.Mpin" class="text-danger"></span>
+            </div>
+            <div class="form-group input-icon">
+                <i class="fas fa-key"></i>
+                <input asp-for="mpin.ConfirmMpin" type="number" class="form-control" placeholder="Confirm MPIN" maxlength="4" required oninput="limitMpin(this)" />
+                <span asp-validation-for="mpin.ConfirmMpin" class="text-danger" id="MpinFormerror"></span>
+            </div>
+            <div class="form-group" style="width:80%; margin-top:5px;">
+                <label class="passcheck" style="font-size:13px; cursor:pointer;">
+                    <input type="checkbox" onclick="toggleShowPassword(this)">
+                    Show Password
+                </label>
+            </div>
+            <span id="error-msg-mpin" class="text-danger">
+                @TempData["MpinError"]
+            </span>
+
+            <div class="forgotmpinurl-link">
+                <p>
+                    <a href="javascript:void(0);" onclick="showForm('LoginForm')">Sign In</a>
+                </p><p>
+                    <a href="javascript:void(0);" onclick="showForm('ForgotPasswordForm')">Forgot Password?</a>
+                </p>
+            </div>
+            <button type="submit" class="btn-primary">SET MPIN</button>
+
+
+
+        </form>
+    </div>
+    <div class="form-page" style="height: 700px;" id="ForgotPasswordForm">
+        <div class="logo-img">
+            <img src="https://images.liquorapps.com/Images/SeoBlog/846fb718-efe0-4a80-9c10-8ff9e9a0b291.webp" />
+        </div>
+        <h2>VN ENTERPRISES</h2>
+        <h3>Forgot Password</h3>
+
+        <form asp-controller="Home" asp-action="ForgotPassword" method="post" class="form-class" onsubmit="return passwordSubmitCheck()">
+            <div class="form-group input-icon">
+                <i class="fas fa-phone" style="margin-top: 8px;"></i>
+                <input asp-for="forgotpassword.PhoneNumber" type="number" id="emailidlogin" class="form-control" placeholder="Mobile Number " required />
+                <span asp-validation-for="forgotpassword.PhoneNumber" class="text-danger"></span>
+            </div>
+            <div class="form-group input-icon">
+                <i class="fas fa-key"></i>
+                <input asp-for="forgotpassword.MPIN" type="number" class="form-control" placeholder="MPIN" maxlength="4" required oninput="limitMpin(this)" />
+                <span asp-validation-for="forgotpassword.MPIN" class="text-danger"></span>
+            </div>
+            <div class="form-group input-icon password-wrapper">
+                <i class="fas fa-lock left-icon"></i>
+                <input asp-for="forgotpassword.Password" type="password" class="form-control password-field" placeholder="Password" required oninput="validatePasswords()" />
+                <span asp-validation-for="forgotpassword.Password" class="text-danger"></span>
+            </div>
+            <div class="form-group  input-icon password-wrapper">
+                <i class="fas fa-lock left-icon"></i>
+                <input asp-for="forgotpassword.ConfirmPassword" type="password" class="form-control password-field" placeholder="Confirm Password" required oninput="validatePasswords()" />
+                <span asp-validation-for="forgotpassword.ConfirmPassword" class="text-danger" id="Passworderror"></span>
+            </div>  
+            <div class="form-group" style="width:80%; margin-top:5px;">
+                <label class="passcheck" style="font-size:13px; cursor:pointer;">
+                    <input type="checkbox" onclick="toggleShowPassword(this)">
+                    Show Password
+                </label>
+            </div>
+            <span id="error-msg-password" class="text-danger">
+                @TempData["PasswordError"]
+            </span>
+
+            <div class="forgoturl-link">
+                <p>
+                    <a href="javascript:void(0);" onclick="showForm('LoginForm')">Sign In</a>
+                </p><p>
+                    <a href="javascript:void(0);" onclick="showForm('MpinForm')">Forgot MPIN?</a>
+                </p>
+            </div>
+            
+            <button type="submit" class="btn-primary">Update Password</button>
+
+
+        </form>
+
+    </div>
+    @* @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success">
+            @TempData["SuccessMessage"]
+        </div>
+    } *@
+
+
+
+</div>
+<script>
+    function showForm(formId) {
+        // Hide all forms
+        document.getElementById("LoginForm").style.display = "none";
+        document.getElementById("MpinForm").style.display = "none";
+        document.getElementById("ForgotPasswordForm").style.display = "none";
+        //document.getElementById("registerbtn").style.display = "none";
+        
+        // Show selected form
+        document.getElementById(formId).style.display = "block";
+    }
+
+    setTimeout(() => {
+        const el = document.querySelector('.login-error-overlay');
+        if (el) el.style.display = 'none';
+    }, 1500);
+
+    function validatePasswords() {
+        const password = document.querySelector('[name="forgotpassword.Password"]');
+        const confirm = document.querySelector('[name="forgotpassword.ConfirmPassword"]');
+        const error = document.getElementById('passwordMatchError');
+
+        password.value = password.value.replace(/\s/g, '');
+        confirm.value = confirm.value.replace(/\s/g, '');
+
+        if (password.value && confirm.value && password.value !== confirm.value) {
+            error.innerText = "Passwords do not match";
+        } else {
+            error.innerText = "";
+        }
+    }
+
+
+    function passwordSubmitCheck() {
+        const password = document.querySelector('[name="forgotpassword.Password"]').value;
+        const confirm = document.querySelector('[name="forgotpassword.ConfirmPassword"]').value;
+
+            if (password !== confirm) {
+                document.getElementById("Passworderror").innerText = "Passwords must match";
+                return false;
+            } else {
+                document.getElementById("Passworderror").innerText = "";
+            }
+
+        return true;
+    }
+     function limitMpin(input) {
+        // remove non-numbers
+        input.value = input.value.replace(/\D/g, '');
+
+        // allow only first 4 digits
+        if (input.value.length > 4) {
+            input.value = input.value.slice(0, 4);
+        }
+    }
+    function validateMpin() {
+        const mpin = document.querySelector('[name="mpin.Mpin"]').value;
+        const confirmMpin = document.querySelector('[name="mpin.ConfirmMpin"]').value;
+        const error = document.getElementById("MpinFormerror");
+
+        if (mpin.length !== 4 || confirmMpin.length !== 4) {
+            error.innerText = "MPIN must be exactly 4 digits";
+            return false;
+        }
+
+        // Must match
+        if (mpin !== confirmMpin) {
+            document.getElementById("MpinFormerror").innerText = "MPIN must match";
+            return false;
+        }
+        else{
+
+        document.getElementById("MpinFormerror").innerText = "";
+        }
+
+        return true;
+    }
+
+    function removeSpaces(input) {
+        input.value = input.value.replace(/\s/g, '');
+    }
+
+    function toggleShowPassword(checkbox) {
+        const form = checkbox.closest("form");
+        const passwords = form.querySelectorAll(".password-field");
+
+        passwords.forEach(input => {
+            input.type = checkbox.checked ? "text" : "password";
+        });
+    }
+
+
+</script>
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        var activeForm = '@ViewBag.ActiveForm';
+        if (activeForm) {
+            showForm(activeForm);
+        } else {
+            showForm("LoginForm");
+        }
+    });
+</script>
+
