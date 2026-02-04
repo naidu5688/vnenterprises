@@ -107,44 +107,52 @@ namespace vnenterprises.Support
         public ResultResponse UpdateorInsertEmployee(EmployeeModel model, int UserId)
         {
             var response = new ResultResponse();
-            using (SqlConnection con = new SqlConnection(_connectionString))
-            using (SqlCommand cmd = new SqlCommand("vn_InsertorupdateEmployee", con))
+            try
             {
-                cmd.CommandType = CommandType.StoredProcedure;
+                using (SqlConnection con = new SqlConnection(_connectionString))
+                using (SqlCommand cmd = new SqlCommand("vn_InsertorupdateEmployee", con))
+                {
+                    cmd.CommandType = CommandType.StoredProcedure;
 
-                cmd.Parameters.AddWithValue("@EmployeeId", model.EmployeeId);
-                cmd.Parameters.AddWithValue("@UserFirstName", model.FirstName);
-                cmd.Parameters.AddWithValue("@UserLastName", model.LastName);
-                cmd.Parameters.AddWithValue("@MobileNumber", model.MobileNumber);
-                cmd.Parameters.AddWithValue("@Password", model.Password);
-                cmd.Parameters.AddWithValue("@MPIN", model.MPIN);
-                cmd.Parameters.AddWithValue("@AadhaarNumber", model.AadhaarNumber);
-                cmd.Parameters.AddWithValue("@PanNumber", model.PanNumber);
-                cmd.Parameters.AddWithValue("@AadhaarFrontImage", model.AadhaarFrontImage);
-                cmd.Parameters.AddWithValue("@AadhaarBackImage", model.AadhaarBackImage);
-                cmd.Parameters.AddWithValue("@PanFrontImage", model.PanFrontImage);
-                cmd.Parameters.AddWithValue("@PanBackImage", model.PanBackImage);
-                cmd.Parameters.Add(new SqlParameter("@SelectedGateways", SqlDbType.Structured)
-                {
-                    TypeName = "dbo.IntList",
-                    Value = ToIntListTable(model.SelectedGateways)
-                });
-                cmd.Parameters.Add(new SqlParameter("@SelectedBranches", SqlDbType.Structured)
-                {
-                    TypeName = "dbo.IntList",
-                    Value = ToIntListTable(model.SelectedBranches)
-                });
-                 cmd.Parameters.AddWithValue("@UserId", UserId);
+                    cmd.Parameters.AddWithValue("@EmployeeId", model.EmployeeId);
+                    cmd.Parameters.AddWithValue("@UserFirstName", model.FirstName);
+                    cmd.Parameters.AddWithValue("@UserLastName", model.LastName);
+                    cmd.Parameters.AddWithValue("@MobileNumber", model.MobileNumber);
+                    cmd.Parameters.AddWithValue("@Password", model.Password);
+                    cmd.Parameters.AddWithValue("@MPIN", model.MPIN);
+                    cmd.Parameters.AddWithValue("@AadhaarNumber", model.AadhaarNumber);
+                    cmd.Parameters.AddWithValue("@PanNumber", model.PanNumber);
+                    cmd.Parameters.AddWithValue("@AadhaarFrontImage", model.aadharfrontpath);
+                    cmd.Parameters.AddWithValue("@AadhaarBackImage", model.aadharbackpath);
+                    cmd.Parameters.AddWithValue("@PanFrontImage", model.panfrontpath);
+                    cmd.Parameters.AddWithValue("@PanBackImage", model.panbackpath ?? "");
+                    cmd.Parameters.Add(new SqlParameter("@SelectedGateways", SqlDbType.Structured)
+                    {
+                        TypeName = "dbo.IntList",
+                        Value = ToIntListTable(model.SelectedGateways)
+                    });
+                    cmd.Parameters.Add(new SqlParameter("@SelectedBranches", SqlDbType.Structured)
+                    {
+                        TypeName = "dbo.IntList",
+                        Value = ToIntListTable(model.SelectedBranches)
+                    });
+                    cmd.Parameters.AddWithValue("@UserId", UserId);
 
-                con.Open();
-                using SqlDataReader dr = cmd.ExecuteReader();
-                if (dr.Read())
-                {
-                    response.result = Convert.ToInt32(dr["Result"]);
-                    response.StatusMessage = dr["Status"].ToString();
+                    con.Open();
+                    using SqlDataReader dr = cmd.ExecuteReader();
+                    if (dr.Read())
+                    {
+                        response.result = Convert.ToInt32(dr["Result"]);
+                        response.StatusMessage = dr["Status"].ToString();
+                    }
                 }
-            }
 
+            }
+            catch (Exception e)
+            {
+                response.result = 0; ;
+                response.StatusMessage = "Something Wrong. Please Try again.";
+            }
             return response;
         }
         public ManagerModel GetManagerDetails(int ManagerId)
