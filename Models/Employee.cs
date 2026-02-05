@@ -109,4 +109,15 @@ namespace vnenterprises.Models
         public int TransactionsCount { get; set; }
         public List<CreditCardModel> CreditCards { get; set; }
     }
+
+    public class BankModel
+    {
+        public int Id { get; set; }
+        public string Name { get; set; }
+    }
+    public class CreditCardListModel
+    {
+        public int Id { get; set; }
+        public string cardNumber { get; set; }
+    }
 }

@@ -223,8 +223,124 @@
 
     <br>
     <button class="btn-primary" onclick="saveCustomer()">Save Customer</button>
-    <button class="btn-primary" onclick="window.location.href='/Employee/AddTransaction?CustomerId=@Model?.CustomerId'">Add Transaction</button>
+    <button class="btn-primary" onclick="openTransactionModal()">Add Transaction</button>
 </div>
+<div class="modal-overlay" id="transactionModal">
+    <div class="modal-box" style="width:700px">
+
+        <!-- Header -->
+        <div class="flex-header">
+            <h4>Add Transaction</h4>
+            <button class="btn-danger" onclick="closeTransactionModal()">X</button>
+        </div>
+
+        <!-- Body -->
+        <div class="grid-2" style="margin-top:15px">
+
+            <div class="field">
+                <label>Platform</label>
+                <select id="tPlatform" class="form-control"></select>
+            </div>
+
+            <div class="field">
+                <label>Gateway</label>
+                <select id="tGateway" class="form-control"></select>
+            </div>
+
+            <div class="field">
+                <label>Platform Charge (%)</label>
+                <input id="tChargePercent" class="form-control" readonly>
+            </div>
+
+            <div class="field">
+                <label>Transaction Type</label>
+                <select id="tTransactiontype" class="form-control"></select>
+            </div>
+            <div class="field">
+                <label>Card Type</label>
+                <select id="tCard" class="form-control"></select>
+            </div>
+
+            <div class="field">
+                <label>Transaction Amount</label>
+                <input id="tAmount" class="form-control" oninput="calculateAmounts()">
+            </div>
+
+            <div class="field">
+                <label>Charge Amount</label>
+                <input id="tChargeAmount" class="form-control" readonly>
+            </div>
+
+            <div class="field">
+                <label>Employee Charge (%)</label>
+                <input id="tEmpPercent" class="form-control" oninput="calculateAmounts()">
+            </div>
+
+            <div class="field">
+                <label>Final Amount</label>
+                <input id="tFinalAmount" class="form-control" readonly>
+            </div>
+
+            <div class="field">
+                <label>Bank</label>
+                <select id="tBank" class="form-control"></select>
+            </div>
+
+            <div class="field">
+                <label>Account Number</label>
+                <input id="tAccount" class="form-control" type="number">
+            </div>
+
+            <div class="field">
+                <label>IFSC Code</label>
+                <input id="tIfsc" class="form-control">
+            </div>
+
+        </div>
+
+        <!-- Footer -->
+        <div style="text-align:right;margin-top:15px">
+            <button class="btn-danger" onclick="clearTransaction()">Clear</button>
+            <button class="btn-danger" onclick="closeTransactionModal()">Close</button>
+            <button class="btn-primary" onclick="saveTransaction()">Save</button>
+        </div>
+
+    </div>
+</div>
+
+@* <div class="modal-overlay" id="transactionModal">
+    <div class="modal-box" style="width:700px">
+        <div class="flex-header">
+            <h4>Add Transaction</h4>
+            <button class="btn-danger" onclick="closeTransactionModal()">X</button>
+        </div>
+
+        <div class="grid-2" style="margin-top:15px">
+            <select id="tPlatform" class="form-control"></select>
+            <select id="tGateway" class="form-control"></select>
+
+            <input id="tChargePercent" class="form-control" placeholder="Platform Charge %" readonly>
+
+            <select id="tCard" class="form-control"></select>
+
+            <input id="tAmount" class="form-control" placeholder="Amount" oninput="calculateAmounts()">
+            <input id="tChargeAmount" class="form-control" placeholder="Charge Amount" readonly>
+
+            <input id="tEmpPercent" class="form-control" placeholder="Employee Charge %" oninput="calculateAmounts()">
+            <input id="tFinalAmount" class="form-control" placeholder="Final Amount" readonly>
+
+            <select id="tBank" class="form-control"></select>
+            <input id="tAccount" class="form-control" placeholder="Bank Account Number">
+            <input id="tIfsc" class="form-control" placeholder="IFSC Code">
+        </div>
+
+        <div style="text-align:right;margin-top:15px">
+            <button class="btn-danger" onclick="clearTransaction()">Clear</button>
+            <button class="btn-danger" onclick="closeTransactionModal()">Close</button>
+            <button class="btn-primary" onclick="saveTransaction()">Save</button>
+        </div>
+    </div>
+</div> *@
 
 <div class="modal-overlay" id="cardModal">
     <div class="modal-box">
@@ -367,5 +483,107 @@
             if(res.result>0){alert('✅ Customer updated successfully'); location.reload();}
             else{alert('❌ '+(res.StatusMessage||'Something went wrong'));}
         }).catch(err=>alert('Error saving customer'));
+    }
+</script>
+<script>
+    let platforms = [], gateways = [], cardsList = [], banks = [] , TransactionTypes = [];
+
+    function openTransactionModal() {
+        debugger
+        document.getElementById("transactionModal").style.display = "flex";
+
+        fetch('/Employee/GetPlatforms').then(r=>r.json()).then(d=>{
+            platforms=d;
+            tPlatform.innerHTML='<option value="">-- Select Platform --</option>';
+            d.forEach(x=>tPlatform.innerHTML+=`<option value="${x.id}">${x.name}</option>`);
+        });
+
+        fetch('/Employee/GetCustomerCards?customerId='+customerId).then(r=>r.json()).then(d=>{
+            cardsList=d;
+            tCard.innerHTML='<option value="">-- Select Card --</option>';
+            d.forEach(x=>tCard.innerHTML+=`<option value="${x.id}">${x.cardNumber}</option>`);
+        });
+
+        fetch('/Employee/GetBanks').then(r=>r.json()).then(d=>{
+            banks=d;
+            tBank.innerHTML='<option value="">-- Select Bank --</option>';
+            d.forEach(x=>tBank.innerHTML+=`<option value="${x.id}">${x.name}</option>`);
+        });
+        debugger
+        fetch('/Employee/TranasactionTypes').then(r=>r.json()).then(d=>{
+            TransactionTypes=d;
+            tTransactiontype.innerHTML='<option value="">-- Select Transaction Type --</option>';
+            d.forEach(x=>tTransactiontype.innerHTML+=`<option value="${x.id}">${x.name}</option>`);
+        });
+    }
+
+    function closeTransactionModal(){
+        document.getElementById("transactionModal").style.display="none";
+    }
+    
+    tPlatform.onchange = function(){
+        debugger
+        fetch('/Employee/GetGateways?platformId='+this.value).then(r=>r.json()).then(d=>{
+            gateways=d;
+            tGateway.innerHTML='<option value="">-- Select Gateway --</option>';
+                d.forEach(x =>tGateway.innerHTML +=`<option value="${x.id}" data-charge="${x.charge}">${x.name}</option>`);
+        });
+    };
+
+    tGateway.onchange = function(){
+        debugger
+        let opt=this.options[this.selectedIndex];
+        tChargePercent.value=opt.dataset.charge||0;
+        calculateAmounts();
+    };
+
+    function calculateAmounts(){
+        debugger
+        let amount=parseFloat(tAmount.value||0);
+        let chargeP=parseFloat(tChargePercent.value||0);
+        let empP=parseFloat(tEmpPercent.value||0);
+
+        let chargeAmt=amount*(chargeP/100);
+        let empAmt=amount*(empP/100);
+        let finalAmt=amount-chargeAmt-empAmt;
+
+        tChargeAmount.value=chargeAmt.toFixed(2);
+        tFinalAmount.value=finalAmt.toFixed(2);
+    }
+
+    function clearTransaction(){
+        document.querySelectorAll('#transactionModal input, #transactionModal select')
+        .forEach(x=>x.value='');
+    }
+
+    function saveTransaction(){
+        const data={
+            CustomerId:customerId,
+            PlatformId:tPlatform.value,
+            GatewayId:tGateway.value,
+            CardId:tCard.value,
+            TransactionType:tTransactiontype.value,
+            Amount:tAmount.value,
+            PlatformChargePercent:tChargePercent.value,
+            EmployeeChargePercent:tEmpPercent.value,
+            FinalAmount:tFinalAmount.value,
+            BankId:tBank.value,
+            AccountNumber:tAccount.value,
+            IFSC:tIfsc.value
+        };
+
+        fetch('/Employee/AddTransaction',{
+            method:'POST',
+            headers:{'Content-Type':'application/json'},
+            body:JSON.stringify(data)
+        })
+        .then(r=>r.json())
+        .then(res=>{
+            if(res.result>0){
+                alert('✅ Transaction Saved');
+                closeTransactionModal();
+                clearTransaction();
+            }else alert('❌ Failed to save');
+        });
     }
 </script>

@@ -1,5 +1,7 @@
 ﻿using Microsoft.Data.SqlClient;
+using System.Collections.Generic;
 using System.Data;
+using System.Reflection;
 using System.Reflection.PortableExecutable;
 using vnenterprises.Models;
 
@@ -37,8 +39,125 @@ namespace vnenterprises.Support
             return result != null ? Convert.ToInt32(result) : 0;
         }
 
-       
+        public List<Platforms> GetPlatformlist()
+        {
+            List<Platforms> platlist = new List<Platforms> ();
+            using (SqlConnection con = new SqlConnection(_connectionString))
+            using (SqlCommand cmd = new SqlCommand("vn_GetPlatfotmGateway", con))
+            {
+                cmd.CommandType = CommandType.StoredProcedure;
+                cmd.Parameters.AddWithValue("@PlatformId", 0);
+                cmd.Parameters.AddWithValue("@FlagType", 2);
+                con.Open();
+                using (SqlDataReader dr = cmd.ExecuteReader())
+                {
+                    while (dr.Read())
+                    {
+                        platlist.Add(new Platforms
+                        {
+                            Id = Convert.ToInt32(dr["Id"]),
+                            Name = dr["Name"].ToString()
+                        });
+                    }
+                }
+                return platlist;
+            }
+        }
+        
+        public List<BankModel> GetBankList()
+        {
+            List<BankModel> platlist = new List<BankModel>();
+            using (SqlConnection con = new SqlConnection(_connectionString))
+            using (SqlCommand cmd = new SqlCommand("vn_GetBanks", con))
+            {
+                cmd.CommandType = CommandType.StoredProcedure;
+                con.Open();
+                using (SqlDataReader dr = cmd.ExecuteReader())
+                {
+                    while (dr.Read())
+                    {
+                        platlist.Add(new BankModel
+                        {
+                            Id = Convert.ToInt32(dr["BankId"]),
+                            Name = dr["BankName"].ToString(),
+                        });
+                    }
+                }
+                return platlist;
+            }
+        }
 
+        public List<CreditCardListModel> GetCustomerCardsListList(int CustomerId)
+        {
+            List<CreditCardListModel> platlist = new List<CreditCardListModel>();
+            using (SqlConnection con = new SqlConnection(_connectionString))
+            using (SqlCommand cmd = new SqlCommand("usp_fn_GetCustomerCreditCards", con))
+            {
+                cmd.CommandType = CommandType.StoredProcedure;
+                cmd.Parameters.AddWithValue("@CustomerId", CustomerId);
+                con.Open();
+                using (SqlDataReader dr = cmd.ExecuteReader())
+                {
+                    while (dr.Read())
+                    {
+                        platlist.Add(new CreditCardListModel
+                        {
+                            Id = Convert.ToInt32(dr["CreditCardsId"]),
+                            cardNumber = dr["CardNumber"].ToString(),
+                        });
+                    }
+                }
+                return platlist;
+            }
+        }
+        
+        public List<BankModel> GetTranasactionTypesList()
+        {
+            List<BankModel> platlist = new List<BankModel>();
+            using (SqlConnection con = new SqlConnection(_connectionString))
+            using (SqlCommand cmd = new SqlCommand("usp_fn_GetIncentiveType", con))
+            {
+                cmd.CommandType = CommandType.StoredProcedure;
+                con.Open();
+                using (SqlDataReader dr = cmd.ExecuteReader())
+                {
+                    while (dr.Read())
+                    {
+                        platlist.Add(new BankModel
+                        {
+                            Id = Convert.ToInt32(dr["IncentiveType"]),
+                            Name = dr["IncentiveName"].ToString(),
+                        });
+                    }
+                }
+                return platlist;
+            }
+        }
+        public List<Gateway> GetGatewaylist(int PlatformId)
+        {
+            List<Gateway> platlist = new List<Gateway>();
+            using (SqlConnection con = new SqlConnection(_connectionString))
+            using (SqlCommand cmd = new SqlCommand("vn_GetPlatfotmGateway", con))
+            {
+                cmd.CommandType = CommandType.StoredProcedure;
+                cmd.Parameters.AddWithValue("@PlatformId", PlatformId);
+                cmd.Parameters.AddWithValue("@FlagType", 3);
+                con.Open();
+                using (SqlDataReader dr = cmd.ExecuteReader())
+                {
+                    while (dr.Read())
+                    {
+                        platlist.Add(new Gateway
+                        {
+                            Id = Convert.ToInt32(dr["Id"]),
+                            Name = dr["Name"].ToString(),
+                            Charge = Convert.ToDecimal(dr["Charge"])
+                        });
+                    }
+                }
+                return platlist;
+            }
+        }
         public CustomerModel GetCustomerDetails(int CustomerId)
         {
             var result = new CustomerModel

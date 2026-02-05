@@ -201,11 +201,43 @@ namespace vnenterprises.Controllers
             var access = Response.Cookies.GetType();
             return View();
         }
+        [HttpGet]
+        public  IActionResult GetPlatforms()
+        {
+            var result = _employeesupport.GetPlatformlist();
+            return Json(result);
+        }
+        [HttpGet]
+        public IActionResult GetGateways(int platformId)
+        {
+            if (platformId <= 0)
+                return Json(new List<object>());  
+
+            var result = _employeesupport.GetGatewaylist(platformId);
+            return Json(result);
+        }
+        [HttpGet]
+        public IActionResult GetBanks()
+        {
+            var result = _employeesupport.GetBankList();
+            return Json(result);
+        }
+        [HttpGet]
+        public IActionResult TranasactionTypes()
+        {
+            var result = _employeesupport.GetTranasactionTypesList();
+            return Json(result);
+        }
+        [HttpGet]
+        public IActionResult GetCustomerCards(int customerId)
+        {
+            var result = _employeesupport.GetCustomerCardsListList(customerId);
+            return Json(result);
+        }
         public override void OnActionExecuting(ActionExecutingContext context)
         {
             base.OnActionExecuting(context);
 
-            // Check if cookie exists
             if (Request.Cookies["UserId"] != null)
             {
                 var userId = Convert.ToInt32(Request.Cookies["UserId"]);
