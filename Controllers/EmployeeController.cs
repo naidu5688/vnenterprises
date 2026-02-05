@@ -143,26 +143,6 @@ namespace vnenterprises.Controllers
 
         }
 
-        //private async Task<string> UploadToS3(IFormFile file, string folderName)
-        //{
-        //    string fileExtension = Path.GetExtension(file.FileName);
-        //    string uniqueFileName = $"{Guid.NewGuid()}{fileExtension}";
-
-        //    using (var stream = file.OpenReadStream())
-        //    {
-        //        var response = await _s3support.UploadFileToS3Bucket(
-        //            stream,
-        //            uniqueFileName,
-        //            folderName
-        //        );
-
-        //        if (response != null && response.IsSuccess)
-        //            return response.FileCompletePath;
-
-        //        return string.Empty;
-        //    }
-        //}
-
 
         [HttpGet]
         public IActionResult GetCustomerIdByMobile(string mobile)

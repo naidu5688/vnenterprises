@@ -162,7 +162,8 @@ namespace vnenterprises.Support
         {
             var result = new CustomerModel
             {
-                CreditCards = new List<CreditCardModel>() // ✅ FIX
+                CreditCards = new List<CreditCardModel>() ,// ✅ FIX
+                BanksDetailsModel = new List<BanksDetails>()
             };
 
             using (SqlConnection con = new SqlConnection(_connectionString))
@@ -203,6 +204,20 @@ namespace vnenterprises.Support
                                 CardTypeId = dr["CardTypeId"] != DBNull.Value ? Convert.ToInt32(dr["CardTypeId"]) : 0,
                                 CardCVV = dr["CardCVV"] != DBNull.Value ? Convert.ToInt32(dr["CardCVV"]) : 0,
                                 ExpiryDate = dr["ExpiryDate"]?.ToString() ?? "",
+                                IsActive = dr["IsActive"] != DBNull.Value && Convert.ToBoolean(dr["IsActive"])
+                            });
+                        }
+                    }
+                    if (dr.NextResult())
+                    {
+                        while (dr.Read())
+                        {
+                            result.BanksDetailsModel.Add(new BanksDetails
+                            {
+                                BankId = dr["BankId"] != DBNull.Value ? Convert.ToInt32(dr["BankId"]) : 0,
+                                BankName = dr["BankName"]?.ToString() ?? "",
+                                AccountNumber = dr["AccountNumber"]?.ToString() ?? "",
+                                IFSCCode = dr["IFSCCode"]?.ToString() ?? "",
                                 IsActive = dr["IsActive"] != DBNull.Value && Convert.ToBoolean(dr["IsActive"])
                             });
                         }
@@ -267,84 +282,112 @@ namespace vnenterprises.Support
         //        return result;
         //    }
         //}
-public static DataTable ToDataTable<T>(List<T> list)
-    {
-        DataTable dt = new DataTable();
-
-        if (list == null || list.Count == 0)
-            return dt;
-
-        // Get properties of the type
-        PropertyInfo[] props = typeof(T).GetProperties();
-
-        // Create columns
-        foreach (var prop in props)
+        private DataTable ToIntListTable(List<CreditCardModel> list)
         {
-            dt.Columns.Add(prop.Name, Nullable.GetUnderlyingType(prop.PropertyType) ?? prop.PropertyType);
-        }
+            DataTable dt = new DataTable();
 
-        // Fill rows
-        foreach (var item in list)
-        {
-            var row = dt.NewRow();
-            foreach (var prop in props)
+            dt.Columns.Add("CardTypeId", typeof(int));
+            dt.Columns.Add("NameOnCard", typeof(string));
+            dt.Columns.Add("CardNumber", typeof(string));
+            dt.Columns.Add("ExprityDate", typeof(string));
+            dt.Columns.Add("CardCVV", typeof(int));
+            dt.Columns.Add("IsActive", typeof(bool));
+
+            foreach (var item in list)
             {
-                row[prop.Name] = prop.GetValue(item) ?? DBNull.Value;
+                dt.Rows.Add(
+                    item.CardTypeId,     // int
+                    item.NameOnCard,     // string
+                    item.CardNumber,     // string
+                    item.ExpiryDate,     // string
+                    item.CardCVV,        // int
+                    item.IsActive        // bool
+                );
             }
-            dt.Rows.Add(row);
+
+            return dt;
+        }
+        private DataTable ToIntListTable(List<BanksDetails> list)
+        {
+            DataTable dt = new DataTable();
+
+            dt.Columns.Add("BankId", typeof(int));
+            dt.Columns.Add("BankName", typeof(string));
+            dt.Columns.Add("AccountNumber", typeof(int));
+            dt.Columns.Add("IFSCCode", typeof(string));
+            dt.Columns.Add("IsActive", typeof(bool));
+
+            foreach (var item in list)
+            {
+                dt.Rows.Add(
+                    item.BankId,     // int
+                    item.BankName,     // string
+                    item.AccountNumber,     // int
+                    item.IFSCCode,        // string
+                    item.IsActive        // bool
+                );
+            }
+
+            return dt;
         }
 
-        return dt;
-    }
 
-
-    public ResultResponse UpdateorInsertCustomer(CustomerModel model, int UserId)
+        public ResultResponse UpdateorInsertCustomer(CustomerModel model, int UserId)
         {
             var response = new ResultResponse();
-            using (SqlConnection con = new SqlConnection(_connectionString))
-            using (SqlCommand cmd = new SqlCommand("vn_InsertorupdateCustomer", con))
+            try
             {
-                cmd.CommandType = CommandType.StoredProcedure;
+                using (SqlConnection con = new SqlConnection(_connectionString))
+                using (SqlCommand cmd = new SqlCommand("vn_InsertorupdateCustomer", con))
+                {
+                    cmd.CommandType = CommandType.StoredProcedure;
 
-                cmd.Parameters.AddWithValue("@CustomerId", model.CustomerId);
-                cmd.Parameters.AddWithValue("@FirstName", model.FirstName);
-                cmd.Parameters.AddWithValue("@LastName", model.LastName);
-                cmd.Parameters.AddWithValue("@PhoneNumber", model.PhoneNumber);
-                cmd.Parameters.AddWithValue("@AadharNumber", model.aadharnumber);
-                cmd.Parameters.AddWithValue("@PanNumber", model.pannumber);
-                cmd.Parameters.AddWithValue("@AadharFrontImg", model.aadharfrontpath);
-                cmd.Parameters.AddWithValue("@AadharBackImg", model.aadharbackpath);
-                cmd.Parameters.AddWithValue("@PanFrontImg", model.panfrontpath);
-                cmd.Parameters.AddWithValue("@PanBackImg", model.panbackpath ?? "");
-                cmd.Parameters.AddWithValue("@OtherImg", "");
-                cmd.Parameters.AddWithValue("@KycStatus", "");
-                cmd.Parameters.Add(new SqlParameter("@CreditCards", SqlDbType.Structured)
-                {
-                    TypeName = "dbo.CustomerBankInsertType",
-                    Value = ToDataTable(model.CreditCards)
-                });
-                cmd.Parameters.Add(new SqlParameter("@BankDetails", SqlDbType.Structured)
-                {
-                    TypeName = "dbo.CreditCardInsertType",
-                    Value = ToDataTable(model.BanksDetailsModel)
-                });
-                cmd.Parameters.AddWithValue("@UserId", UserId);
-                cmd.Parameters.AddWithValue("@CreatedBy", UserId);
-                cmd.Parameters.AddWithValue("@ChangedBy", UserId);
-                cmd.Parameters.AddWithValue("@IsActive", 1);
+                    cmd.Parameters.AddWithValue("@CustomerId", model.CustomerId);
+                    cmd.Parameters.AddWithValue("@FirstName", model.FirstName);
+                    cmd.Parameters.AddWithValue("@LastName", model.LastName);
+                    cmd.Parameters.AddWithValue("@PhoneNumber", model.PhoneNumber);
+                    cmd.Parameters.AddWithValue("@AadharNumber", model.aadharnumber);
+                    cmd.Parameters.AddWithValue("@PanNumber", model.pannumber);
+                    cmd.Parameters.AddWithValue("@AadharFrontImg", model.aadharfrontpath);
+                    cmd.Parameters.AddWithValue("@AadharBackImg", model.aadharbackpath);
+                    cmd.Parameters.AddWithValue("@PanFrontImg", model.panfrontpath);
+                    cmd.Parameters.AddWithValue("@PanBackImg", model.panbackpath ?? "");
+                    cmd.Parameters.AddWithValue("@OtherImg", "");
+                    cmd.Parameters.AddWithValue("@KycStatus", "");
+                    cmd.Parameters.Add(new SqlParameter("@CreditCards", SqlDbType.Structured)
+                    {
+                        TypeName = "dbo.CreditCardInsertType",
+                        //Value = ToDataTable(model.CreditCards)
+                        Value = ToIntListTable(model.CreditCards)
+                    });
+                    cmd.Parameters.Add(new SqlParameter("@BankDetails", SqlDbType.Structured)
+                    {
+                        TypeName = "dbo.CustomerBankInsertType",
+                        //Value = ToDataTable(model.BanksDetailsModel)
+                        Value = ToIntListTable(model.BanksDetailsModel)
+                    });
+                    cmd.Parameters.AddWithValue("@UserId", UserId);
+                    cmd.Parameters.AddWithValue("@CreatedBy", UserId);
+                    cmd.Parameters.AddWithValue("@ChangedBy", UserId);
+                    cmd.Parameters.AddWithValue("@IsActive", 1);
 
-                con.Open();
-                using SqlDataReader dr = cmd.ExecuteReader();
-                if (dr.Read())
-                {
-                    response.result = Convert.ToInt32(dr["Result"]);
-                    response.StatusMessage = dr["Status"].ToString();
+                    con.Open();
+                    using SqlDataReader dr = cmd.ExecuteReader();
+                    if (dr.Read())
+                    {
+                        response.result = Convert.ToInt32(dr["Result"]);
+                        response.StatusMessage = dr["Status"].ToString();
+                    }
                 }
             }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.Message);
+            }
+
 
             return response;
         }
-
         public userDetailsReposne GetUserDetails(int UserId)
         {
             var result = new userDetailsReposne();

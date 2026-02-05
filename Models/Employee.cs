@@ -117,6 +117,7 @@ namespace vnenterprises.Models
         public string KycStatus { get; set; }
         public int TransactionsCount { get; set; }
         public List<CreditCardModel> CreditCards { get; set; }
+        public List<BanksDetails> BanksDetailsModel { get; set; }
     }
 
     public class BankModel

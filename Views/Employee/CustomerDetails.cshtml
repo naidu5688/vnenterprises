@@ -161,6 +161,10 @@
         justify-content: space-between;
         align-items: center;
     }
+
+    #firstName, #lastName, #pan {
+        text-transform: uppercase;
+    }
 </style>
 
 <div class="page-container">
@@ -200,7 +204,7 @@
     </div>
 
     <br>
-
+   
     <div class="flex-header">
         <h4>Credit Cards</h4>
         <button class="btn-primary" onclick="openCardModal()">+ Add Card</button>
@@ -209,19 +213,36 @@
     <table id="cardTable">
         <thead>
             <tr>
-                <th>Holder</th>
-                <th>Number</th>
-                <th>Expiry</th>
-                <th>Type</th>
-                <th>CVV</th>
-                <th>Status</th>
-                <th>Action</th>
+                <th width="20%">Holder</th>
+                <th width="20%">Number</th>
+                <th width="10%">Expiry</th>
+                <th width="10%">Type</th>
+                <th width="10%">CVV</th>
+                <th width="10%">Status</th>
+                <th width="20%">Action</th>
             </tr>
         </thead>
         <tbody></tbody>
     </table>
 
     <br>
+    <div class="flex-header">
+        <h4>Bank Details (Optional)</h4>
+        <button class="btn-primary" onclick="openBankModal()">+ Add Bank Details</button>
+    </div>
+    <table id="bankTable">
+        <thead>
+            <tr>
+                <th width="20%">Bank Name</th>
+                <th width="30%">Account Number</th>
+                <th width="20%">IFSC Code</th>
+                <th width="10%">Status</th>
+                <th width="20%">Action</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+    <br />
     <button class="btn-primary" onclick="saveCustomer()">Save Customer</button>
     <button class="btn-primary" onclick="openTransactionModal()">Add Transaction</button>
 </div>
@@ -307,40 +328,28 @@
 
     </div>
 </div>
+<div class="modal-overlay" id="bankModal">
+    <div class="modal-box">
+        <h4>Bank Details</h4>
 
-@* <div class="modal-overlay" id="transactionModal">
-    <div class="modal-box" style="width:700px">
-        <div class="flex-header">
-            <h4>Add Transaction</h4>
-            <button class="btn-danger" onclick="closeTransactionModal()">X</button>
-        </div>
-
-        <div class="grid-2" style="margin-top:15px">
-            <select id="tPlatform" class="form-control"></select>
-            <select id="tGateway" class="form-control"></select>
-
-            <input id="tChargePercent" class="form-control" placeholder="Platform Charge %" readonly>
-
-            <select id="tCard" class="form-control"></select>
-
-            <input id="tAmount" class="form-control" placeholder="Amount" oninput="calculateAmounts()">
-            <input id="tChargeAmount" class="form-control" placeholder="Charge Amount" readonly>
-
-            <input id="tEmpPercent" class="form-control" placeholder="Employee Charge %" oninput="calculateAmounts()">
-            <input id="tFinalAmount" class="form-control" placeholder="Final Amount" readonly>
-
-            <select id="tBank" class="form-control"></select>
-            <input id="tAccount" class="form-control" placeholder="Bank Account Number">
-            <input id="tIfsc" class="form-control" placeholder="IFSC Code">
+        <div class="grid-2">
+            <select id="bBank" class="form-control"></select>
+            <input id="bAccount" class="form-control" placeholder="Account Number *">
+            <input id="bIfsc" class="form-control" placeholder="IFSC Code *">
+            <select id="bActive" class="form-control">
+                <option value="">-- Status --</option>
+                <option value="true">Active</option>
+                <option value="false">Inactive</option>
+            </select>
         </div>
 
         <div style="text-align:right;margin-top:15px">
-            <button class="btn-danger" onclick="clearTransaction()">Clear</button>
-            <button class="btn-danger" onclick="closeTransactionModal()">Close</button>
-            <button class="btn-primary" onclick="saveTransaction()">Save</button>
+            <button class="btn-danger" onclick="closeBankModal()">Cancel</button>
+            <button class="btn-primary" onclick="saveBank()">Save</button>
         </div>
     </div>
-</div> *@
+</div>
+
 
 <div class="modal-overlay" id="cardModal">
     <div class="modal-box">
@@ -448,17 +457,19 @@
 
     // ---------------- SAVE CUSTOMER ----------------
     function saveCustomer(){
+        debugger
         const firstName=document.getElementById("firstName").value,
               lastName=document.getElementById("lastName").value,
               aadhaar=document.getElementById("aadhaar").value,
+              phone=document.getElementById("phone").value,
               pan=document.getElementById("pan").value;
-        if(!firstName||!lastName||!aadhaar||!pan){alert('All fields mandatory');return;}
+        if(!firstName||!lastName||!aadhaar||!pan || !phone){alert('All fields mandatory');return;}
 
         const formData=new FormData();
         formData.append("CustomerId",customerId);
         formData.append("FirstName",firstName);
         formData.append("LastName",lastName);
-        formData.append("PhoneNumber",mobile);
+        formData.append("PhoneNumber",phone);
         formData.append("aadharnumber",aadhaar);
         formData.append("pannumber",pan);
 
@@ -475,6 +486,14 @@
             formData.append(`CreditCards[${i}].CardCVV`, c.CardCVV);
             formData.append(`CreditCards[${i}].CardTypeId`, c.CardTypeId);
             formData.append(`CreditCards[${i}].IsActive`, c.IsActive);
+        });
+            // Append bank details
+    bankRows.forEach((b, i) => {
+            formData.append(`BanksDetailsModel[${i}].BankId`, b.BankId);
+            formData.append(`BanksDetailsModel[${i}].BankName`, b.BankName);
+            formData.append(`BanksDetailsModel[${i}].AccountNumber`, b.AccountNumber);
+            formData.append(`BanksDetailsModel[${i}].IFSCCode`, b.IFSCCode);
+            formData.append(`BanksDetailsModel[${i}].IsActive`, b.IsActive);
         });
 
         fetch('/Employee/AddCustomer',{method:'POST',body:formData})
@@ -556,6 +575,108 @@
         .forEach(x=>x.value='');
     }
 
+        let bankMaster = [];
+    let banksData = @Html.Raw(JsonSerializer.Serialize(Model?.BanksDetailsModel ?? new List<object>()));
+
+    banksData = banksData.map(b => ({
+        BankId: b.BankId ?? "",
+        BankName: b.BankName ?? "",
+        AccountNumber: b.AccountNumber ?? "",
+        IFSC: b.IFSCCode ?? "",
+        IsActive: b.IsActive === true,
+        IsExisting: true
+    }));
+
+    let bankEditIndex = null;
+
+    // Load bank master
+    fetch('/Employee/GetBanks')
+        .then(r => r.json())
+        .then(d => {
+            bankMaster = d;
+            renderBanks();
+        });
+
+    function renderBanks() {
+        const tbody = document.querySelector("#bankTable tbody");
+        tbody.innerHTML = "";
+
+        if (banksData.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="5">No Bank Details</td></tr>';
+            return;
+        }
+
+        banksData.forEach((b, i) => {
+            tbody.innerHTML += `
+            <tr>
+                <td>${b.BankName}</td>
+                <td>${b.AccountNumber}</td>
+                <td>${b.IFSC}</td>
+                <td>${b.IsActive ? "Active" : "Inactive"}</td>
+                <td>
+                    <button class="btn-primary" onclick="openBankModal(${i})">Edit</button>
+                    ${b.IsExisting ? "" : `<button class="btn-danger" onclick="removeBank(${i})">Remove</button>`}
+                </td>
+            </tr>`;
+        });
+    }
+
+    function openBankModal(index = null) {
+        bankEditIndex = index;
+
+        bBank.innerHTML = '<option value="">-- Select Bank --</option>';
+        bankMaster.forEach(x =>
+            bBank.innerHTML += `<option value="${x.id}">${x.name}</option>`
+        );
+
+        if (index !== null) {
+            const b = banksData[index];
+            bBank.value = b.BankId;
+            bAccount.value = b.AccountNumber;
+            bIfsc.value = b.IFSC;
+            bActive.value = b.IsActive ? 'true' : 'false';
+        } else {
+            bBank.value = bAccount.value = bIfsc.value = bActive.value = "";
+        }
+
+        bankModal.style.display = "flex";
+    }
+
+    function closeBankModal() {
+        bankModal.style.display = "none";
+        bankEditIndex = null;
+    }
+
+    function saveBank() {
+        if (!bBank.value || !bAccount.value || !bIfsc.value || !bActive.value) {
+            alert("All bank fields are mandatory");
+            return;
+        }
+
+        const bankObj = {
+            BankId: bBank.value,
+            BankName: bBank.options[bBank.selectedIndex].text,
+            AccountNumber: bAccount.value,
+            IFSC: bIfsc.value,
+            IsActive: bActive.value === "true",
+            IsExisting: false
+        };
+
+        if (bankEditIndex !== null)
+            banksData[bankEditIndex] = bankObj;
+        else
+            banksData.push(bankObj);
+
+        renderBanks();
+        closeBankModal();
+    }
+
+    function removeBank(i) {
+        banksData.splice(i, 1);
+        renderBanks();
+    }
+
+
     function saveTransaction(){
         const data={
             CustomerId:customerId,
@@ -587,3 +708,4 @@
         });
     }
 </script>
+

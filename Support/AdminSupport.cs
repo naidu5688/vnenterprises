@@ -259,7 +259,8 @@ namespace vnenterprises.Support
                 using (SqlCommand cmd = new SqlCommand("vn_GetPlatfotmGateway", conn))
                 {
                     cmd.CommandType = CommandType.StoredProcedure;
-
+                    cmd.Parameters.AddWithValue("@PlatformId", 0);
+                    cmd.Parameters.AddWithValue("@FlagType", 1);
                     using (SqlDataReader reader = cmd.ExecuteReader())
                     {
                         // Read Platforms
