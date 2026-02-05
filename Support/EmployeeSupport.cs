@@ -267,33 +267,38 @@ namespace vnenterprises.Support
         //        return result;
         //    }
         //}
-        private DataTable ToIntListTable(List<CreditCardModel> list)
-        {
-            DataTable dt = new DataTable();
+public static DataTable ToDataTable<T>(List<T> list)
+    {
+        DataTable dt = new DataTable();
 
-            dt.Columns.Add("CardTypeId", typeof(int));
-            dt.Columns.Add("NameOnCard", typeof(string));
-            dt.Columns.Add("CardNumber", typeof(string));
-            dt.Columns.Add("ExprityDate", typeof(string));
-            dt.Columns.Add("CardCVV", typeof(int));
-            dt.Columns.Add("IsActive", typeof(bool));
-
-            foreach (var item in list)
-            {
-                dt.Rows.Add(
-                    item.CardTypeId,     // int
-                    item.NameOnCard,     // string
-                    item.CardNumber,     // string
-                    item.ExpiryDate,     // string
-                    item.CardCVV,        // int
-                    item.IsActive        // bool
-                );
-            }
-
+        if (list == null || list.Count == 0)
             return dt;
+
+        // Get properties of the type
+        PropertyInfo[] props = typeof(T).GetProperties();
+
+        // Create columns
+        foreach (var prop in props)
+        {
+            dt.Columns.Add(prop.Name, Nullable.GetUnderlyingType(prop.PropertyType) ?? prop.PropertyType);
         }
 
-        public ResultResponse UpdateorInsertCustomer(CustomerModel model, int UserId)
+        // Fill rows
+        foreach (var item in list)
+        {
+            var row = dt.NewRow();
+            foreach (var prop in props)
+            {
+                row[prop.Name] = prop.GetValue(item) ?? DBNull.Value;
+            }
+            dt.Rows.Add(row);
+        }
+
+        return dt;
+    }
+
+
+    public ResultResponse UpdateorInsertCustomer(CustomerModel model, int UserId)
         {
             var response = new ResultResponse();
             using (SqlConnection con = new SqlConnection(_connectionString))
@@ -316,7 +321,12 @@ namespace vnenterprises.Support
                 cmd.Parameters.Add(new SqlParameter("@CreditCards", SqlDbType.Structured)
                 {
                     TypeName = "dbo.CreditCardInsertType",
-                    Value = ToIntListTable(model.CreditCards)
+                    Value = ToDataTable(model.CreditCards)
+                });
+                cmd.Parameters.Add(new SqlParameter("@BankDetails", SqlDbType.Structured)
+                {
+                    TypeName = "dbo.CreditCardInsertType",
+                    Value = ToDataTable(model.BanksDetailsModel)
                 });
                 cmd.Parameters.AddWithValue("@UserId", UserId);
                 cmd.Parameters.AddWithValue("@CreatedBy", UserId);

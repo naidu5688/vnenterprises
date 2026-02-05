@@ -48,8 +48,17 @@ namespace vnenterprises.Models
 
         // Multiple Credit Cards
         public List<CreditCardModel> CreditCards { get; set; }
+        public List<BanksDetails> BanksDetailsModel { get; set; }
     }
 
+    public class BanksDetails
+    {
+        public int BankId { get; set; }
+        public string BankName { get; set; }
+        public string AccountNumber { get; set; }
+        public string IFSCCode { get; set; }
+        public bool IsActive { get; set; }
+    }
     public class CreditCardModel
     {
         [Required]
