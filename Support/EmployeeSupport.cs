@@ -320,7 +320,7 @@ public static DataTable ToDataTable<T>(List<T> list)
                 cmd.Parameters.AddWithValue("@KycStatus", "");
                 cmd.Parameters.Add(new SqlParameter("@CreditCards", SqlDbType.Structured)
                 {
-                    TypeName = "dbo.CreditCardInsertType",
+                    TypeName = "dbo.CustomerBankInsertType",
                     Value = ToDataTable(model.CreditCards)
                 });
                 cmd.Parameters.Add(new SqlParameter("@BankDetails", SqlDbType.Structured)
