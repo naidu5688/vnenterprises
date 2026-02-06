@@ -785,24 +785,25 @@
     }
 
 
-        function saveTransaction() {
+    function saveTransaction() {
+        debugger;
         const selectedBank = customerBanks.find(b => b.bankId == tAccountSelect.value);
 
-        const data = {
-            CustomerId: customerId,
-            PlatformId: tPlatform.value,
-            GatewayId: tGateway.value,
-            CardId: tCard.value,
-            TransactionType: tTransactiontype.value,
-            Amount: tAmount.value,
-            PlatformChargePercent: tChargePercent.value,
-            EmployeeChargePercent: tEmpPercent.value,
-            FinalAmount: tFinalAmount.value,
+            const data = {
+                CustomerId: customerId,
+                PlatformId: tPlatform.value,
+                GatewayId: tGateway.value,
+                CardId: tCard.value,
+                TransactionType: tTransactiontype.value,
+                Amount: tAmount.value,
+                PlatformChargePercent: tChargePercent.value,
+                EmployeeChargePercent: tEmpPercent.value,
+                FinalAmount: tFinalAmount.value,
 
-            BankId: selectedBank?.bankId || null,
-            AccountNumber: selectedBank?.accountNumber || "",
-            IFSC: selectedBank?.ifscCode || ""
-        };
+                BankId: selectedBank?.bankId || null,
+                AccountNumber: selectedBank?.accountNumber || "",
+                IFSC: selectedBank?.ifscCode || ""
+            };
 
         fetch('/Employee/AddTransaction', {
             method: 'POST',
@@ -820,6 +821,76 @@
             }
         });
     }
+
+        function validateTransactionFields() {
+        const requiredFields = [
+            tPlatform,
+            tGateway,
+            tTransactiontype,
+            tCard,
+            tAmount,
+            tChargePercent,
+            tEmpPercent,
+            tFinalAmount
+        ];
+
+        for (let field of requiredFields) {
+            if (!field || field.value === "" || field.value === "0") {
+                alert("⚠️ All fields are mandatory");
+                return false;
+            }
+        }
+
+        if (!selectedBank || !selectedBank.bankId) {
+            alert("⚠️ Please select a bank account");
+            return false;
+        }
+
+        return true;
+    }
+
+
+    //     function saveTransaction() {
+
+    //     // 🔴 Step 1: Validate
+    //     if (!validateTransactionFields()) return;
+
+    //     // 🟡 Step 2: Confirmation
+    //     const confirmSave = confirm("Are you sure you want to save this transaction?");
+    //     if (!confirmSave) return; // ⛔ user clicked Cancel
+
+    //     // 🟢 Step 3: Proceed to save
+    //     const data = {
+    //         CustomerId: customerId,
+    //         PlatformId: tPlatform.value,
+    //         GatewayId: tGateway.value,
+    //         CardId: tCard.value,
+    //         TransactionType: tTransactiontype.value,
+    //         Amount: tAmount.value,
+    //         PlatformChargePercent: tChargePercent.value,
+    //         EmployeeChargePercent: tEmpPercent.value,
+    //         FinalAmount: tFinalAmount.value,
+    //         BankId: selectedBank.bankId,
+    //         AccountNumber: selectedBank.accountNumber,
+    //         IFSC: selectedBank.ifscCode
+    //     };
+
+    //     fetch('/Employee/AddTransaction', {
+    //         method: 'POST',
+    //         headers: { 'Content-Type': 'application/json' },
+    //         body: JSON.stringify(data)
+    //     })
+    //     .then(r => r.json())
+    //     .then(res => {
+    //         if (res.result > 0) {
+    //             alert("✅ Transaction saved successfully");
+    //             window.location.reload();
+    //         } else {
+    //             alert("❌ " + (res.message || "Something went wrong"));
+    //         }
+    //     })
+    //     .catch(() => alert("❌ Error while saving transaction"));
+    // }
 
 </script>
 

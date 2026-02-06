@@ -143,6 +143,27 @@ namespace vnenterprises.Controllers
 
         }
 
+        [HttpPost]
+        public IActionResult AddTransaction([FromBody] TransactionCreateDto model)
+        {
+            if (model == null)
+                return Json(new { result = 0, message = "Invalid data" });
+
+            // 🔐 ALWAYS fetch sensitive details server-side
+            //var card = _repo.GetCardById(model.CardId);
+            //var bank = model.BankId.HasValue
+            //           ? _repo.GetBankById(model.BankId.Value)
+            //           : null;
+
+            //// Save transaction
+            //int result = _repo.SaveTransaction(model);
+
+            return Json(new
+            {
+                //result = result,
+                //message = result > 0 ? "Saved" : "Failed"
+            });
+        }
 
         [HttpGet]
         public IActionResult GetCustomerIdByMobile(string mobile)

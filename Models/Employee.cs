@@ -13,6 +13,23 @@ namespace vnenterprises.Models
         public string AccessType { get; set; }
         public string UserName { get; set; }
     }
+    public class TransactionCreateDto
+    {
+        public int CustomerId { get; set; }
+        public int PlatformId { get; set; }
+        public int GatewayId { get; set; }
+        public int CardId { get; set; }
+        public int TransactionType { get; set; }
+
+        public decimal Amount { get; set; }
+        public decimal PlatformChargePercent { get; set; }
+        public decimal EmployeeChargePercent { get; set; }
+        public decimal FinalAmount { get; set; }
+
+        public int? BankId { get; set; }
+        public string AccountNumber { get; set; }
+        public string IFSC { get; set; }
+    }
 
     public class CustomerModel
     {
