@@ -211,9 +211,10 @@ namespace vnenterprises.Controllers
         [HttpGet]
         public IActionResult GetCustomerCards(int customerId)
         {
-            var result = _employeesupport.GetCustomerCardsListList(customerId);
+            var result = _employeesupport.GetCustomerCardsAndBanks(customerId);
             return Json(result);
         }
+        
         public override void OnActionExecuting(ActionExecutingContext context)
         {
             base.OnActionExecuting(context);

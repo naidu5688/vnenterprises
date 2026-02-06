@@ -50,6 +50,11 @@ namespace vnenterprises.Models
         public List<CreditCardModel> CreditCards { get; set; }
         public List<BanksDetails> BanksDetailsModel { get; set; }
     }
+    public class CustomerPaymentDetailsVM
+    {
+        public List<CreditCardListModel> CreditCards { get; set; } = new();
+        public List<BanksDetails> Banks { get; set; } = new();
+    }
 
     public class BanksDetails
     {
@@ -129,5 +134,9 @@ namespace vnenterprises.Models
     {
         public int Id { get; set; }
         public string cardNumber { get; set; }
+        public string nameoncard { get; set; }
+        public string cardtypename { get; set; }
+        public string cardcvv { get; set; }
+        public string expirydate { get; set; }
     }
 }

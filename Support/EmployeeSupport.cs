@@ -87,30 +87,54 @@ namespace vnenterprises.Support
             }
         }
 
-        public List<CreditCardListModel> GetCustomerCardsListList(int CustomerId)
+        public CustomerPaymentDetailsVM GetCustomerCardsAndBanks(int customerId)
         {
-            List<CreditCardListModel> platlist = new List<CreditCardListModel>();
+            var result = new CustomerPaymentDetailsVM();
+
             using (SqlConnection con = new SqlConnection(_connectionString))
             using (SqlCommand cmd = new SqlCommand("usp_fn_GetCustomerCreditCards", con))
             {
                 cmd.CommandType = CommandType.StoredProcedure;
-                cmd.Parameters.AddWithValue("@CustomerId", CustomerId);
+                cmd.Parameters.AddWithValue("@CustomerId", customerId);
+
                 con.Open();
                 using (SqlDataReader dr = cmd.ExecuteReader())
                 {
+                    // --------- CREDIT CARDS ----------
                     while (dr.Read())
                     {
-                        platlist.Add(new CreditCardListModel
+                        result.CreditCards.Add(new CreditCardListModel
                         {
                             Id = Convert.ToInt32(dr["CreditCardsId"]),
                             cardNumber = dr["CardNumber"].ToString(),
+                            nameoncard = dr["NameOnCard"].ToString(),
+                            cardtypename = dr["CardTypeName"].ToString(),
+                            expirydate = dr["ExpiryDate"].ToString(),
+                            cardcvv = dr["CardCVV"].ToString()
+
                         });
                     }
+
+                    // --------- BANKS ----------
+                    if (dr.NextResult())
+                    {
+                        while (dr.Read())
+                        {
+                            result.Banks.Add(new BanksDetails
+                            {
+                                BankId = Convert.ToInt32(dr["BankId"]),
+                                BankName = dr["BankName"].ToString(),
+                                AccountNumber = dr["AccountNumber"].ToString(),
+                                IFSCCode = dr["IFSCCode"].ToString(),
+                            });
+                        }
+                    }
                 }
-                return platlist;
             }
+            return result;
         }
-        
+
+
         public List<BankModel> GetTranasactionTypesList()
         {
             List<BankModel> platlist = new List<BankModel>();
@@ -313,7 +337,7 @@ namespace vnenterprises.Support
 
             dt.Columns.Add("BankId", typeof(int));
             dt.Columns.Add("BankName", typeof(string));
-            dt.Columns.Add("AccountNumber", typeof(int));
+            dt.Columns.Add("AccountNumber", typeof(string));
             dt.Columns.Add("IFSCCode", typeof(string));
             dt.Columns.Add("IsActive", typeof(bool));
 

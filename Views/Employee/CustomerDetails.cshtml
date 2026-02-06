@@ -278,8 +278,26 @@
                 <select id="tTransactiontype" class="form-control"></select>
             </div>
             <div class="field">
-                <label>Card Type</label>
+                <label>Card</label>
                 <select id="tCard" class="form-control"></select>
+            </div>
+
+            <div class="field">
+                <label>Card Holder</label>
+                <input id="tCardHolder" class="form-control" readonly>
+            </div>
+
+            <div class="field">
+                <label>Card Type</label>
+                <input id="tCardType" class="form-control" readonly>
+            </div>
+            <div class="field">
+                <label>CVV</label>
+                <input id="tCardCvv" class="form-control" readonly>
+            </div>
+            <div class="field">
+                <label>Expiry Date</label>
+                <input id="tCardExpiry" class="form-control" readonly>
             </div>
 
             <div class="field">
@@ -303,19 +321,21 @@
             </div>
 
             <div class="field">
-                <label>Bank</label>
-                <select id="tBank" class="form-control"></select>
+                <label>Account Number</label>
+                <select id="tAccountSelect" class="form-control"></select>
             </div>
 
             <div class="field">
-                <label>Account Number</label>
-                <input id="tAccount" class="form-control" type="number">
+                <label>Bank Name</label>
+                <input id="tBankName" class="form-control" readonly>
             </div>
 
             <div class="field">
                 <label>IFSC Code</label>
-                <input id="tIfsc" class="form-control">
+                <input id="tIfsc" class="form-control" readonly>
             </div>
+
+
 
         </div>
 
@@ -473,6 +493,11 @@
         formData.append("aadharnumber",aadhaar);
         formData.append("pannumber",pan);
 
+        formData.append("aadharfrontpath", "@Model?.aadharfrontpath");
+        formData.append("aadharbackpath", "@Model?.aadharbackpath");
+        formData.append("panfrontpath", "@Model?.panfrontpath");
+        formData.append("panbackpath", "@Model?.panbackpath");
+
         // Append images
         document.querySelectorAll('.image-upload-box input[type="file"]').forEach(input=>{
             if(input.files.length>0) formData.append(input.id,input.files[0]);
@@ -488,13 +513,13 @@
             formData.append(`CreditCards[${i}].IsActive`, c.IsActive);
         });
             // Append bank details
-    bankRows.forEach((b, i) => {
-            formData.append(`BanksDetailsModel[${i}].BankId`, b.BankId);
-            formData.append(`BanksDetailsModel[${i}].BankName`, b.BankName);
-            formData.append(`BanksDetailsModel[${i}].AccountNumber`, b.AccountNumber);
-            formData.append(`BanksDetailsModel[${i}].IFSCCode`, b.IFSCCode);
-            formData.append(`BanksDetailsModel[${i}].IsActive`, b.IsActive);
-        });
+    banksData.forEach((b, i) => {
+        formData.append(`BanksDetailsModel[${i}].BankId`, b.BankId);
+        formData.append(`BanksDetailsModel[${i}].BankName`, b.BankName);
+        formData.append(`BanksDetailsModel[${i}].AccountNumber`, b.AccountNumber);
+        formData.append(`BanksDetailsModel[${i}].IFSCCode`, b.IFSC);
+        formData.append(`BanksDetailsModel[${i}].IsActive`, b.IsActive);
+    });
 
         fetch('/Employee/AddCustomer',{method:'POST',body:formData})
         .then(r=>r.json())
@@ -506,34 +531,50 @@
 </script>
 <script>
     let platforms = [], gateways = [], cardsList = [], banks = [] , TransactionTypes = [];
+    let customerCards = [];
+    let customerBanks = [];
 
-    function openTransactionModal() {
-        debugger
+        function openTransactionModal() {
         document.getElementById("transactionModal").style.display = "flex";
 
-        fetch('/Employee/GetPlatforms').then(r=>r.json()).then(d=>{
-            platforms=d;
-            tPlatform.innerHTML='<option value="">-- Select Platform --</option>';
-            d.forEach(x=>tPlatform.innerHTML+=`<option value="${x.id}">${x.name}</option>`);
-        });
+        // Platforms
+        fetch('/Employee/GetPlatforms')
+            .then(r => r.json())
+            .then(d => {
+                tPlatform.innerHTML = '<option value="">-- Select Platform --</option>';
+                d.forEach(x => tPlatform.innerHTML += `<option value="${x.id}">${x.name}</option>`);
+            });
 
-        fetch('/Employee/GetCustomerCards?customerId='+customerId).then(r=>r.json()).then(d=>{
-            cardsList=d;
-            tCard.innerHTML='<option value="">-- Select Card --</option>';
-            d.forEach(x=>tCard.innerHTML+=`<option value="${x.id}">${x.cardNumber}</option>`);
-        });
+        // Cards + Banks (SINGLE CALL)
+        fetch('/Employee/GetCustomerCards?customerId=' + customerId)
+            .then(r => r.json())
+            .then(res => {
+                customerCards = res.creditCards || [];
+                customerBanks = res.banks || [];
 
-        fetch('/Employee/GetBanks').then(r=>r.json()).then(d=>{
-            banks=d;
-            tBank.innerHTML='<option value="">-- Select Bank --</option>';
-            d.forEach(x=>tBank.innerHTML+=`<option value="${x.id}">${x.name}</option>`);
-        });
-        debugger
-        fetch('/Employee/TranasactionTypes').then(r=>r.json()).then(d=>{
-            TransactionTypes=d;
-            tTransactiontype.innerHTML='<option value="">-- Select Transaction Type --</option>';
-            d.forEach(x=>tTransactiontype.innerHTML+=`<option value="${x.id}">${x.name}</option>`);
-        });
+                // Cards
+                tCard.innerHTML = '<option value="">-- Select Card --</option>';
+                customerCards.forEach(c => {
+                    tCard.innerHTML += `<option value="${c.id}">${c.cardNumber}</option>`;
+                });
+
+                // Account Numbers
+                tAccountSelect.innerHTML = '<option value="">-- Select Account --</option>';
+                customerBanks.forEach(b => {
+                    tAccountSelect.innerHTML += `
+                      <option value="${b.bankId}">
+                        ${b.accountNumber}
+                      </option>`;
+                });
+            });
+
+        // Transaction Types
+        fetch('/Employee/TranasactionTypes')
+            .then(r => r.json())
+            .then(d => {
+                tTransactiontype.innerHTML = '<option value="">-- Select Transaction Type --</option>';
+                d.forEach(x => tTransactiontype.innerHTML += `<option value="${x.id}">${x.name}</option>`);
+            });
     }
 
     function closeTransactionModal(){
@@ -556,6 +597,41 @@
         calculateAmounts();
     };
 
+            tAccountSelect.onchange = function () {
+        const bankId = this.value;
+        if (!bankId) {
+            tBankName.value = "";
+            tIfsc.value = "";
+            return;
+        }
+
+        const bank = customerBanks.find(b => b.bankId == bankId);
+        if (!bank) return;
+
+        tBankName.value = bank.bankName;
+        tIfsc.value = bank.ifscCode;
+    };
+
+
+         tCard.onchange = function () {
+            const cardId = this.value;
+            if (!cardId) {
+                tCardHolder.value = "";
+                tCardType.value = "";
+                tCardExpiry.value = "";
+                return;
+            }
+
+            const card = customerCards.find(c => c.id == cardId);
+            if (!card) return;
+
+            tCardHolder.value = card.nameoncard;
+            tCardType.value = card.cardtypename;
+            tCardExpiry.value = card.expirydate;
+            tCardCvv.value = card.cardcvv;
+        };
+
+
     function calculateAmounts(){
         debugger
         let amount=parseFloat(tAmount.value||0);
@@ -570,10 +646,11 @@
         tFinalAmount.value=finalAmt.toFixed(2);
     }
 
-    function clearTransaction(){
+        function clearTransaction() {
         document.querySelectorAll('#transactionModal input, #transactionModal select')
-        .forEach(x=>x.value='');
+            .forEach(x => x.value = '');
     }
+
 
         let bankMaster = [];
     let banksData = @Html.Raw(JsonSerializer.Serialize(Model?.BanksDetailsModel ?? new List<object>()));
@@ -647,11 +724,13 @@
         bankEditIndex = null;
     }
 
-    function saveBank() {
+        function saveBank() {
         if (!bBank.value || !bAccount.value || !bIfsc.value || !bActive.value) {
             alert("All bank fields are mandatory");
             return;
         }
+
+        const isEdit = bankEditIndex !== null;
 
         const bankObj = {
             BankId: bBank.value,
@@ -659,10 +738,10 @@
             AccountNumber: bAccount.value,
             IFSC: bIfsc.value,
             IsActive: bActive.value === "true",
-            IsExisting: false
+            IsExisting: isEdit ? banksData[bankEditIndex].IsExisting : false
         };
 
-        if (bankEditIndex !== null)
+        if (isEdit)
             banksData[bankEditIndex] = bankObj;
         else
             banksData.push(bankObj);
@@ -677,35 +756,41 @@
     }
 
 
-    function saveTransaction(){
-        const data={
-            CustomerId:customerId,
-            PlatformId:tPlatform.value,
-            GatewayId:tGateway.value,
-            CardId:tCard.value,
-            TransactionType:tTransactiontype.value,
-            Amount:tAmount.value,
-            PlatformChargePercent:tChargePercent.value,
-            EmployeeChargePercent:tEmpPercent.value,
-            FinalAmount:tFinalAmount.value,
-            BankId:tBank.value,
-            AccountNumber:tAccount.value,
-            IFSC:tIfsc.value
+        function saveTransaction() {
+        const selectedBank = customerBanks.find(b => b.bankId == tAccountSelect.value);
+
+        const data = {
+            CustomerId: customerId,
+            PlatformId: tPlatform.value,
+            GatewayId: tGateway.value,
+            CardId: tCard.value,
+            TransactionType: tTransactiontype.value,
+            Amount: tAmount.value,
+            PlatformChargePercent: tChargePercent.value,
+            EmployeeChargePercent: tEmpPercent.value,
+            FinalAmount: tFinalAmount.value,
+
+            BankId: selectedBank?.bankId || null,
+            AccountNumber: selectedBank?.accountNumber || "",
+            IFSC: selectedBank?.ifscCode || ""
         };
 
-        fetch('/Employee/AddTransaction',{
-            method:'POST',
-            headers:{'Content-Type':'application/json'},
-            body:JSON.stringify(data)
+        fetch('/Employee/AddTransaction', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
         })
-        .then(r=>r.json())
-        .then(res=>{
-            if(res.result>0){
+        .then(r => r.json())
+        .then(res => {
+            if (res.result > 0) {
                 alert('✅ Transaction Saved');
                 closeTransactionModal();
                 clearTransaction();
-            }else alert('❌ Failed to save');
+            } else {
+                alert('❌ Failed to save');
+            }
         });
     }
+
 </script>
 
