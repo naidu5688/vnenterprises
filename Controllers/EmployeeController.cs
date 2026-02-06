@@ -148,21 +148,15 @@ namespace vnenterprises.Controllers
         {
             if (model == null)
                 return Json(new { result = 0, message = "Invalid data" });
+            var userId = Convert.ToInt32(Request.Cookies["UserId"]);
+            if (userId == null)
+                return Json(new { result = 0, message = "Invalid data" });
+            var result = _employeesupport.AddTransaction(model , userId);
 
-            // 🔐 ALWAYS fetch sensitive details server-side
-            //var card = _repo.GetCardById(model.CardId);
-            //var bank = model.BankId.HasValue
-            //           ? _repo.GetBankById(model.BankId.Value)
-            //           : null;
-
-            //// Save transaction
-            //int result = _repo.SaveTransaction(model);
-
-            return Json(new
-            {
-                //result = result,
-                //message = result > 0 ? "Saved" : "Failed"
-            });
+            if(result > 0)
+                return Json(new { result = result, message = "Transaction Created Successfully [" + result + "]"});
+            else
+                return Json(new { result = 0, message = "Something went wrong . Please try agian" });
         }
 
         [HttpGet]

@@ -4,6 +4,8 @@ using System.Data;
 using System.Reflection;
 using System.Reflection.PortableExecutable;
 using vnenterprises.Models;
+using Azure;
+
 
 namespace vnenterprises.Support
 {
@@ -356,6 +358,45 @@ namespace vnenterprises.Support
         }
 
 
+        public int AddTransaction(TransactionCreateDto model, int UserId)
+        {
+            var result = 0;
+            try
+            {
+                using (SqlConnection con = new SqlConnection(_connectionString))
+                using (SqlCommand cmd = new SqlCommand("vn_InsertorupdateCustomer", con))
+                {
+                    cmd.CommandType = CommandType.StoredProcedure;
+                    cmd.Parameters.AddWithValue("@CustomerId", model.CustomerId);
+                    cmd.Parameters.AddWithValue("@PlatformID", model.PlatformId);
+                    cmd.Parameters.AddWithValue("@GatewayID", model.GatewayId);
+                    cmd.Parameters.AddWithValue("@CreditCardId", model.CardId);
+                    cmd.Parameters.AddWithValue("@BankDetailId", model.BankDetailsId);
+                    cmd.Parameters.AddWithValue("@Remarks", model.Remarks);
+                    cmd.Parameters.AddWithValue("@TransactionTypeId", model.TransactionTypeId);
+                    cmd.Parameters.AddWithValue("@TransactionAmount", model.TransactionAmount);
+                    cmd.Parameters.AddWithValue("@PlatformChargeAmount", model.PlatformChargeAmount);
+                    cmd.Parameters.AddWithValue("@EmployeeChargePercent", model.EmployeeChargePercent);
+                    cmd.Parameters.AddWithValue("@EmployeeChargeAmount", model.EmployeeChargeAmount);
+                    cmd.Parameters.AddWithValue("@FinalAmount", model.FinalAmount);
+                    cmd.Parameters.AddWithValue("@UserId", UserId);
+
+                    con.Open();
+                    using SqlDataReader dr = cmd.ExecuteReader();
+                    if (dr.Read())
+                    {
+                        result = Convert.ToInt32(dr["TransactionId"]);
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.Message);
+            }
+            return result;
+        }
+
+
         public ResultResponse UpdateorInsertCustomer(CustomerModel model, int UserId)
         {
             var response = new ResultResponse();
@@ -377,7 +418,7 @@ namespace vnenterprises.Support
                     cmd.Parameters.AddWithValue("@PanFrontImg", model.panfrontpath);
                     cmd.Parameters.AddWithValue("@PanBackImg", model.panbackpath ?? "");
                     cmd.Parameters.AddWithValue("@OtherImg", "");
-                    cmd.Parameters.AddWithValue("@KycStatus", "");
+                    cmd.Parameters.AddWithValue("@KycStatus", model.KycStatus);
                     cmd.Parameters.Add(new SqlParameter("@CreditCards", SqlDbType.Structured)
                     {
                         TypeName = "dbo.CreditCardInsertType",

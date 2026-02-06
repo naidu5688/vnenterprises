@@ -19,17 +19,16 @@ namespace vnenterprises.Models
         public int PlatformId { get; set; }
         public int GatewayId { get; set; }
         public int CardId { get; set; }
-        public int TransactionType { get; set; }
-
-        public decimal Amount { get; set; }
-        public decimal PlatformChargePercent { get; set; }
+        public int BankDetailsId { get; set; }
+        public string Remarks { get; set; }
+        public int TransactionTypeId { get; set; }
+        public decimal TransactionAmount { get; set; }
+        public decimal PlatformChargeAmount { get; set; }
         public decimal EmployeeChargePercent { get; set; }
+        public decimal EmployeeChargeAmount { get; set; }
         public decimal FinalAmount { get; set; }
-
-        public int? BankId { get; set; }
-        public string AccountNumber { get; set; }
-        public string IFSC { get; set; }
     }
+
 
     public class CustomerModel
     {

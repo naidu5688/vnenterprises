@@ -165,15 +165,35 @@
     #firstName, #lastName, #pan {
         text-transform: uppercase;
     }
+
+    .modal-box {
+        background: #17362e;
+        border: 1px solid #d4af37;
+        border-radius: 12px;
+        padding: 20px;
+        width: 700px;
+        max-height: 90vh; /* ✅ LIMIT HEIGHT */
+        display: flex; /* ✅ FLEX LAYOUT */
+        flex-direction: column;
+    }
+
+    .transaction-body {
+        overflow-y: auto; /* ✅ ENABLE SCROLL */
+        padding-right: 8px;
+        margin-top: 15px;
+        flex: 1; /* ✅ TAKE AVAILABLE SPACE */
+    }
+
 </style>
 
 <div class="page-container">
 
     <!-- CUSTOMER & KYC STATUS -->
-    <div class="kyc-status" style="position: absolute; right: 150px; background-color: #d4af37; color: black;">
+
+    <div class="kyc-status" style="position: absolute; right: 170px; background-color: #d4af37; color: black;">
         CustomerId: @customerid
     </div>
-    <div class="kyc-status @(kycStatus.ToLower() == "pending" ? "kyc-pending" : kycStatus.ToLower() == "approved" ? "kyc-approved" : "kyc-rejected")">
+    <div id="kycstatus" class="kyc-status @(kycStatus.ToLower() == "pending" ? "kyc-pending" : kycStatus.ToLower() == "approved" ? "kyc-approved" : "kyc-rejected")">
         KYC: @kycStatus
     </div>
 
@@ -254,91 +274,102 @@
             <h4>Add Transaction</h4>
             <button class="btn-danger" onclick="closeTransactionModal()">X</button>
         </div>
+        <div class="transaction-body">
+            <div class="grid-2" style="margin-top:15px">
 
+                <div class="field">
+                    <label>Platform</label>
+                    <select id="tPlatform" class="form-control"></select>
+                </div>
+
+                <div class="field">
+                    <label>Gateway</label>
+                    <select id="tGateway" class="form-control"></select>
+                </div>
+
+                <div class="field">
+                    <label>Platform Charge (%)</label>
+                    <input id="tChargePercent" class="form-control" readonly>
+                </div>
+
+                <div class="field">
+                    <label>Transaction Type</label>
+                    <select id="tTransactiontype" class="form-control"></select>
+                </div>
+                <div class="field">
+                    <label>Card Number</label>
+                    <select id="tCard" class="form-control"></select>
+                </div>
+
+                <div class="field">
+                    <label>Card Holder</label>
+                    <input id="tCardHolder" class="form-control" readonly>
+                </div>
+
+                <div class="field">
+                    <label>Card Type</label>
+                    <input id="tCardType" class="form-control" readonly>
+                </div>
+                <div class="field">
+                    <label>CVV</label>
+                    <input id="tCardCvv" class="form-control" readonly>
+                </div>
+                <div class="field">
+                    <label>Expiry Date</label>
+                    <input id="tCardExpiry" class="form-control" readonly>
+                </div>
+
+                <div class="field">
+                    <label>Transaction Amount</label>
+                    <input id="tAmount" class="form-control"
+                           oninput="this.value=this.value.replace(/[^0-9.]/g,''); calculateAmounts()">
+                </div>
+
+                <div class="field">
+                    <label>Charge Amount</label>
+                    <input id="tChargeAmount" class="form-control" readonly>
+                </div>
+
+                <div class="field">
+                    <label>Employee Charge (%)</label>
+                    <input id="tEmpPercent" class="form-control"
+                           oninput="this.value=this.value.replace(/[^0-9.]/g,''); calculateAmounts()">
+                </div>
+                <div class="field">
+                    <label>Employee Charge Amount</label>
+                    <input id="tEmpChargeAmount" class="form-control" readonly>
+                </div>
+
+                <div class="field">
+                    <label>Final Amount</label>
+                    <input id="tFinalAmount" class="form-control" readonly>
+                </div>
+
+                <div class="field">
+                    <label>Account Number</label>
+                    <select id="tAccountSelect" class="form-control"></select>
+                </div>
+
+                <div class="field">
+                    <label>Bank Name</label>
+                    <input id="tBankName" class="form-control" readonly>
+                </div>
+
+                <div class="field">
+                    <label>IFSC Code</label>
+                    <input id="tIfsc" class="form-control" readonly>
+                </div>
+
+
+
+            </div>
+            <div class="field">
+                <label>Remarks</label>
+                <input id="tRemarks" class="form-control" />
+            </div>
+         </div>
         <!-- Body -->
-        <div class="grid-2" style="margin-top:15px">
-
-            <div class="field">
-                <label>Platform</label>
-                <select id="tPlatform" class="form-control"></select>
-            </div>
-
-            <div class="field">
-                <label>Gateway</label>
-                <select id="tGateway" class="form-control"></select>
-            </div>
-
-            <div class="field">
-                <label>Platform Charge (%)</label>
-                <input id="tChargePercent" class="form-control" readonly>
-            </div>
-
-            <div class="field">
-                <label>Transaction Type</label>
-                <select id="tTransactiontype" class="form-control"></select>
-            </div>
-            <div class="field">
-                <label>Card</label>
-                <select id="tCard" class="form-control"></select>
-            </div>
-
-            <div class="field">
-                <label>Card Holder</label>
-                <input id="tCardHolder" class="form-control" readonly>
-            </div>
-
-            <div class="field">
-                <label>Card Type</label>
-                <input id="tCardType" class="form-control" readonly>
-            </div>
-            <div class="field">
-                <label>CVV</label>
-                <input id="tCardCvv" class="form-control" readonly>
-            </div>
-            <div class="field">
-                <label>Expiry Date</label>
-                <input id="tCardExpiry" class="form-control" readonly>
-            </div>
-
-            <div class="field">
-                <label>Transaction Amount</label>
-                <input id="tAmount" class="form-control" oninput="calculateAmounts()">
-            </div>
-
-            <div class="field">
-                <label>Charge Amount</label>
-                <input id="tChargeAmount" class="form-control" readonly>
-            </div>
-
-            <div class="field">
-                <label>Employee Charge (%)</label>
-                <input id="tEmpPercent" class="form-control" oninput="calculateAmounts()">
-            </div>
-
-            <div class="field">
-                <label>Final Amount</label>
-                <input id="tFinalAmount" class="form-control" readonly>
-            </div>
-
-            <div class="field">
-                <label>Account Number</label>
-                <select id="tAccountSelect" class="form-control"></select>
-            </div>
-
-            <div class="field">
-                <label>Bank Name</label>
-                <input id="tBankName" class="form-control" readonly>
-            </div>
-
-            <div class="field">
-                <label>IFSC Code</label>
-                <input id="tIfsc" class="form-control" readonly>
-            </div>
-
-
-
-        </div>
-
+        
         <!-- Footer -->
         <div style="text-align:right;margin-top:15px">
             <button class="btn-danger" onclick="clearTransaction()">Clear</button>
@@ -523,11 +554,17 @@
         formData.append("panfrontpath", "@Model?.panfrontpath");
         formData.append("panbackpath", "@Model?.panbackpath");
 
+        const kycDiv = document.getElementById("kycstatus");
+    let kycStatus = "";
+    if (kycDiv) {
+        kycStatus = kycDiv.innerText.replace("KYC:", "").trim();
+    }
+
         // Append images
         document.querySelectorAll('.image-upload-box input[type="file"]').forEach(input=>{
             if(input.files.length>0) formData.append(input.id,input.files[0]);
         });
-
+        formData.append("KycStatus", kycStatus);
         // Append credit cards
         cards.forEach((c,i)=>{
             formData.append(`CreditCards[${i}].NameOnCard`, c.NameOnCard);
@@ -564,7 +601,7 @@
     let customerBanks = [];
 
         function openTransactionModal() {
-        document.getElementById("transactionModal").style.display = "flex";
+        
 
         // Platforms
         fetch('/Employee/GetPlatforms')
@@ -604,6 +641,8 @@
                 tTransactiontype.innerHTML = '<option value="">-- Select Transaction Type --</option>';
                 d.forEach(x => tTransactiontype.innerHTML += `<option value="${x.id}">${x.name}</option>`);
             });
+
+        document.getElementById("transactionModal").style.display = "flex";
     }
 
     function closeTransactionModal(){
@@ -661,24 +700,41 @@
         };
 
 
-    function calculateAmounts(){
-        debugger
-        let amount=parseFloat(tAmount.value||0);
-        let chargeP=parseFloat(tChargePercent.value||0);
-        let empP=parseFloat(tEmpPercent.value||0);
+        function calculateAmounts() {
+        let amount = parseFloat(tAmount.value || 0);
+        let platformPercent = parseFloat(tChargePercent.value || 0);
+        let empPercent = parseFloat(tEmpPercent.value || 0);
 
-        let chargeAmt=amount*(chargeP/100);
-        let empAmt=amount*(empP/100);
-        let finalAmt=amount-chargeAmt-empAmt;
+        let platformChargeAmt = amount * (platformPercent / 100);
+        let employeeChargeAmt = amount * (empPercent / 100);
+        let finalAmt = amount - platformChargeAmt - employeeChargeAmt;
 
-        tChargeAmount.value=chargeAmt.toFixed(2);
-        tFinalAmount.value=finalAmt.toFixed(2);
+        tChargeAmount.value = platformChargeAmt.toFixed(2);
+        tEmpChargeAmount.value = employeeChargeAmt.toFixed(2);   // ✅ NEW
+        tFinalAmount.value = finalAmt.toFixed(2);
     }
 
-        function clearTransaction() {
-        document.querySelectorAll('#transactionModal input, #transactionModal select')
-            .forEach(x => x.value = '');
-    }
+
+            function clearTransaction() {
+                tPlatform.value = "";
+                tGateway.value = "";
+                tTransactiontype.value = "";
+                tCard.value = "";
+                tAmount.value = "";
+                tEmpPercent.value = "";
+                tFinalAmount.value = "";
+                tChargeAmount.value = "";
+                tEmpChargeAmount.value = "";
+                tAccountSelect.value = "";
+
+                tCardHolder.value = "";
+                tCardType.value = "";
+                tCardExpiry.value = "";
+                tCardCvv.value = "";
+                tBankName.value = "";
+                tIfsc.value = "";
+            }
+
 
 
         let bankMaster = [];
@@ -785,25 +841,37 @@
     }
 
 
-    function saveTransaction() {
-        debugger;
-        const selectedBank = customerBanks.find(b => b.bankId == tAccountSelect.value);
+            function saveTransaction() {
 
-            const data = {
-                CustomerId: customerId,
-                PlatformId: tPlatform.value,
-                GatewayId: tGateway.value,
-                CardId: tCard.value,
-                TransactionType: tTransactiontype.value,
-                Amount: tAmount.value,
-                PlatformChargePercent: tChargePercent.value,
-                EmployeeChargePercent: tEmpPercent.value,
-                FinalAmount: tFinalAmount.value,
+        if (
+            !tPlatform.value ||
+            !tGateway.value ||
+            !tTransactiontype.value ||
+            !tCard.value ||
+            !tAmount.value ||
+            !tFinalAmount.value ||
+            !tAccountSelect.value
+        ) {
+            alert("⚠️ All fields are mandatory");
+            return;
+        }
 
-                BankId: selectedBank?.bankId || null,
-                AccountNumber: selectedBank?.accountNumber || "",
-                IFSC: selectedBank?.ifscCode || ""
-            };
+        if (!confirm("Are you sure you want to save this transaction?")) return;
+
+        const data = {
+            CustomerId: customerId,
+            PlatformId: parseInt(tPlatform.value),
+            GatewayId: parseInt(tGateway.value),
+            TransactionTypeId: parseInt(tTransactiontype.value),
+            CardId: parseInt(tCard.value),
+            BankDetailsId: parseInt(tAccountSelect.value),
+            Remarks : tRemarks.value,
+            TransactionAmount: parseFloat(tAmount.value),
+            PlatformChargeAmount: parseFloat(tChargeAmount.value),
+            EmployeeChargePercent: parseFloat(tEmpPercent.value),
+            EmployeeChargeAmount: parseFloat(tEmpChargeAmount.value),
+            FinalAmount: parseFloat(tFinalAmount.value)
+        };
 
         fetch('/Employee/AddTransaction', {
             method: 'POST',
@@ -812,15 +880,21 @@
         })
         .then(r => r.json())
         .then(res => {
-            if (res.result > 0) {
-                alert('✅ Transaction Saved');
+            if (res.result > 0 || res.Result > 0) {
+                alert('✅ Transaction saved successfully');
                 closeTransactionModal();
                 clearTransaction();
             } else {
-                alert('❌ Failed to save');
+                alert('❌ Failed to save transaction');
             }
+        })
+        .catch(err => {
+            console.error(err);
+            alert('❌ Error while saving transaction');
         });
     }
+
+
 
         function validateTransactionFields() {
         const requiredFields = [
@@ -848,49 +922,6 @@
 
         return true;
     }
-
-
-    //     function saveTransaction() {
-
-    //     // 🔴 Step 1: Validate
-    //     if (!validateTransactionFields()) return;
-
-    //     // 🟡 Step 2: Confirmation
-    //     const confirmSave = confirm("Are you sure you want to save this transaction?");
-    //     if (!confirmSave) return; // ⛔ user clicked Cancel
-
-    //     // 🟢 Step 3: Proceed to save
-    //     const data = {
-    //         CustomerId: customerId,
-    //         PlatformId: tPlatform.value,
-    //         GatewayId: tGateway.value,
-    //         CardId: tCard.value,
-    //         TransactionType: tTransactiontype.value,
-    //         Amount: tAmount.value,
-    //         PlatformChargePercent: tChargePercent.value,
-    //         EmployeeChargePercent: tEmpPercent.value,
-    //         FinalAmount: tFinalAmount.value,
-    //         BankId: selectedBank.bankId,
-    //         AccountNumber: selectedBank.accountNumber,
-    //         IFSC: selectedBank.ifscCode
-    //     };
-
-    //     fetch('/Employee/AddTransaction', {
-    //         method: 'POST',
-    //         headers: { 'Content-Type': 'application/json' },
-    //         body: JSON.stringify(data)
-    //     })
-    //     .then(r => r.json())
-    //     .then(res => {
-    //         if (res.result > 0) {
-    //             alert("✅ Transaction saved successfully");
-    //             window.location.reload();
-    //         } else {
-    //             alert("❌ " + (res.message || "Something went wrong"));
-    //         }
-    //     })
-    //     .catch(() => alert("❌ Error while saving transaction"));
-    // }
 
 </script>
 
