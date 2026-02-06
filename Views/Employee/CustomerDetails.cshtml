@@ -359,7 +359,7 @@
             <select id="bActive" class="form-control">
                 <option value="">-- Status --</option>
                 <option value="true">Active</option>
-                <option value="false">Inactive</option>
+                <option value="false">InActive</option>
             </select>
         </div>
 
@@ -383,7 +383,7 @@
             <select id="cActive" class="form-control">
                 <option value="">-- Status --</option>
                 <option value="true">Active</option>
-                <option value="false">Inactive</option>
+                <option value="false">InActive</option>
             </select>
         </div>
 
@@ -445,7 +445,7 @@
                 <td>${c.ExpiryDate}</td>
                 <td>${typeName}</td>
                 <td>${c.CardCVV}</td>
-                <td>${c.IsActive?"Active":"Inactive"}</td>
+                <td>${c.IsActive?"Active":"InActive"}</td>
                 <td>
                     <button class="btn-primary" onclick="openCardModal(${i})">Edit</button>
                     ${c.IsExisting ? '' : `<button class="btn-danger" onclick="removeCard(${i})">Remove</button>`}
@@ -466,12 +466,37 @@
         cardModal.style.display='flex';
     }
     function closeCardModal(){cardModal.style.display='none'; editIndex=null;}
-    function saveCard(){
-        if(!cHolder.value||!cNumber.value||!cExpiry.value||!cCVV.value||!cType.value||!cActive.value){alert('All fields mandatory'); return;}
-        const card={NameOnCard:cHolder.value,CardNumber:cNumber.value,ExpiryDate:cExpiry.value,CardCVV:cCVV.value,CardTypeId:cType.value,CardTypeName:cType.options[cType.selectedIndex].text,IsActive:cActive.value==='true',IsExisting:false};
-        if(editIndex!==null) cards[editIndex]=card; else cards.push(card);
-        renderCards(); closeCardModal();
+        function saveCard() {
+        if (!cHolder.value || !cNumber.value || !cExpiry.value || !cCVV.value || !cType.value || !cActive.value) {
+            alert('All fields mandatory');
+            return;
+        }
+
+        const isEdit = editIndex !== null;
+
+        const card = {
+            NameOnCard: cHolder.value,
+            CardNumber: cNumber.value,
+            ExpiryDate: cExpiry.value,
+            CardCVV: cCVV.value,
+            CardTypeId: cType.value,
+            CardTypeName: cType.options[cType.selectedIndex].text,
+            IsActive: cActive.value === 'true',
+
+            // ✅ KEEP EXISTING FLAG WHEN EDITING
+            IsExisting: isEdit ? cards[editIndex].IsExisting : false
+        };
+
+        if (isEdit) {
+            cards[editIndex] = card;
+        } else {
+            cards.push(card);
+        }
+
+        renderCards();
+        closeCardModal();
     }
+
     function removeCard(i){cards.splice(i,1); renderCards();}
     function formatExpiry(input){let v=input.value.replace(/[^0-9]/g,''); if(v.length>4)v=v.substring(0,4); if(v.length>=2){ let m=Math.min(12,Math.max(1,parseInt(v.substring(0,2)))); v=m.toString().padStart(2,'0')+v.substring(2);} input.value=v.length>2?v.substring(0,2)+'/'+v.substring(2):v;}
 
@@ -524,7 +549,11 @@
         fetch('/Employee/AddCustomer',{method:'POST',body:formData})
         .then(r=>r.json())
         .then(res=>{
-            if(res.result>0){alert('✅ Customer updated successfully'); location.reload();}
+              // console.log(res);
+            const resultValue = res.updatedRowsCount ?? res.Result ?? res.RESULT ?? 0;
+
+        if (resultValue > 0) {
+        alert('✅ Customer updated successfully'); window.location.reload();}
             else{alert('❌ '+(res.StatusMessage||'Something went wrong'));}
         }).catch(err=>alert('Error saving customer'));
     }
@@ -689,7 +718,7 @@
                 <td>${b.BankName}</td>
                 <td>${b.AccountNumber}</td>
                 <td>${b.IFSC}</td>
-                <td>${b.IsActive ? "Active" : "Inactive"}</td>
+                <td>${b.IsActive ? "Active" : "InActive"}</td>
                 <td>
                     <button class="btn-primary" onclick="openBankModal(${i})">Edit</button>
                     ${b.IsExisting ? "" : `<button class="btn-danger" onclick="removeBank(${i})">Remove</button>`}
