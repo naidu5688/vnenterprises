@@ -1,4 +1,5 @@
-﻿using Azure;
+﻿using Amazon.S3.Model.Internal.MarshallTransformations;
+using Azure;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 using System.Reflection;
@@ -40,9 +41,41 @@ namespace vnenterprises.Controllers
         [HttpGet]
         public IActionResult Transactions()
         {
-            var access = Response.Cookies.GetType();
+            ViewBag.UserId = Convert.ToInt32(Request.Cookies["UserId"]);
             return View();
         }
+
+        public IActionResult GetTransactionById(int transactionid)
+        {
+            if(transactionid == 0)
+                return Json(new List<object>());
+            TransactionviewModel model = new TransactionviewModel();
+            model.TransactionId = transactionid;
+            model.TransactionType = "";
+            model.SearchText = "";
+            model.StartDate = "";
+            model.EndDate = "";
+            model.PageNo = 1;
+            model.PageSize = 1;
+            model.UserId = 0;
+            var result = _employeesupport.GetTransactions(model);
+            return Json(result.data.FirstOrDefault());
+        }
+
+        [HttpPost]
+        public IActionResult GetTransactions([FromBody] TransactionviewModel model)
+        {
+            if (model == null)
+                return Json(new List<object>());
+            var result = _employeesupport.GetTransactions(model);
+
+            return Json(new
+            {
+                data = result.data,
+                totalCount = result.totalCount
+            });
+        }
+
         [HttpGet]
         public IActionResult AddCustomer()
         {
@@ -221,6 +254,14 @@ namespace vnenterprises.Controllers
         public IActionResult TranasactionTypes()
         {
             var result = _employeesupport.GetTranasactionTypesList();
+            return Json(result);
+        }
+
+        public IActionResult GetUserTransaction(int userId)
+        {
+            if (userId == 0)
+                return Json(new List<object>());
+            var result = _employeesupport.GetUserTransaction(userId);
             return Json(result);
         }
         [HttpGet]

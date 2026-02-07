@@ -1,10 +1,11 @@
-﻿using Microsoft.Data.SqlClient;
+﻿using Azure;
+using Microsoft.Data.SqlClient;
+using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Reflection;
 using System.Reflection.PortableExecutable;
 using vnenterprises.Models;
-using Azure;
 
 
 namespace vnenterprises.Support
@@ -253,61 +254,6 @@ namespace vnenterprises.Support
 
             return result;
         }
-
-        //public CustomerDetailsModel GetCustomerDetails(int CustomerId)
-        //{
-        //    var result = new CustomerDetailsModel();
-        //    using (SqlConnection con = new SqlConnection(_connectionString))
-        //    using (SqlCommand cmd = new SqlCommand("usp_fn_GetCustomerDetails", con))
-        //    {
-        //        cmd.CommandType = CommandType.StoredProcedure;
-
-        //        cmd.Parameters.AddWithValue("@CustomerId", CustomerId);
-
-        //        con.Open();
-        //        using (SqlDataReader dr = cmd.ExecuteReader())
-        //        {
-        //            if (dr.HasRows)
-        //            {
-
-        //                while (dr.Read())
-        //                {
-        //                    result.CustomerId = dr["CustomerId"] != DBNull.Value ?
-        //                                              Convert.ToInt32(dr["CustomerId"]) : 0;
-        //                    result.FirstName = dr["FirstName"].ToString();
-        //                    result.LastName = dr["LastName"].ToString();
-        //                    result.PhoneNumber = dr["PhoneNumber"].ToString();
-        //                    result.aadharnumber = dr["AadharNumber"].ToString();
-        //                    result.pannumber = dr["PanNumber"].ToString();
-        //                    result.aadharfrontpath = "";
-        //                    result.aadharbackpath = "";
-        //                    result.panfrontpath = "";
-        //                    result.panbackpath = "";
-        //                    result.KycStatus = dr["KycStatus"].ToString();
-        //                    result.TransactionsCount = Convert.ToInt32(dr["TransactionCount"]);
-        //                }
-
-        //                if (dr.NextResult())
-        //                {
-        //                    while (dr.Read())
-        //                    {
-        //                        result.CreditCards.Add(new CreditCardModel
-        //                        {
-        //                            NameOnCard = dr.GetString(dr.GetOrdinal("NameOnCard")),
-        //                            CardNumber = dr.GetString(dr.GetOrdinal("CardNumber")),
-        //                            CardTypeId = dr.GetInt32(dr.GetOrdinal("CardTypeId")),
-        //                            CardCVV = dr.GetInt32(dr.GetOrdinal("CardCVV")),
-        //                            ExpiryDate = dr.GetString(dr.GetOrdinal("ExpiryDate")),
-        //                            IsActive = dr.GetBoolean(dr.GetOrdinal("IsActive"))
-        //                        });
-        //                    }
-        //                }
-        //            }
-
-        //        }
-        //        return result;
-        //    }
-        //}
         private DataTable ToIntListTable(List<CreditCardModel> list)
         {
             DataTable dt = new DataTable();
@@ -356,7 +302,113 @@ namespace vnenterprises.Support
 
             return dt;//test
         }
+        public (List<TransactionListModel> data, int totalCount) GetTransactions(TransactionviewModel model)
+        {
+            List<TransactionListModel> result = new();
+            int totalCount = 0;
 
+            using SqlConnection con = new SqlConnection(_connectionString);
+            using SqlCommand cmd = new SqlCommand("usp_fn_GetTransactionDetails", con);
+
+            cmd.CommandType = CommandType.StoredProcedure;
+            cmd.Parameters.AddWithValue("@TransactionId", model.TransactionId);
+            cmd.Parameters.AddWithValue("@TransactionType", model.TransactionType ?? "");
+            cmd.Parameters.AddWithValue("@SearchText", model.SearchText ?? "");
+            cmd.Parameters.AddWithValue("@StartDate", model.StartDate ?? "");
+            cmd.Parameters.AddWithValue("@EndDate", model.EndDate ?? "");
+            cmd.Parameters.AddWithValue("@PageNo", model.PageNo);      // ✅ FIX
+            cmd.Parameters.AddWithValue("@PageSize", model.PageSize);
+            cmd.Parameters.AddWithValue("@UserId", model.UserId);
+
+            con.Open();
+
+            using (SqlDataReader dr = cmd.ExecuteReader())
+            {
+                while (dr.Read())
+                {
+                    result.Add(new TransactionListModel
+                    {
+                        TransactionId = Convert.ToInt32(dr["TransactionId"]),
+                        CustomerName = dr["CustomerName"].ToString(),
+                        EmployeeName = dr["EmployeeName"].ToString(),
+                        CardNumber = dr["CardNumber"].ToString(),
+                        CardTypeName = dr["CardTypeName"].ToString(),
+                        CardCVV = dr["CardCVV"].ToString(),
+                        CardExpiryDate = dr["CardExpiryDate"].ToString(),
+                        BankAccountNumber = dr["BankAccountNumber"].ToString(),
+                        BankIFSC = dr["BankIFSC"].ToString(),
+                        PlatformName = dr["PlatformName"].ToString(),
+                        GatewayName = dr["GatewayName"].ToString(),
+                        IncentiveName = dr["IncentiveName"].ToString(),
+                        PlatformCharge = Convert.ToDecimal(dr["PlatformCharge"]),
+                        GatewayCharge = Convert.ToDecimal(dr["GatewayCharge"]),
+                        EmployeeChargePercent = Convert.ToDecimal(dr["EmployeeChargePercent"]),
+                        EmployeeChargeAmount = Convert.ToDecimal(dr["EmployeeChargeAmount"]),
+                        TransactionAmount = Convert.ToDecimal(dr["TransactionAmount"]),
+                        FinalAmount = Convert.ToDecimal(dr["FinalAmount"]),
+                        CreatedOn = Convert.ToDateTime(dr["CreatedOn"]),
+                        Remark = dr["Remark"].ToString()
+                    });
+                }
+
+                // 👉 NEXT RESULT = TOTAL COUNT (you must add this in SP)
+                if (dr.NextResult() && dr.Read())
+                    totalCount = Convert.ToInt32(dr["TotalCount"]);
+            }
+
+            return (result, totalCount);
+        }
+
+        public UserTransactionsummary GetUserTransaction(int userId)
+        {
+            UserTransactionsummary result = new UserTransactionsummary();
+
+            try
+            {
+                using (SqlConnection con = new SqlConnection(_connectionString))
+                using (SqlCommand cmd = new SqlCommand("usp_fn_GetUserTransactionDetails", con))
+                {
+                    cmd.CommandType = CommandType.StoredProcedure;
+                    cmd.Parameters.AddWithValue("@UserId", userId);
+
+                    con.Open();
+
+                    using (SqlDataReader dr = cmd.ExecuteReader())
+                    {
+                        if (dr.Read())
+                        {
+                            result.TotalTransactions =
+                                dr["TotalTransactions"] == DBNull.Value ? 0 : Convert.ToInt32(dr["TotalTransactions"]);
+
+                            result.TodayTransactions =
+                                dr["TodayTransactions"] == DBNull.Value ? 0 : Convert.ToInt32(dr["TodayTransactions"]);
+
+                            result.TotalIncentives =
+                                dr["TotalIncentives"] == DBNull.Value ? 0 : Convert.ToInt32(dr["TotalIncentives"]);
+
+                            result.TodayIncentives =
+                                dr["TodayIncentives"] == DBNull.Value ? 0 : Convert.ToInt32(dr["TodayIncentives"]);
+
+                            result.TotalCustomersAdded =
+                                dr["TotalCustomersAdded"] == DBNull.Value ? 0 : Convert.ToInt32(dr["TotalCustomersAdded"]);
+
+                            result.TodayCustomersAdded =
+                                dr["TodayCustomersAdded"] == DBNull.Value ? 0 : Convert.ToInt32(dr["TodayCustomersAdded"]);
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                // 🔴 Log error properly (DB / File / Serilog / NLog)
+                // Logger.LogError(ex, "Error while fetching user transaction summary");
+
+                // Return empty object (zeros) instead of crashing UI
+                result = new UserTransactionsummary();
+            }
+
+            return result;
+        }
 
         public int AddTransaction(TransactionCreateDto model, int UserId)
         {
@@ -364,7 +416,7 @@ namespace vnenterprises.Support
             try
             {
                 using (SqlConnection con = new SqlConnection(_connectionString))
-                using (SqlCommand cmd = new SqlCommand("vn_InsertorupdateCustomer", con))
+                using (SqlCommand cmd = new SqlCommand("vn_InsertTransaction", con))
                 {
                     cmd.CommandType = CommandType.StoredProcedure;
                     cmd.Parameters.AddWithValue("@CustomerId", model.CustomerId);

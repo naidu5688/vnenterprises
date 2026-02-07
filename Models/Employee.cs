@@ -13,6 +13,57 @@ namespace vnenterprises.Models
         public string AccessType { get; set; }
         public string UserName { get; set; }
     }
+
+    public class TransactionviewModel
+    {
+        public int TransactionId { get; set; }
+        public string TransactionType { get; set; }
+        public string SearchText { get; set; }
+        public string StartDate { get; set; }
+        public string EndDate { get; set; }
+        public int PageNo { get; set; }
+        public int PageSize { get; set; }
+        public int UserId { get; set; }
+    }
+
+    public class TransactionListModel
+    {
+        public int TransactionId { get; set; }
+        public int CustomerId { get; set; }
+        public int CardTypeId { get; set; }
+        public string CardTypeName { get; set; }
+        public  string CardHolder { get; set; }
+		public string CardExpiryDate { get; set; }
+		public string CardCVV { get; set; }
+        public string CardNumber { get; set; }
+        public string BankAccountNumber { get; set; }
+        public string BankIFSC { get; set; }
+        public string BankId { get; set; }
+        public string CustomerName { get; set; }
+        public string EmployeeName { get; set; }
+        public string IncentiveName { get; set; }
+        public decimal TransactionAmount { get; set; }
+        public decimal FinalAmount { get; set; }
+        public DateTime CreatedOn { get; set; }  
+        public int PlatformId { get; set; }
+        public string PlatformName { get; set; }
+        public decimal PlatformCharge { get; set; }
+        public int GatewayId { get; set; }
+        public string GatewayName { get; set; }
+        public decimal GatewayCharge { get; set; }
+        public decimal EmployeeChargePercent { get; set; }
+        public decimal EmployeeChargeAmount { get; set; }
+        public string Remark { get; set; }
+    }
+    public class UserTransactionsummary
+    {
+        public int TotalTransactions { get; set; }
+        public int TodayTransactions { get; set; }
+        public int TotalIncentives { get; set; }
+        public int TodayIncentives { get; set; }
+        public int TotalCustomersAdded { get; set; }
+        public int TodayCustomersAdded { get; set; }
+    }
     public class TransactionCreateDto
     {
         public int CustomerId { get; set; }

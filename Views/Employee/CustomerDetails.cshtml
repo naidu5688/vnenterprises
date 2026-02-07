@@ -211,18 +211,39 @@
 
     <h4>Documents</h4>
     <div class="grid-4">
-        @foreach (var d in new[] { ("aadhaarFront", "Aadhaar Front *", Model?.aadharfrontpath), ("aadhaarBack", "Aadhaar Back *", Model?.aadharbackpath), ("panFront", "PAN Front *", Model?.panfrontpath), ("panBack", "PAN Back (Optional)", Model?.panbackpath) })
+        @foreach (var d in new[] {
+                ("AadhaarFrontImage", "Aadhaar Front *", Model?.aadharfrontpath),
+                ("AadhaarBackImage",  "Aadhaar Back *",  Model?.aadharbackpath),
+                ("PanFrontImage",     "PAN Front *",     Model?.panfrontpath),
+                ("PanBackImage",      "PAN Back (Optional)", Model?.panbackpath)
+                })
         {
             <div class="image-upload-box" data-name="@d.Item1">
-                <img class="image-preview" src="@d.Item3" style="display:@(string.IsNullOrEmpty(d.Item3) ? "none" : "block")">
-                <input type="file" id="@d.Item1" style="display:none">
-                <button class="btn-primary" onclick="document.getElementById('@d.Item1').click()">Upload</button>
-                <button class="btn-danger" onclick="deleteImage('@d.Item1')">Delete</button>
+                <img class="image-preview"
+                     src="@d.Item3"
+                     style="display:@(string.IsNullOrEmpty(d.Item3) ? "none" : "block")">
+
+                <!-- ✅ ID + NAME MUST MATCH MODEL -->
+                <input type="file"
+                       id="@d.Item1"
+                       name="@d.Item1"
+                       accept="image/*"
+                       style="display:none">
+
+                <button class="btn-primary"
+                        onclick="document.getElementById('@d.Item1').click()">
+                    Upload
+                </button>
+
+                <button class="btn-danger"
+                        onclick="deleteImage('@d.Item1')">
+                    Delete
+                </button>
+
                 <span style="color:#d4af37">@d.Item2</span>
             </div>
         }
     </div>
-
     <br>
    
     <div class="flex-header">
@@ -461,7 +482,17 @@
         input.value = "";
         const img = input.closest('.image-upload-box').querySelector('.image-preview');
         img.src = ""; img.style.display = "none";
+
+        deletedImages[id] = true;
     }
+
+              let deletedImages = {
+            AadhaarFrontImage: false,
+            AadhaarBackImage: false,
+            PanFrontImage: false,
+            PanBackImage: false
+        };
+
 
     // ---------------- CREDIT CARDS ----------------
     function renderCards(){
@@ -531,6 +562,18 @@
     function removeCard(i){cards.splice(i,1); renderCards();}
     function formatExpiry(input){let v=input.value.replace(/[^0-9]/g,''); if(v.length>4)v=v.substring(0,4); if(v.length>=2){ let m=Math.min(12,Math.max(1,parseInt(v.substring(0,2)))); v=m.toString().padStart(2,'0')+v.substring(2);} input.value=v.length>2?v.substring(0,2)+'/'+v.substring(2):v;}
 
+        // OLD IMAGE PATHS FROM MODEL (MOVE THIS UP)
+            const oldImages = {
+            AadhaarFrontImage: "@Model?.aadharfrontpath",
+            AadhaarBackImage: "@Model?.aadharbackpath",
+            PanFrontImage: "@Model?.panfrontpath",
+            PanBackImage: "@Model?.panbackpath"
+        };
+
+        function hasNewFile(id) {
+        const el = document.getElementById(id);
+        return el && el.files && el.files.length > 0;
+    }
     // ---------------- SAVE CUSTOMER ----------------
     function saveCustomer(){
         debugger
@@ -549,10 +592,38 @@
         formData.append("aadharnumber",aadhaar);
         formData.append("pannumber",pan);
 
-        formData.append("aadharfrontpath", "@Model?.aadharfrontpath");
-        formData.append("aadharbackpath", "@Model?.aadharbackpath");
-        formData.append("panfrontpath", "@Model?.panfrontpath");
-        formData.append("panbackpath", "@Model?.panbackpath");
+
+              if (
+        (!hasNewFile("AadhaarFrontImage") && (!oldImages.AadhaarFrontImage || deletedImages.AadhaarFrontImage)) ||
+        (!hasNewFile("AadhaarBackImage")  && (!oldImages.AadhaarBackImage  || deletedImages.AadhaarBackImage)) ||
+        (!hasNewFile("PanFrontImage")     && (!oldImages.PanFrontImage     || deletedImages.PanFrontImage))
+    ) {
+        alert("❌ Aadhaar Front, Aadhaar Back & PAN Front images are mandatory");
+        return;
+    }
+
+
+
+
+    // IMAGE HANDLING (🔥 FIXED)
+    ["AadhaarFrontImage", "AadhaarBackImage", "PanFrontImage", "PanBackImage"].forEach(id => {
+        const input = document.getElementById(id);
+
+        if (input && input.files.length > 0) {
+            // ✅ New image uploaded
+            formData.append(id, input.files[0]);
+            formData.append(id + "Path", ""); // backend replaces
+        }
+        else if (deletedImages[id]) {
+            // ✅ Image deleted
+            formData.append(id + "Path", "");
+        }
+        else {
+            // ✅ Keep old image
+            formData.append(id + "Path", oldImages[id] || "");
+        }
+    });
+
 
         const kycDiv = document.getElementById("kycstatus");
     let kycStatus = "";
@@ -561,9 +632,6 @@
     }
 
         // Append images
-        document.querySelectorAll('.image-upload-box input[type="file"]').forEach(input=>{
-            if(input.files.length>0) formData.append(input.id,input.files[0]);
-        });
         formData.append("KycStatus", kycStatus);
         // Append credit cards
         cards.forEach((c,i)=>{
@@ -803,6 +871,9 @@
 
         bankModal.style.display = "flex";
     }
+      
+      
+
 
     function closeBankModal() {
         bankModal.style.display = "none";

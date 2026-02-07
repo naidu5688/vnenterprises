@@ -19,33 +19,40 @@
     /* Main layout */
     .main-layout {
         display: flex;
-        height: calc(100vh - 68px);
+        padding-bottom: 30px; /* 👈 adds 10px bottom space */
+        min-height: calc(100vh - 68px);
+        background-color: #235c4e
     }
 
     /* Sidebar */
     .layoutlink {
         width: 200px;
         background-color: #235c4e;
-        color: white
-    }
-
-    .sidebar button {
-        width: 100%;
-        padding: 9px;
-        background-color: #307665;
-        border: none;
         color: white;
-        font-size: 16px;
-        cursor: pointer;
-        font-weight: 300;
-        border-bottom: solid 1px #0d2921;
-        font-family: system-ui;
-        text-align: start;
+        display: flex;
     }
 
-        .sidebar button:hover {
-            background-color: #17362e;
+    .sidebar {
+        flex: 1;
+    }
+
+        .sidebar button {
+            width: 100%;
+            padding: 9px;
+            background-color: #307665;
+            border: none;
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+            font-weight: 300;
+            border-bottom: solid 1px #0d2921;
+            font-family: system-ui;
+            text-align: start;
         }
+
+            .sidebar button:hover {
+                background-color: #17362e;
+            }
 
     /* Page Content */
     .content {
@@ -87,9 +94,7 @@
             background-color: #2e5e50;
         }
 
-
 </style>
-
 <!-- HEADER -->
 <div class="partialview">
     <div class="logo-img">
