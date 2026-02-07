@@ -109,6 +109,27 @@
         public int result { get; set; }
         public string StatusMessage { get; set; }
     }
-
-
+    public class GetEmployeeModel
+    {
+        public string branchIds { get; set; }
+        public string roleIds { get; set; }
+        public string kyc { get; set; }
+        public string search { get; set; }
+        public int page { get; set; }
+        public int pageSize { get; set; }
+    }
+    public class GetEmployeeModelList
+    {
+        public int UserId { get; set; }
+        public string MobileNumber { get; set; }
+        public string EmployeeName { get; set; }
+        public bool IsKycApproveAccess { get; set; }
+        public bool IsActive { get; set; }
+        public int UserRoleId { get; set; }
+        public int BranchId { get; set; }
+        public string KYCStatus { get; set; }
+        public DateTime KYCApprovedOn { get; set; }
+        public DateTime CreatedOn { get; set; }
+        public int CreatedBy { get; set; }
+    }
 }

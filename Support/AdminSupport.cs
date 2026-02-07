@@ -104,6 +104,50 @@ namespace vnenterprises.Support
 
             return response;
         }
+        public (List<GetEmployeeModelList> data, int totalCount) getEmployeeDetail(GetEmployeeModel model)
+        {
+            int totalCount = 0;
+            List<GetEmployeeModelList> result = new();
+
+            using SqlConnection con = new SqlConnection(_connectionString);
+            using SqlCommand cmd = new SqlCommand("usp_fn_GetUserDetails", con);
+
+            cmd.CommandType = CommandType.StoredProcedure;
+            cmd.Parameters.AddWithValue("@BranchIds", model.branchIds);
+            cmd.Parameters.AddWithValue("@RoleIds", model.roleIds);
+            cmd.Parameters.AddWithValue("@Kyc", model.kyc);
+            cmd.Parameters.AddWithValue("@SearchText", model.search ?? "");
+            cmd.Parameters.AddWithValue("@PageNo", model.page);      
+            cmd.Parameters.AddWithValue("@PageSize", model.pageSize);
+
+            con.Open();
+
+            using (SqlDataReader dr = cmd.ExecuteReader())
+            {
+                while (dr.Read())
+                {
+                    result.Add(new GetEmployeeModelList
+                    {
+                        UserId = Convert.ToInt32(dr["UserId"]),
+                        MobileNumber = dr["MobileNumber"].ToString(),
+                        EmployeeName = dr["EmployeeName"].ToString(),
+                        UserRoleId = Convert.ToInt32(dr["UserRoleId"]),
+                        BranchId = Convert.ToInt32(dr["UserRoleId"]),
+                        IsKycApproveAccess = Convert.ToBoolean(dr["IsKycApproveAccess"]),
+                        IsActive = Convert.ToBoolean(dr["IsActive"]),
+                        KYCStatus = dr["KYCStatus"].ToString(),
+                        KYCApprovedOn = Convert.ToDateTime(dr["KYCApprovedOn"].ToString()),
+                        CreatedOn = Convert.ToDateTime(dr["CreatedOn"].ToString()),
+                        CreatedBy = Convert.ToInt32(dr["CreatedBy"].ToString())
+                    });
+                }
+
+                if (dr.NextResult() && dr.Read())
+                    totalCount = Convert.ToInt32(dr["TotalCount"]);
+            }
+
+            return (result, totalCount);
+        }
         public ResultResponse UpdateorInsertEmployee(EmployeeModel model, int UserId)
         {
             var response = new ResultResponse();

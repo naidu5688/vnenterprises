@@ -131,6 +131,16 @@ namespace vnenterprises.Controllers
         [HttpGet]
         public IActionResult GetEmployees(string branchIds, string roleIds , string kyc , string search , int page , int pageSize)
         {
+            var getEmployeeModel = new GetEmployeeModel
+            {
+                branchIds = branchIds,
+                roleIds = roleIds,
+                kyc = kyc,
+                search = search,
+                page = page,
+                pageSize = pageSize
+            };
+            var result = _adminsupport.getEmployeeDetail(getEmployeeModel);  
             return View();
         }
         [HttpGet]
