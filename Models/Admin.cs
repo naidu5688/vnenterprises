@@ -11,6 +11,11 @@
         public string Status { get; set; } // Active / Inactive
     }
 
+    public class UserRoles
+    {
+        public int Id { get; set; }
+        public string Name { get; set; }
+    }
     public class Gateway
     {
         public int Id { get; set; }

@@ -1,53 +1,349 @@
 ﻿@{
     Layout = "~/Views/Shared/_SharedLayout_Admin.cshtml";
 }
+
 <style>
-    /* Full page container */
-    .gateway-page {
-        min-height: 100vh; /* full screen height */
-        display: flex;
-        align-items: center; /* center vertically */
-        background-color: #17362e; /* greenish background */
-        color: white; /* default text white */
-        text-align: center; /* center text */
-        flex-direction: column; /* stack content vertically */
-        padding: 20px;
-        position: relative; /* allow absolute positioning for button */
+    body {
+        background: #17362e;
+        font-family: 'Segoe UI', sans-serif;
+        color: white;
     }
 
-        .gateway-page h1 {
-            margin: 0;
-            font-size: 36px;
-            margin-bottom: 10px;
-        }
+    .page-container {
+        max-width: 100%;
+        margin: auto;
+        padding: 25px;
+    }
 
-        .gateway-page h3 {
-            margin: 0;
-            font-size: 18px;
-            margin-bottom: 30px;
-        }
+    h2 {
+        color: #d4af37;
+        margin-bottom: 20px;
+    }
 
-        /* Top-right button */
-        .gateway-page .top-right-btn {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-            padding: 12px 25px;
-            font-size: 16px;
-            border: none;
-            border-radius: 6px;
-            background-color: #d4af37; /* gold color */
-            color: white;
-            cursor: pointer;
-            transition: 0.3s;
-        }
+    /* ===== SUMMARY BOXES ===== */
+    .summary-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 15px; /* reduced gap */
+        margin-bottom: 25px;
+    }
 
-            .gateway-page .top-right-btn:hover {
-                background-color: #c29f2f; /* darker gold on hover */
-            }
+    .summary-box {
+        padding: 12px; /* reduced padding */
+        border-radius: 12px;
+        text-align: center;
+        font-weight: 600;
+        box-shadow: 0 4px 8px rgba(0,0,0,.3);
+    }
+
+    .approved {
+        background: linear-gradient(135deg, #1f8f4e, #27ae60);
+    }
+
+    .pending {
+        background: linear-gradient(135deg, #b7950b, #f1c40f);
+        color: black;
+    }
+
+    .rejected {
+        background: linear-gradient(135deg, #922b21, #e74c3c);
+    }
+
+    .total {
+        background: linear-gradient(135deg, #2c3e50, #34495e);
+    }
+
+    .summary-box h3 {
+        margin: 0;
+        font-size: 24px;
+    }
+
+    .summary-box span {
+        font-size: 12px;
+        opacity: .9;
+    }
+
+    /* ===== FILTERS ===== */
+    .filter-bar {
+        display: grid;
+        grid-template-columns: repeat(7, 1fr); /* branch, role, KYC, page size, search, button */
+        gap: 10px;
+        margin-bottom: 20px;
+        align-items: center;
+    }
+
+    .form-control {
+        background: #1e4a37;
+        border: 1px solid #d4af37;
+        border-radius: 8px;
+        color: white;
+        padding: 8px 10px;
+        font-size: 14px;
+    }
+
+    .btn-primary {
+        background: #d4af37;
+        color: #17362e;
+        border: none;
+        border-radius: 8px;
+        padding: 10px;
+        font-weight: 600;
+        cursor: pointer;
+    }
+
+    /* ===== TABLE ===== */
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 10px;
+    }
+
+    th, td {
+        border: 1px solid #d4af37;
+        padding: 10px;
+        text-align: center;
+        font-size: 14px;
+    }
+
+    th {
+        color: #d4af37;
+    }
+
+    #fSearch {
+        grid-column: span 2; /* spans 2 columns instead of 1 */
+    }
+    /* ===== KYC BADGES ===== */
+    .kyc-badge {
+        padding: 4px 8px;
+        border-radius: 12px;
+        font-weight: 600;
+        font-size: 12px;
+        display: inline-block;
+    }
+
+
+    .kyc-approved {
+        background: #27ae60;
+    }
+
+    .kyc-pending {
+        background: #f1c40f;
+        color: black;
+    }
+
+    .kyc-rejected {
+        background: #e74c3c;
+    }
+
+    .btn-edit {
+        background: #2980b9;
+        border: none;
+        color: white;
+        padding: 6px 12px;
+        border-radius: 6px;
+        cursor: pointer;
+    }
 </style>
 
-<div class="gateway-page">
-    <button class="top-right-btn" onclick="window.location.href='/Admin/AddEmployee'">+ Add Employee</button>
+<div class="page-container">
+
+    <h2>Employees</h2>
+
+    <!-- ===== SUMMARY ===== -->
+    <div class="summary-grid">
+        <div class="summary-box approved">
+            <h3 id="cntApproved">0</h3>
+            <span>Approved</span>
+        </div>
+        <div class="summary-box pending">
+            <h3 id="cntPending">0</h3>
+            <span>Pending</span>
+        </div>
+        <div class="summary-box rejected">
+            <h3 id="cntRejected">0</h3>
+            <span>Rejected</span>
+        </div>
+        <div class="summary-box total">
+            <h3 id="cntTotal">0</h3>
+            <span>Total Employees</span>
+        </div>
+    </div>
+
+    <!-- ===== FILTERS ===== -->
+    <div class="filter-bar">
+        <select id="fBranch" class="form-control">
+            <option value="">All Branches</option>
+        </select>
+
+        <select id="fRole" class="form-control">
+            <option value="">All Roles</option>
+        </select>
+
+        <select id="fKyc" class="form-control">
+            <option value="">All KYC Status</option>
+            <option value="Approved">Approved</option>
+            <option value="Pending">Pending</option>
+            <option value="Rejected">Rejected</option>
+        </select>
+
+        <select id="pageSizeSelect" class="form-control">
+            <option value="5">5</option>
+            <option value="10" selected>10</option>
+            <option value="20">20</option>
+            <option value="50">50</option>
+        </select>
+
+        <input id="fSearch" class="form-control" placeholder="Search Phone Number or Name..">
+
+        <button class="btn-primary" onclick="searchEmployees()">Search</button>
+    </div>
+
+    <!-- ===== PAGINATION ===== -->
+    <div id="pagination" style="display:flex; gap:5px; align-items:center; margin-bottom:15px;"></div>
+
+    <!-- ===== TABLE ===== -->
+    <table>
+        <thead>
+            <tr>
+                <th>Employee ID</th>
+                <th>Name</th>
+                <th>Phone</th>
+                <th>Aadhaar</th>
+                <th>Access Role</th>
+                <th>KYC Status</th>
+                <th>Created By</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody id="empBody">
+            <tr><td colspan="8">Loading...</td></tr>
+        </tbody>
+    </table>
 
 </div>
+
+<script>
+    let branches = [];
+    let roles = [];
+    let KycStatus = [];
+    let currentPage = 1;
+    let pageSize = 10;
+    let totalRecords = 0;
+
+    const fBranch = document.getElementById("fBranch");
+    const fRole = document.getElementById("fRole");
+    const fKyc = document.getElementById("fKyc");
+    const fSearch = document.getElementById("fSearch");
+    const pageSizeSelect = document.getElementById("pageSizeSelect");
+    const paginationDiv = document.getElementById("pagination");
+
+    pageSizeSelect.onchange = function() {
+        pageSize = parseInt(this.value);
+        currentPage = 1;
+        loadEmployees();
+    };
+
+    function searchEmployees() {
+        currentPage = 1;
+        loadEmployees();
+    }
+
+    function goToPage(page) {
+        currentPage = page;
+        loadEmployees();
+    }
+
+        document.addEventListener("DOMContentLoaded", function() {
+
+        Promise.all([
+            fetch('/Admin/GetBranches').then(r => r.json()),
+            fetch('/Admin/GetUserRoles').then(r => r.json())
+        ]).then(([branchData, roleData]) => {
+            // populate branch dropdown
+            branches = branchData;
+            fBranch.innerHTML = '<option value="">All Branches</option>';
+            branchData.forEach(b => fBranch.innerHTML += `<option value="${b.branchId}">${b.branchName}</option>`);
+
+            // populate role dropdown
+            roles = roleData;
+            fRole.innerHTML = '<option value="">All Roles</option>';
+            roleData.forEach(r => fRole.innerHTML += `<option value="${r.id}">${r.name}</option>`);
+
+            // now safe to load employees
+            loadEmployees();
+        });
+    });
+
+        function loadEmployees() {
+            debugger
+        const branch = fBranch?.value || branches.map(b => b.branchId).join(',');
+        const role = fRole?.value || roles.map(r => r.id).join(',');
+        let kyc;
+            if (fKyc?.value) {
+                kyc = fKyc.value; // selected single value
+            } else {
+                kyc = ["Approved","Pending","Rejected"].join(','); // send all
+            }
+        const search = fSearch?.value || "";
+
+        fetch(`/Admin/GetEmployees?branchIds=${encodeURIComponent(branch)}&roleIds=${encodeURIComponent(role)}&kyc=${encodeURIComponent(kyc)}&search=${encodeURIComponent(search)}&page=${currentPage}&pageSize=${pageSize}`)
+            .then(r => r.json())
+            .then(res => {
+                const tbody = document.getElementById("empBody");
+                tbody.innerHTML = "";
+
+                let approved = 0, pending = 0, rejected = 0;
+                totalRecords = res.totalCount || 0;
+
+                if (res.data.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="8">No employees found</td></tr>`;
+                    paginationDiv.innerHTML = "";
+                    return;
+                }
+
+                res.data.forEach(e => {
+                    if (e.kycStatus === "Approved") approved++;
+                    if (e.kycStatus === "Pending") pending++;
+                    if (e.kycStatus === "Rejected") rejected++;
+
+                    tbody.innerHTML += `
+                        <tr>
+                            <td>${e.employeeId}</td>
+                            <td>${e.employeeName}</td>
+                            <td>${e.phone}</td>
+                            <td>${e.aadhaar}</td>
+                            <td>${e.accessRole}</td>
+                            <td><span class="kyc-badge kyc-${e.kycStatus.toLowerCase()}">${e.kycStatus}</span></td>
+                            <td>${e.createdBy || '-'}</td>
+                            <td>
+                                <button class="btn-edit" onclick="window.location.href='/Admin/EditEmployee?userId=${e.employeeId}'">Edit</button>
+                            </td>
+                        </tr>`;
+                });
+
+                cntApproved.innerText = approved;
+                cntPending.innerText = pending;
+                cntRejected.innerText = rejected;
+                cntTotal.innerText = res.totalCount || res.data.length;
+
+                renderPagination();
+            });
+    }
+
+
+    function renderPagination() {
+        const totalPages = Math.ceil(totalRecords / pageSize);
+        paginationDiv.innerHTML = "";
+
+        for (let i = 1; i <= totalPages; i++) {
+            const btn = document.createElement("button");
+            btn.innerText = i;
+            btn.className = "btn-primary";
+            btn.style.padding = "5px 10px";
+            btn.style.fontSize = "12px";
+            if (i === currentPage) btn.disabled = true;
+            btn.onclick = () => goToPage(i);
+            paginationDiv.appendChild(btn);
+        }
+    }
+</script>

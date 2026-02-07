@@ -245,6 +245,33 @@ namespace vnenterprises.Support
 
             return branchList;
         }
+        public List<UserRoles> GetUserRoles()
+        {
+            var userroles = new List<UserRoles>();
+
+            using (SqlConnection conn = new SqlConnection(_connectionString))
+            {
+                using (SqlCommand cmd = new SqlCommand("vn_GetUserRoles", conn))
+                {
+                    cmd.CommandType = CommandType.StoredProcedure;
+
+                    conn.Open();
+                    using (SqlDataReader reader = cmd.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            userroles.Add(new UserRoles
+                            {
+                                Id = reader.GetInt32(reader.GetOrdinal("UserRoleId")),
+                                Name = reader.GetString(reader.GetOrdinal("Name"))
+                            });
+                        }
+                    }
+                }
+            }
+
+            return userroles;
+        }
         public PlatformGatewayViewModel GetPlatformGatewayList()
         {
             var viewModel = new PlatformGatewayViewModel

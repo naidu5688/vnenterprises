@@ -13,13 +13,15 @@ namespace vnenterprises.Controllers
     public class AdminController : Controller
     {
         public readonly AdminSupport _adminsupport;
+        public readonly EmployeeSupport _employeesupport;
         public readonly S3Service _s3service;
         public int UserId;
 
-        public AdminController(AdminSupport adminsupport, S3Service s3service)
+        public AdminController(AdminSupport adminsupport, S3Service s3service , EmployeeSupport employeesupport)
         {
             _adminsupport = adminsupport;
             _s3service = s3service;
+            _employeesupport = employeesupport;
         }
         [HttpGet]
         [AuthorizeUser(1)]
@@ -91,7 +93,16 @@ namespace vnenterprises.Controllers
             };
             return View(model);
         }
-        
+        public IActionResult GetBranches()
+        {
+            var result = _adminsupport.GetBranchList();
+            return Json(result);
+        }
+        public IActionResult GetUserRoles()
+        {
+            var result = _adminsupport.GetUserRoles();
+            return Json(result);
+        }
         [HttpGet]
         [AuthorizeUser(1)]
         public IActionResult EditEmployee()
@@ -113,6 +124,12 @@ namespace vnenterprises.Controllers
         [HttpGet]
         [AuthorizeUser(1)]
         public IActionResult Transactions()
+        {
+            return View();
+        }
+
+        [HttpGet]
+        public IActionResult GetEmployees(string branchIds, string roleIds , string kyc , string search , int page , int pageSize)
         {
             return View();
         }
@@ -215,7 +232,20 @@ namespace vnenterprises.Controllers
             return View(model);
         }
 
+        public override void OnActionExecuting(ActionExecutingContext context)
+        {
+            base.OnActionExecuting(context);
 
+            if (Request.Cookies["UserId"] != null)
+            {
+                var userId = Convert.ToInt32(Request.Cookies["UserId"]);
+                var user = _employeesupport.GetUserDetails(userId);
+                if (user != null)
+                {
+                    ViewBag.EmployeeName = user.UserName;
+                }
+            }
+        }
 
     }
 
