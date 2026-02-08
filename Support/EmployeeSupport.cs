@@ -264,18 +264,21 @@ namespace vnenterprises.Support
             dt.Columns.Add("ExprityDate", typeof(string));
             dt.Columns.Add("CardCVV", typeof(int));
             dt.Columns.Add("IsActive", typeof(bool));
-
-            foreach (var item in list)
+            if(list != null && list.Count > 0)
             {
-                dt.Rows.Add(
-                    item.CardTypeId,     // int
-                    item.NameOnCard,     // string
-                    item.CardNumber,     // string
-                    item.ExpiryDate,     // string
-                    item.CardCVV,        // int
-                    item.IsActive        // bool
-                );
+                foreach (var item in list)
+                {
+                    dt.Rows.Add(
+                        item.CardTypeId,     // int
+                        item.NameOnCard,     // string
+                        item.CardNumber,     // string
+                        item.ExpiryDate,     // string
+                        item.CardCVV,        // int
+                        item.IsActive        // bool
+                    );
+                }
             }
+            
 
             return dt;
         }
@@ -288,17 +291,20 @@ namespace vnenterprises.Support
             dt.Columns.Add("AccountNumber", typeof(string));
             dt.Columns.Add("IFSCCode", typeof(string));
             dt.Columns.Add("IsActive", typeof(bool));
-
-            foreach (var item in list)
+            if(list != null && list.Count > 0)
             {
-                dt.Rows.Add(
-                    item.BankId,     // int
-                    item.BankName,     // string
-                    item.AccountNumber,     // int
-                    item.IFSCCode,        // string
-                    item.IsActive        // bool
-                );
+                foreach (var item in list)
+                {
+                    dt.Rows.Add(
+                        item.BankId,     // int
+                        item.BankName,     // string
+                        item.AccountNumber,     // int
+                        item.IFSCCode,        // string
+                        item.IsActive        // bool
+                    );
+                }
             }
+            
 
             return dt;//test
         }
@@ -486,8 +492,6 @@ namespace vnenterprises.Support
                     cmd.Parameters.AddWithValue("@UserId", UserId);
                     cmd.Parameters.AddWithValue("@CreatedBy", UserId);
                     cmd.Parameters.AddWithValue("@ChangedBy", UserId);
-                    cmd.Parameters.AddWithValue("@IsActive", 1);
-
                     con.Open();
                     using SqlDataReader dr = cmd.ExecuteReader();
                     if (dr.Read())

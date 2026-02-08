@@ -32,6 +32,13 @@ namespace vnenterprises.Controllers
         }
         [HttpGet]
         [AuthorizeUser(1)]
+        public IActionResult Customers()
+        {
+            UserId = Convert.ToInt32(Request.Cookies["UserId"]);
+            return View();
+        }
+        [HttpGet]
+        [AuthorizeUser(1)]
         public IActionResult Employee()
         {
             return View();
@@ -117,6 +124,24 @@ namespace vnenterprises.Controllers
         }
         [HttpGet]
         [AuthorizeUser(1)]
+        public IActionResult CustomerKyc()
+        {
+            return View();
+        }
+
+        public IActionResult GetCustomers(GetEmployeeModel model)
+        {
+            if (model == null)
+                return Json(new List<object>());
+            var result = _adminsupport.GetCustomers(model);
+            return Json(new
+            {
+                data = result.data,
+                totalCount = result.totalCount
+            });
+        }
+        [HttpGet]
+        [AuthorizeUser(1)]
         public IActionResult EditCustomer()
         {
             return View();
@@ -133,15 +158,30 @@ namespace vnenterprises.Controllers
         {
             var getEmployeeModel = new GetEmployeeModel
             {
-                branchIds = branchIds,
-                roleIds = roleIds,
-                kyc = kyc,
-                search = search,
+                BranchIds = branchIds,
+                RoleIds = roleIds,
+                Kyc = kyc,
+                SearchText = search ?? "",
                 page = page,
                 pageSize = pageSize
             };
-            var result = _adminsupport.getEmployeeDetail(getEmployeeModel);  
-            return View();
+            var result = _adminsupport.getEmployeeDetail(getEmployeeModel);
+            return Json(new
+            {
+                data = result.data,
+                totalCount = result.totalCount
+            });
+        }
+
+        public IActionResult GetKycCounts()
+        {
+            var result = _adminsupport.GetKycCounts(1);
+            return Json(result);
+        }
+        public IActionResult GetCustomerKycCounts()
+        {
+            var result = _adminsupport.GetKycCounts(2);
+            return Json(result);
         }
         [HttpGet]
         [AuthorizeUser(1)]

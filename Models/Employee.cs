@@ -169,6 +169,8 @@ namespace vnenterprises.Models
         public string aadharnumber { get; set; }
         public string pannumber { get; set; }
 
+        public string CustomerFullName { get; set; }
+
         // Mandatory documents
         [Required]
         public IFormFile AadhaarFrontImage { get; set; }
@@ -187,6 +189,8 @@ namespace vnenterprises.Models
         public string panfrontpath { get; set; }
         public string panbackpath { get; set; }
         public string KycStatus { get; set; }
+        public string CreatedOn { get; set; }
+        public string CreatedBy { get; set; }
         public int TransactionsCount { get; set; }
         public List<CreditCardModel> CreditCards { get; set; }
         public List<BanksDetails> BanksDetailsModel { get; set; }

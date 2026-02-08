@@ -104,6 +104,84 @@ namespace vnenterprises.Support
 
             return response;
         }
+        public KycStatus GetKycCounts(int FlagType)
+        {
+            KycStatus result = new KycStatus();
+
+            using (SqlConnection con = new SqlConnection(_connectionString))
+            using (SqlCommand cmd = new SqlCommand("usp_fn_GetKycStatusCount", con))
+            {
+                cmd.CommandType = CommandType.StoredProcedure;
+                cmd.Parameters.AddWithValue("@FlagType", FlagType);
+
+                con.Open();
+
+                using (SqlDataReader reader = cmd.ExecuteReader())
+                {
+                    if (reader.Read())
+                    {
+                        result.Pending = reader["Pending"] != DBNull.Value ? Convert.ToInt32(reader["Pending"]) : 0;
+                        result.Rejected = reader["Rejected"] != DBNull.Value ? Convert.ToInt32(reader["Rejected"]) : 0;
+                        result.Approved = reader["Approved"] != DBNull.Value ? Convert.ToInt32(reader["Approved"]) : 0;
+                    }
+
+                    if (reader.NextResult())
+                    {
+                        if (reader.Read())
+                        {
+                            result.TotalCount = reader["TotalCount"] != DBNull.Value
+                                ? Convert.ToInt32(reader["TotalCount"])
+                                : 0;
+                        }
+                    }
+                }
+            }
+
+            return result;
+        }
+        public (List<CustomerDetailsModel> data, int totalCount) GetCustomers(GetEmployeeModel model)
+        {
+            int totalCount = 0;
+            List<CustomerDetailsModel> result = new();
+
+            using SqlConnection con = new SqlConnection(_connectionString);
+            using SqlCommand cmd = new SqlCommand("usp_fn_GetCustomerDetails", con);
+
+            cmd.CommandType = CommandType.StoredProcedure;
+            cmd.Parameters.AddWithValue("@CustomerId", model.UserId);
+            cmd.Parameters.AddWithValue("@Kyc", model.Kyc);
+            cmd.Parameters.AddWithValue("@StartDate", model.StartDate);
+            cmd.Parameters.AddWithValue("@EndDate", model.EndDate);
+            cmd.Parameters.AddWithValue("@SearchText", model.SearchText ?? "");
+            cmd.Parameters.AddWithValue("@PageNo", model.page);
+            cmd.Parameters.AddWithValue("@PageSize", model.pageSize);
+
+            con.Open();
+
+            using (SqlDataReader dr = cmd.ExecuteReader())
+            {
+                while (dr.Read())
+                {
+                    result.Add(new CustomerDetailsModel
+                    {
+                        CustomerId = Convert.ToInt32(dr["CustomerId"]),
+                        PhoneNumber = dr["PhoneNumber"].ToString(),
+                        CustomerFullName = dr["CustomerName"].ToString(),
+                        aadharnumber = dr["AadharNumber"].ToString(),
+                        pannumber = dr["PanNumber"].ToString(),
+                        //BranchId = Convert.ToInt32(dr["BranchId"]),
+                        KycStatus = dr["KycStatus"].ToString(),
+                        CreatedOn = Convert.ToDateTime(dr["CreatedOn"]).ToString("yyyy-MM-dd HH:mm:ss"),
+                        CreatedBy = dr["CreatedBy"].ToString()
+                    });
+                }
+
+                if (dr.NextResult() && dr.Read())
+                    totalCount = Convert.ToInt32(dr["TotalCount"]);
+            }
+
+            return (result, totalCount);
+        }
         public (List<GetEmployeeModelList> data, int totalCount) getEmployeeDetail(GetEmployeeModel model)
         {
             int totalCount = 0;
@@ -113,10 +191,11 @@ namespace vnenterprises.Support
             using SqlCommand cmd = new SqlCommand("usp_fn_GetUserDetails", con);
 
             cmd.CommandType = CommandType.StoredProcedure;
-            cmd.Parameters.AddWithValue("@BranchIds", model.branchIds);
-            cmd.Parameters.AddWithValue("@RoleIds", model.roleIds);
-            cmd.Parameters.AddWithValue("@Kyc", model.kyc);
-            cmd.Parameters.AddWithValue("@SearchText", model.search ?? "");
+            cmd.Parameters.AddWithValue("@BranchIds", model.BranchIds);
+            cmd.Parameters.AddWithValue("@UserId", model.UserId);
+            cmd.Parameters.AddWithValue("@RoleIds", model.RoleIds);
+            cmd.Parameters.AddWithValue("@Kyc", model.Kyc);
+            cmd.Parameters.AddWithValue("@SearchText", model.SearchText ?? "");
             cmd.Parameters.AddWithValue("@PageNo", model.page);      
             cmd.Parameters.AddWithValue("@PageSize", model.pageSize);
 
@@ -131,14 +210,17 @@ namespace vnenterprises.Support
                         UserId = Convert.ToInt32(dr["UserId"]),
                         MobileNumber = dr["MobileNumber"].ToString(),
                         EmployeeName = dr["EmployeeName"].ToString(),
+                        AadharNumber = dr["AadharNumber"].ToString(),
+                        PanNumber = dr["PanNumber"].ToString(),
                         UserRoleId = Convert.ToInt32(dr["UserRoleId"]),
-                        BranchId = Convert.ToInt32(dr["UserRoleId"]),
+                        //BranchId = Convert.ToInt32(dr["BranchId"]),
+                        AccessName = dr["AccessName"].ToString(),
                         IsKycApproveAccess = Convert.ToBoolean(dr["IsKycApproveAccess"]),
                         IsActive = Convert.ToBoolean(dr["IsActive"]),
                         KYCStatus = dr["KYCStatus"].ToString(),
-                        KYCApprovedOn = Convert.ToDateTime(dr["KYCApprovedOn"].ToString()),
-                        CreatedOn = Convert.ToDateTime(dr["CreatedOn"].ToString()),
-                        CreatedBy = Convert.ToInt32(dr["CreatedBy"].ToString())
+                        KYCApprovedOn = Convert.ToDateTime(dr["KYCApprovedOn"]),
+                        CreatedOn = Convert.ToDateTime(dr["CreatedOn"]).ToString("yyyy-MM-dd HH:mm:ss"),
+                        CreatedBy = dr["CreatedBy"].ToString()
                     });
                 }
 

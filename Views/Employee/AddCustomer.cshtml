@@ -495,7 +495,8 @@
         formData.append("PhoneNumber", phone.value);
         formData.append("aadharnumber", aadhaar.value);
         formData.append("pannumber", pan.value);
-
+        formData.append("KycStatus", "Pending");
+        
         // Append images
         formData.append("AadhaarFrontImage", images['aadhaarFront']);
         formData.append("AadhaarBackImage", images['aadhaarBack']);
@@ -528,7 +529,6 @@
         if (res.updatedRowsCount > 0) {
             alert("✅ Customer saved successfully");
             window.location.href = "/Employee/Customers";
-            location.reload();
         } else {
             alert("❌ " + (res.message || "Something went wrong"));
         }

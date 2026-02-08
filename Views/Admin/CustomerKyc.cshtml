@@ -1,0 +1,389 @@
+﻿@{
+    Layout = "~/Views/Shared/_SharedLayout_Admin.cshtml";
+}
+
+<style>
+    body {
+        background: #17362e;
+        font-family: 'Segoe UI', sans-serif;
+        color: white;
+    }
+
+    .page-container {
+        max-width: 100%;
+        margin: auto;
+        padding: 25px;
+    }
+
+    h2 {
+        color: #d4af37;
+        margin-bottom: 20px;
+    }
+
+    .summary-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 15px;
+        margin-bottom: 25px;
+    }
+
+    .summary-box {
+        padding: 12px;
+        border-radius: 12px;
+        text-align: center;
+        font-weight: 600;
+        box-shadow: 0 4px 8px rgba(0,0,0,.3);
+    }
+
+    .approved {
+        background: linear-gradient(135deg, #1f8f4e, #27ae60);
+    }
+
+    .pending {
+        background: linear-gradient(135deg, #b7950b, #f1c40f);
+        color: black;
+    }
+
+    .rejected {
+        background: linear-gradient(135deg, #922b21, #e74c3c);
+    }
+
+    .total {
+        background: linear-gradient(135deg, #2c3e50, #34495e);
+    }
+
+    .summary-box h3 {
+        margin: 0;
+        font-size: 24px;
+    }
+
+    .summary-box span {
+        font-size: 12px;
+        opacity: .9;
+    }
+
+    .filter-bar {
+        display: grid;
+        grid-template-columns: repeat(7, 1fr);
+        gap: 10px;
+        margin-bottom: 20px;
+        align-items: center;
+    }
+
+    .form-control {
+        background: #1e4a37;
+        border: 1px solid #d4af37;
+        border-radius: 8px;
+        color: white;
+        padding: 8px 10px;
+        font-size: 14px;
+    }
+
+    .btn-primary {
+        background: #d4af37;
+        color: #17362e;
+        border: none;
+        border-radius: 8px;
+        padding: 10px;
+        font-weight: 600;
+        cursor: pointer;
+    }
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 10px;
+    }
+
+    thead {
+        background: #0b6b55;
+    }
+
+    th, td {
+        padding: 14px;
+        text-align: center;
+        font-size: 14px;
+    }
+
+    tbody {
+        background: #dff1eb;
+        color: black;
+    }
+
+    .kyc-badge {
+        padding: 4px 8px;
+        border-radius: 12px;
+        font-weight: 600;
+        font-size: 12px;
+        display: inline-block;
+    }
+
+    #fSearch {
+        grid-column: span 2; /* spans 2 columns instead of 1 */
+    }
+    .kyc-approved {
+        background: #27ae60;
+    }
+
+    .kyc-pending {
+        background: #f1c40f;
+        color: black;
+    }
+
+    .kyc-rejected {
+        background: #e74c3c;
+    }
+
+    .btn-edit {
+        background: #2980b9;
+        border: none;
+        color: white;
+        padding: 6px 12px;
+        border-radius: 6px;
+        cursor: pointer;
+    }
+    /* Date input styling */
+    input[type="date"] {
+        background-color: #1e4a37;
+        border: 1px solid #d4af37;
+        border-radius: 8px;
+        color: white;
+        padding: 8px 10px;
+        font-size: 14px;
+        height: 35px;
+        cursor: pointer;
+    }
+
+        /* Calendar icon color (Chrome / Edge) */
+        input[type="date"]::-webkit-calendar-picker-indicator {
+            filter: invert(1) sepia(1) saturate(5) hue-rotate(20deg);
+            cursor: pointer;
+        }
+
+        /* Focus effect */
+        input[type="date"]:focus {
+            outline: none;
+            border-color: #f1c40f;
+            box-shadow: 0 0 0 2px rgba(212, 175, 55, 0.35);
+        }
+
+        /* Placeholder-like empty look */
+        input[type="date"]:not(:valid) {
+            color: rgba(255,255,255,0.6);
+        }
+
+</style>
+
+<div class="page-container">
+
+    <div style="display:flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <h2>Customers KYC</h2>
+        <button class="btn-primary" onclick="window.location.href='/Admin/Customers'">Add Customer</button>
+    </div>
+
+    <!-- SUMMARY -->
+    <div class="summary-grid">
+        <div class="summary-box approved"><h3 id="cntApproved">0</h3><span>Approved</span></div>
+        <div class="summary-box pending"><h3 id="cntPending">0</h3><span>Pending</span></div>
+        <div class="summary-box rejected"><h3 id="cntRejected">0</h3><span>Rejected</span></div>
+        <div class="summary-box total"><h3 id="cntTotal">0</h3><span>Total Customers</span></div>
+    </div>
+
+    <!-- FILTERS -->
+    <div class="filter-bar">
+        <select id="fKyc" class="form-control">
+            <option value="">All KYC Status</option>
+            <option value="Approved">Approved</option>
+            <option value="Pending">Pending</option>
+            <option value="Rejected">Rejected</option>
+        </select>
+
+        <input type="date" id="startDate">
+        <input type="date" id="endDate">
+
+        <select id="pageSizeSelect" class="form-control">
+            <option value="10" selected>10</option>
+            <option value="25">25</option>
+            <option value="40">40</option>
+            <option value="50">50</option>
+        </select>
+
+        <input id="fSearch" class="form-control" placeholder="Search Phone Number or Name..">
+        <button class="btn-primary" onclick="searchCustomers()">Search</button>
+    </div>
+
+    <!-- TABLE -->
+    <table>
+        <thead>
+            <tr>
+                <th>Customer ID</th>
+                <th>Customer Name</th>
+                <th>Phone Number</th>
+                <th>Aadhaar</th>
+                <th>PAN</th>
+                <th>KYC Status</th>
+                <th>Created On</th>
+                <th>Created By</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody id="empBody">
+            <tr><td colspan="9">Loading...</td></tr>
+        </tbody>
+    </table>
+
+    <div id="pagination"
+         style="display:flex; justify-content:center; gap:6px; margin:15px 0;"></div>
+</div>
+
+<script>
+    let currentPage = 1;
+    let pageSize = 10;
+    let totalRecords = 0;
+
+    const fKyc = document.getElementById("fKyc");
+    const fSearch = document.getElementById("fSearch");
+    const pageSizeSelect = document.getElementById("pageSizeSelect");
+    const paginationDiv = document.getElementById("pagination");
+
+    pageSizeSelect.onchange = () => {
+        pageSize = parseInt(pageSizeSelect.value);
+        currentPage = 1;
+        loadCustomers();
+    };
+
+    fKyc.onchange = () => {
+        currentPage = 1;
+        loadCustomers();
+    };
+
+    function searchCustomers() {
+        currentPage = 1;
+        loadCustomers();
+    }
+
+    function goToPage(p) {
+        if (p < 1) return;
+        currentPage = p;
+        loadCustomers();
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+        loadCustomers();
+        loadKycCounts();
+    });
+
+        function loadCustomers() {
+
+        const kyc = fKyc.value || "Approved,Pending,Rejected";
+        const search = fSearch.value || "";
+
+        let start = document.getElementById("startDate").value;
+        let end = document.getElementById("endDate").value;
+
+        if (start) start += " 00:00:00";
+        if (end) end += " 23:59:59";
+
+        const query = new URLSearchParams({
+            StartDate: start,
+            EndDate: end,
+            Kyc: kyc,
+            SearchText: search,
+            Page: currentPage,
+            PageSize: pageSize
+        }).toString();
+
+        fetch(`/Admin/GetCustomers?${query}`)
+            .then(r => r.json())
+            .then(res => {
+
+                const tbody = document.getElementById("empBody");
+                tbody.innerHTML = "";
+                totalRecords = res.totalCount || 0;
+
+                if (!res.data || res.data.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="9">No customers found</td></tr>`;
+                    paginationDiv.innerHTML = "";
+                    return;
+                }
+
+                res.data.forEach(e => {
+                    const createdOn = e.createdOn
+                        ? new Date(e.createdOn).toISOString().replace("T", " ").substring(0, 19)
+                        : "-";
+
+                    tbody.innerHTML += `
+                        <tr>
+                            <td>${e.customerId}</td>
+                            <td>${e.customerFullName}</td>
+                            <td>${e.phoneNumber}</td>
+                            <td>${e.aadharnumber}</td>
+                            <td>${e.pannumber}</td>
+                            <td>
+                                <span class="kyc-badge kyc-${e.kycStatus.toLowerCase()}">
+                                    ${e.kycStatus}
+                                </span>
+                            </td>
+                            <td>${createdOn}</td>
+                            <td>${e.createdBy || '-'}</td>
+                            <td>
+                                <button class="btn-edit"
+                                    onclick="window.location.href='/Admin/CustomerDetails?CustomerId=${e.customerId}'">
+                                    Edit
+                                </button>
+                            </td>
+                        </tr>`;
+                });
+
+                renderPagination();
+            });
+    }
+
+
+    function loadKycCounts() {
+        fetch(`/Admin/GetCustomerKycCounts`)
+            .then(r => r.json())
+            .then(res => {
+                cntApproved.innerText = res.approved || 0;
+                cntPending.innerText = res.pending || 0;
+                cntRejected.innerText = res.rejected || 0;
+                cntTotal.innerText = res.totalCount || 0;
+            });
+    }
+
+    function renderPagination() {
+        const totalPages = Math.ceil(totalRecords / pageSize);
+        paginationDiv.innerHTML = "";
+
+        if (totalPages <= 1) return;
+
+        const prev = document.createElement("button");
+        prev.innerText = "Prev";
+        prev.className = "btn-primary";
+        prev.disabled = currentPage === 1;
+        prev.onclick = () => goToPage(currentPage - 1);
+        paginationDiv.appendChild(prev);
+
+        let start = Math.max(1, currentPage - 1);
+        let end = Math.min(totalPages, start + 2);
+        start = Math.max(1, end - 2);
+
+        for (let i = start; i <= end; i++) {
+            const btn = document.createElement("button");
+            btn.innerText = i;
+            btn.className = "btn-primary";
+            btn.style.padding = "6px 12px";
+            btn.disabled = i === currentPage;
+            btn.style.opacity = i === currentPage ? "0.6" : "1";
+            btn.onclick = () => goToPage(i);
+            paginationDiv.appendChild(btn);
+        }
+
+        const next = document.createElement("button");
+        next.innerText = "Next";
+        next.className = "btn-primary";
+        next.disabled = currentPage === totalPages;
+        next.onclick = () => goToPage(currentPage + 1);
+        paginationDiv.appendChild(next);
+    }
+</script>

@@ -67,8 +67,13 @@
             <h1>Customer Profile Login</h1>
 
             <div>
-                <input type="number" class="form-control search-employee"
-                       placeholder="Mobile Number" id="searchText">
+                <input type="text"
+                       class="form-control search-employee"
+                       placeholder="Mobile Number"
+                       id="searchText"
+                       maxlength="10"
+                       oninput="this.value=this.value.replace(/[^0-9]/g,'').slice(0,10)">
+
 
                 <button class="btn-custom-global" onclick="ShowAddCustomerDiv()" type="button">
                     <i class="fa fa-search"></i> Search
@@ -77,3 +82,51 @@
         </div>
     </div>
 </div>
+<script>
+    function ShowAddCustomerDiv() {
+
+        const mobileInput = document.getElementById("searchText");
+        const mobile = mobileInput.value.trim();
+
+        if (!/^\d{10}$/.test(mobile)) {
+            alert("Please enter a valid 10 digit mobile number");
+            mobileInput.focus();
+            return;
+        }
+
+        const btn = document.querySelector(".btn-custom-global");
+        btn.disabled = true;
+        btn.innerHTML = "Searching...";
+
+        fetch(`/Employee/GetCustomerIdByMobile?mobile=${mobile}`)
+            .then(res => res.json())
+            .then(data => {
+
+                if (!data.success) {
+                    alert(data.message || "Something went wrong");
+                    return;
+                }
+
+                if (data.exists) {
+                    window.location.href = `/Admin/CustomerDetails?CustomerId=${data.customerId}`;
+                } else {
+                    const confirmAdd = confirm(
+                        "Customer not found.\n\nDo you want to add a new customer with this mobile number?"
+                    );
+
+                    if (confirmAdd) {
+                        window.location.href = `/Admin/AddCustomer?mobile=${mobile}`;
+                    }
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                alert("Unable to connect. Please try again.");
+            })
+            .finally(() => {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fa fa-search"></i> Search';
+            });
+    }
+</script>
+

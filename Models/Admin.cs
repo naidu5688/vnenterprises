@@ -111,25 +111,40 @@
     }
     public class GetEmployeeModel
     {
-        public string branchIds { get; set; }
-        public string roleIds { get; set; }
-        public string kyc { get; set; }
-        public string search { get; set; }
+        public string BranchIds { get; set; }
+        public int UserId { get; set; }
+        public string RoleIds { get; set; }
+        public string Kyc { get; set; }
+        public string SearchText { get; set; }
+        public string StartDate { get; set; }
+        public string EndDate { get; set; }
         public int page { get; set; }
         public int pageSize { get; set; }
     }
+    public class KycStatus
+    {
+        public int Pending { get; set; }
+        public int Approved { get; set; }
+        public int Rejected { get; set; }
+        public int TotalCount { get; set; }
+    }
+
     public class GetEmployeeModelList
     {
         public int UserId { get; set; }
         public string MobileNumber { get; set; }
         public string EmployeeName { get; set; }
+        public string AadharNumber { get; set; }
+        public string PanNumber { get; set; }
         public bool IsKycApproveAccess { get; set; }
         public bool IsActive { get; set; }
         public int UserRoleId { get; set; }
         public int BranchId { get; set; }
+        public string AccessName { get; set; }
         public string KYCStatus { get; set; }
         public DateTime KYCApprovedOn { get; set; }
-        public DateTime CreatedOn { get; set; }
-        public int CreatedBy { get; set; }
+        public string CreatedOn { get; set; }
+        public string CreatedBy { get; set; }
     }
+
 }

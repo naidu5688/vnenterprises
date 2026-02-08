@@ -357,10 +357,14 @@
                            oninput="this.value=this.value.replace(/[^0-9.]/g,''); calculateAmounts()">
                 </div>
                 <div class="field">
-                    <label>Employee Charge Amount</label>
+                    <label>Profit Amount</label>
                     <input id="tEmpChargeAmount" class="form-control" readonly>
                 </div>
-
+                <div class="field">
+                    <label>Pay Out</label>
+                    <input id="tpayout" class="form-control"
+                           oninput="this.value=this.value.replace(/[^0-9.]/g,''); calculateAmounts()">
+                </div>
                 <div class="field">
                     <label>Final Amount</label>
                     <input id="tFinalAmount" class="form-control" readonly>
@@ -768,19 +772,41 @@
         };
 
 
-        function calculateAmounts() {
+            function calculateAmounts() {
+
         let amount = parseFloat(tAmount.value || 0);
         let platformPercent = parseFloat(tChargePercent.value || 0);
-        let empPercent = parseFloat(tEmpPercent.value || 0);
+        let employeePercent = parseFloat(tEmpPercent.value || 0);
+        let payout = parseFloat(tpayout.value || 0);
 
-        let platformChargeAmt = amount * (platformPercent / 100);
-        let employeeChargeAmt = amount * (empPercent / 100);
-        let finalAmt = amount - platformChargeAmt - employeeChargeAmt;
+        @* if (employeePercent < platformPercent) {
+            alert("⚠️ Employee % must be greater than Platform %");
+            tEmpPercent.value = "";
+            return;
+        } *@
 
-        tChargeAmount.value = platformChargeAmt.toFixed(2);
-        tEmpChargeAmount.value = employeeChargeAmt.toFixed(2);   // ✅ NEW
-        tFinalAmount.value = finalAmt.toFixed(2);
+        // 1️⃣ Platform charge (reference)
+        let platformCharge = amount * (platformPercent / 100);
+
+        // 2️⃣ Employee gross charge (removed from transaction)
+        let employeeCharge = amount * (employeePercent / 100);
+
+        // 3️⃣ Employee PROFIT (difference only)
+        let employeeProfit = amount * ((employeePercent - platformPercent) / 100);
+
+        // 4️⃣ Profit after payout
+        let finalProfit = employeeProfit - payout;
+        if (finalProfit < 0) finalProfit = 0;
+
+        // 5️⃣ Final transaction amount
+        let finalAmount = amount - employeeCharge;
+
+        // SET VALUES
+        tChargeAmount.value = platformCharge.toFixed(2);
+        tEmpChargeAmount.value = finalProfit.toFixed(2); // PROFIT SHOWN HERE
+        tFinalAmount.value = finalAmount.toFixed(2);
     }
+
 
 
             function clearTransaction() {

@@ -99,16 +99,56 @@
     }
 
     th, td {
-        border: 1px solid #d4af37;
         padding: 10px;
         text-align: center;
-        font-size: 14px;
+        font-size: 14px;    
     }
 
     th {
         color: #d4af37;
     }
+    tbody{
+        background-color: white;
+        color: black;
+    }
 
+    .table-wrapper {
+        margin: 0 25px;
+        border-radius: 14px;
+        overflow: hidden;
+        box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+    }
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    thead {
+        background: #0b6b55;
+    }
+
+    th {
+        padding: 14px;
+        color: #fff;
+        font-size: 13px;
+        text-align: center;
+    }
+
+    td {
+        padding: 14px;
+        text-align: center;
+        font-size: 14px;
+        border-bottom: 1px solid #edf2f0;
+    }
+
+    tbody {
+        background: #dff1eb;
+    }
+
+        tbody tr:hover {
+            background: #dff1eb;
+        }
     #fSearch {
         grid-column: span 2; /* spans 2 columns instead of 1 */
     }
@@ -119,6 +159,13 @@
         font-weight: 600;
         font-size: 12px;
         display: inline-block;
+    }
+
+    .table-wrapper {
+        margin: 0 25px;
+        border-radius: 18px; /* increased only */
+        overflow: hidden;
+        box-shadow: 0 8px 20px rgba(0,0,0,0.08);
     }
 
 
@@ -143,11 +190,19 @@
         border-radius: 6px;
         cursor: pointer;
     }
+
+    #prev-button{
+        background : white !important;
+    }
 </style>
 
 <div class="page-container">
 
-    <h2>Employees</h2>
+    
+    <div style="display:flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <h2>Employees</h2>
+        <button class="btn-primary" onclick="window.location.href='/Admin/AddEmployee'">Add Employee</button>
+    </div>
 
     <!-- ===== SUMMARY ===== -->
     <div class="summary-grid">
@@ -187,9 +242,9 @@
         </select>
 
         <select id="pageSizeSelect" class="form-control">
-            <option value="5">5</option>
             <option value="10" selected>10</option>
-            <option value="20">20</option>
+            <option value="25" >25</option>
+            <option value="40">40</option>
             <option value="50">50</option>
         </select>
 
@@ -199,7 +254,7 @@
     </div>
 
     <!-- ===== PAGINATION ===== -->
-    <div id="pagination" style="display:flex; gap:5px; align-items:center; margin-bottom:15px;"></div>
+    
 
     <!-- ===== TABLE ===== -->
     <table>
@@ -209,23 +264,27 @@
                 <th>Name</th>
                 <th>Phone</th>
                 <th>Aadhaar</th>
+                
                 <th>Access Role</th>
                 <th>KYC Status</th>
+                <th>Created On</th>
                 <th>Created By</th>
                 <th>Action</th>
             </tr>
         </thead>
         <tbody id="empBody">
-            <tr><td colspan="8">Loading...</td></tr>
+            <tr><td colspan="9">Loading...</td></tr>
         </tbody>
     </table>
-
+    <br />
+    <div id="pagination"
+         style="display:flex; justify-content:center; align-items:center; gap:6px; margin:15px 0; color: #0b6b55">
+    </div>
 </div>
 
 <script>
     let branches = [];
     let roles = [];
-    let KycStatus = [];
     let currentPage = 1;
     let pageSize = 10;
     let totalRecords = 0;
@@ -237,7 +296,7 @@
     const pageSizeSelect = document.getElementById("pageSizeSelect");
     const paginationDiv = document.getElementById("pagination");
 
-    pageSizeSelect.onchange = function() {
+    pageSizeSelect.onchange = function () {
         pageSize = parseInt(this.value);
         currentPage = 1;
         loadEmployees();
@@ -248,102 +307,202 @@
         loadEmployees();
     }
 
-    function goToPage(page) {
-        currentPage = page;
+    function goToPage(p) {
+        if (p < 1) return;
+        currentPage = p;
         loadEmployees();
     }
 
-        document.addEventListener("DOMContentLoaded", function() {
-
+    document.addEventListener("DOMContentLoaded", function () {
         Promise.all([
             fetch('/Admin/GetBranches').then(r => r.json()),
             fetch('/Admin/GetUserRoles').then(r => r.json())
         ]).then(([branchData, roleData]) => {
-            // populate branch dropdown
+
             branches = branchData;
-            fBranch.innerHTML = '<option value="">All Branches</option>';
-            branchData.forEach(b => fBranch.innerHTML += `<option value="${b.branchId}">${b.branchName}</option>`);
-
-            // populate role dropdown
             roles = roleData;
-            fRole.innerHTML = '<option value="">All Roles</option>';
-            roleData.forEach(r => fRole.innerHTML += `<option value="${r.id}">${r.name}</option>`);
 
-            // now safe to load employees
+            fBranch.innerHTML = '<option value="">All Branches</option>';
+            branchData.forEach(b =>
+                fBranch.innerHTML += `<option value="${b.branchId}">${b.branchName}</option>`
+            );
+
+            fRole.innerHTML = '<option value="">All Roles</option>';
+            roleData.forEach(r =>
+                fRole.innerHTML += `<option value="${r.id}">${r.name}</option>`
+            );
+            loadKycCounts();
             loadEmployees();
         });
     });
 
-        function loadEmployees() {
-            debugger
-        const branch = fBranch?.value || branches.map(b => b.branchId).join(',');
-        const role = fRole?.value || roles.map(r => r.id).join(',');
-        let kyc;
-            if (fKyc?.value) {
-                kyc = fKyc.value; // selected single value
-            } else {
-                kyc = ["Approved","Pending","Rejected"].join(','); // send all
-            }
-        const search = fSearch?.value || "";
+    function buildFilterParams() {
+        const branch = fBranch.value || branches.map(b => b.branchId).join(',');
+        const role = fRole.value || roles.map(r => r.id).join(',');
+        const kyc = fKyc.value || "Approved,Pending,Rejected";
+        const search = fSearch.value || "";
 
-        fetch(`/Admin/GetEmployees?branchIds=${encodeURIComponent(branch)}&roleIds=${encodeURIComponent(role)}&kyc=${encodeURIComponent(kyc)}&search=${encodeURIComponent(search)}&page=${currentPage}&pageSize=${pageSize}`)
+        return { branch, role, kyc, search };
+    }
+    fKyc.onchange = function () {
+        currentPage = 1;
+        loadEmployees();
+    };
+    fBranchfBranch.onchange = function () {
+        currentPage = 1;
+        loadEmployees();
+    };
+    fRolefRole.onchange = function () {
+        currentPage = 1;
+        loadEmployees();
+    };
+    pageSizeSelect.onchange = function () {
+        currentPage = 1;
+        loadEmployees();
+    };
+    // ================= EMPLOYEE LIST (PAGED) =================
+    function loadEmployees() {
+        const { branch, role, kyc, search } = buildFilterParams();
+        debugger
+        fetch(`/Admin/GetEmployees?branchIds=${branch}&roleIds=${role}&kyc=${kyc}&search=${search}&page=${currentPage}&pageSize=${pageSize}`)
             .then(r => r.json())
             .then(res => {
+
                 const tbody = document.getElementById("empBody");
                 tbody.innerHTML = "";
 
-                let approved = 0, pending = 0, rejected = 0;
                 totalRecords = res.totalCount || 0;
 
-                if (res.data.length === 0) {
-                    tbody.innerHTML = `<tr><td colspan="8">No employees found</td></tr>`;
+                if (!res.data || res.data.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="9">No employees found</td></tr>`;
                     paginationDiv.innerHTML = "";
+                    // still refresh summary
                     return;
                 }
 
                 res.data.forEach(e => {
-                    if (e.kycStatus === "Approved") approved++;
-                    if (e.kycStatus === "Pending") pending++;
-                    if (e.kycStatus === "Rejected") rejected++;
-
                     tbody.innerHTML += `
-                        <tr>
-                            <td>${e.employeeId}</td>
-                            <td>${e.employeeName}</td>
-                            <td>${e.phone}</td>
-                            <td>${e.aadhaar}</td>
-                            <td>${e.accessRole}</td>
-                            <td><span class="kyc-badge kyc-${e.kycStatus.toLowerCase()}">${e.kycStatus}</span></td>
-                            <td>${e.createdBy || '-'}</td>
-                            <td>
-                                <button class="btn-edit" onclick="window.location.href='/Admin/EditEmployee?userId=${e.employeeId}'">Edit</button>
-                            </td>
-                        </tr>`;
+                    <tr>
+                        <td>${e.userId}</td>
+                        <td>${e.employeeName}</td>
+                        <td>${e.mobileNumber}</td>
+                        <td>${e.aadharNumber}</td>
+                        
+                        <td>${e.accessName}</td>
+                        <td>
+                            <span class="kyc-badge kyc-${e.kycStatus.toLowerCase()}">
+                                ${e.kycStatus}
+                            </span>
+                        </td>
+                        <td>${e.createdOn || '-'}</td>
+                        <td>${e.createdBy || '-'}</td>
+                        <td>
+                            <button class="btn-edit"
+                              onclick="window.location.href='/Admin/EditEmployee?userId=${e.userId}'">
+                              Edit
+                            </button>
+                        </td>
+                    </tr>`;
                 });
 
-                cntApproved.innerText = approved;
-                cntPending.innerText = pending;
-                cntRejected.innerText = rejected;
-                cntTotal.innerText = res.totalCount || res.data.length;
-
                 renderPagination();
+                loadKycCounts();
             });
     }
 
+    // ================= KYC COUNTS (SEPARATE) =================
+    function loadKycCounts() {
+        // const { branch, role, kyc, search } = buildFilterParams();
+        debugger
+        fetch(`/Admin/GetKycCounts`)
+            .then(r => r.json())
+            .then(res => {
+                debugger
+                cntApproved.innerText = res.approved || 0;
+                cntPending.innerText = res.pending || 0;
+                cntRejected.innerText = res.rejected || 0;
+                cntTotal.innerText = res.totalCount || 0;
+            });
+    }
 
-    function renderPagination() {
+        function renderPagination() {
         const totalPages = Math.ceil(totalRecords / pageSize);
         paginationDiv.innerHTML = "";
 
-        for (let i = 1; i <= totalPages; i++) {
+        if (totalPages <= 1) return;
+
+        // ===== PREV BUTTON =====
+        const prevBtn = document.createElement("button");
+        prevBtn.innerText = "Prev";
+        prevBtn.className = "btn-primary";
+        prevBtn.disabled = currentPage === 1;
+        prevBtn.onclick = () => goToPage(currentPage - 1);
+        paginationDiv.appendChild(prevBtn);
+
+        // ===== PAGE RANGE LOGIC (MAX 3) =====
+        let startPage = Math.max(1, currentPage - 1);
+        let endPage = startPage + 2;
+
+        if (endPage > totalPages) {
+            endPage = totalPages;
+            startPage = Math.max(1, endPage - 2);
+        }
+
+        // ===== PAGE NUMBERS =====
+        for (let i = startPage; i <= endPage; i++) {
             const btn = document.createElement("button");
             btn.innerText = i;
             btn.className = "btn-primary";
-            btn.style.padding = "5px 10px";
-            btn.style.fontSize = "12px";
-            if (i === currentPage) btn.disabled = true;
+            btn.style.padding = "6px 12px";
+            btn.disabled = i === currentPage;
+            btn.style.opacity = i === currentPage ? "0.6" : "1";
             btn.onclick = () => goToPage(i);
             paginationDiv.appendChild(btn);
         }
+
+        // ===== NEXT BUTTON =====
+        const nextBtn = document.createElement("button");
+        nextBtn.innerText = "Next";
+        nextBtn.className = "btn-primary";
+        nextBtn.disabled = currentPage === totalPages;
+        nextBtn.onclick = () => goToPage(currentPage + 1);
+        paginationDiv.appendChild(nextBtn);
     }
+
+    // ================= PAGINATION UI =================
+    // function renderPagination() {
+    //     const totalPages = Math.ceil(totalRecords / pageSize);
+    //     paginationDiv.innerHTML = "";
+
+    //     // if (totalPages <= 1) return;
+
+    //     // Prev
+    //     const prevBtn = document.createElement("prev-button");
+    //     prevBtn.innerText = "Prev";
+    //     prevBtn.className = "btn-primary";
+    //     //prevBtn.disabled = currentPage === 1;
+    //     prevBtn.onclick = () => goToPage(currentPage - 1);
+    //     paginationDiv.appendChild(prevBtn);
+
+    //     // Page Numbers (center)
+    //     for (let i = 1; i <= totalPages; i++) {
+    //         const btn = document.createElement("button");
+    //         btn.innerText = i;
+    //         btn.className = "btn-primary";
+    //         btn.style.padding = "6px 12px";
+    //         btn.style.opacity = i === currentPage ? "0.6" : "1";
+    //         btn.disabled = i === currentPage;
+    //         btn.onclick = () => goToPage(i);
+    //         paginationDiv.appendChild(btn);
+    //     }
+
+    //     // Next
+    //     const nextBtn = document.createElement("button");
+    //     nextBtn.innerText = "Next";
+    //     nextBtn.className = "btn-primary";
+    //     nextBtn.disabled = currentPage === totalPages;
+    //     nextBtn.onclick = () => goToPage(currentPage + 1);
+    //     paginationDiv.appendChild(nextBtn);
+    // }
 </script>
+

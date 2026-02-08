@@ -356,11 +356,11 @@
     }
 
     function renderPagination(total, current) {
-    const pages = Math.ceil(total / pageSize);
-    let html = '';
-    for (let i = 1; i <= pages; i++) {
-    html += `<button class="${i === current ? 'active-page' : ''}"
-    onclick="loadTransactions(${i})">${i}</button>`;
+        const pages = Math.ceil(total / pageSize);
+        let html = '';
+        for (let i = 1; i <= pages; i++) {
+        html += `<button class="${i === current ? 'active-page' : ''}"
+        onclick="loadTransactions(${i})">${i}</button>`;
     }
     pagination.innerHTML = html;
     }
