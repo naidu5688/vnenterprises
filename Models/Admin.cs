@@ -24,7 +24,15 @@
         public decimal Charge { get; set; }
         public string Status { get; set; } // Active / Inactive
     }
-
+    public class TransactionSummary
+    {
+        public int TotalTransaction { get; set; }
+        public decimal TotalTransactionsAmount { get; set; }
+        public int TodayTransaction { get; set; }
+        public decimal TodayTransactionsAmount { get; set; }
+        public decimal ProfitOverall { get; set; }
+        public decimal ProfitToday { get; set; }
+    }
     // ViewModel
     public class PlatformGatewayViewModel
     {

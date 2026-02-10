@@ -105,6 +105,29 @@ namespace vnenterprises.Controllers
             var result = _adminsupport.GetBranchList();
             return Json(result);
         }
+        public IActionResult GetTransactionSummary()
+        {
+            var result = _adminsupport.GetTransactionSummary();
+            return Json(result);
+        }
+
+        public IActionResult GetTransaction([FromBody] TransactionviewModel model)
+        {
+            var result = _adminsupport.GetTransactionsForAdmin(model);
+            return Json(new
+            {
+                data = result.data,
+                totalCount = result.totalCount
+            });
+        }
+        [HttpGet]
+        public IActionResult CustomerDetails(int CustomerId)
+        {
+            var Model = _employeesupport.GetCustomerDetails(CustomerId);
+            if (Model == null || Model.CustomerId == 0)
+                return RedirectToAction("Customers");
+            return View(Model);
+        }
         public IActionResult GetUserRoles()
         {
             var result = _adminsupport.GetUserRoles();

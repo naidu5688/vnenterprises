@@ -1,6 +1,6 @@
 ﻿@using System.Text.Json
 @{
-    Layout = "~/Views/Shared/_SharedLayout_Employee.cshtml";
+    Layout = "~/Views/Shared/_SharedLayout_Admin.cshtml";
     var mobile = Model?.PhoneNumber ?? "";
     var kycStatus = Model?.KycStatus ?? "Pending";
     var customerid = Model?.CustomerId ?? "Pending";
@@ -20,9 +20,6 @@
     }
 
     .kyc-status {
-        position: absolute;
-        top: 20px;
-        right: 20px;
         padding: 5px 12px;
         border-radius: 8px;
         color: white;
@@ -183,19 +180,134 @@
         margin-top: 15px;
         flex: 1; /* ✅ TAKE AVAILABLE SPACE */
     }
+    /* Top right container */
+    .top-right-bar {
+        position: absolute;
+        top: 20px;
+        right: 20px;
+        display: flex;
+        gap: 12px;
+        align-items: center;
+    }
+
+    /* Customer ID badge */
+    .customer-id {
+        background: #d4af37;
+        color: #17362e;
+        padding: 8px 14px;
+        border-radius: 20px;
+        font-weight: 600;
+        font-size: 16px;
+        white-space: nowrap;
+    }
+
+    /* KYC wrapper */
+    .kyc-wrapper {
+        position: relative;
+    }
+
+    /* KYC badge */
+    .kyc-badge {
+        min-width: 140px;
+        padding: 8px 14px;
+        border-radius: 20px;
+        font-weight: 600;
+        font-size: 16px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+    }
+
+    /* Status colors */
+    .kyc-pending {
+        background: #f1c40f;
+        color: #17362e;
+    }
+
+    .pending {
+        background: #f1c40f;
+        color: #17362e;
+    }
+
+    .approved {
+        background: #2ecc71;
+        color: #17362e;
+    }
+
+    .rejected {
+        background: #e74c3c;
+        color: #17362e;
+    }
+    .kyc-approved {
+        background: #2ecc71;
+        color: #17362e;
+    }
+
+    .kyc-rejected {
+        background: #e74c3c;
+        color: white;
+    }
+
+    /* Dropdown menu */
+    .kyc-menu {
+        display: none;
+        position: absolute;
+        top: 45px;
+        right: 0;
+        background: #1e4a37;
+        border-radius: 10px;
+        min-width: 140px;
+        box-shadow: 0 6px 14px rgba(0,0,0,.35);
+        z-index: 100;
+    }
+
+        .kyc-menu div {
+            padding: 10px 14px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+            .kyc-menu div:hover {
+                background: rgba(255,255,255,.1);
+            }
+
 
 </style>
 
 <div class="page-container">
 
     <!-- CUSTOMER & KYC STATUS -->
+    <div class="top-right-bar">
 
-    <div class="kyc-status" style="position: absolute; right: 170px; background-color: #d4af37; color: black;">
-        CustomerId: @customerid
+        <!-- Customer ID -->
+        <div class="customer-id">
+            Customer ID: @customerid
+        </div>
+
+        <!-- KYC DROPDOWN -->
+        <div class="kyc-wrapper">
+            <div id="kycstatus"
+                 class="kyc-badge @(kycStatus.ToLower() == "pending" ? "kyc-pending" : kycStatus.ToLower() == "approved" ? "kyc-approved" : "kyc-rejected")"
+                 onclick="toggleKycMenu()">
+                KYC: <span id="kycText">@kycStatus</span>
+                <i class="fa-solid fa-chevron-down"></i>
+            </div>
+
+            <div id="kycMenu" class="kyc-menu">
+                <div onclick="selectKycStatus('Pending')" class="pending">Pending</div>
+                <div onclick="selectKycStatus('Approved')" class="approved">Approved</div>
+                <div onclick="selectKycStatus('Rejected')" class="rejected">Rejected</div>
+            </div>
+        </div>
+
     </div>
-    <div id="kycstatus" class="kyc-status @(kycStatus.ToLower() == "pending" ? "kyc-pending" : kycStatus.ToLower() == "approved" ? "kyc-approved" : "kyc-rejected")">
-        KYC: @kycStatus
-    </div>
+
+    
+
+    <!-- ✅ THIS WILL GO TO CONTROLLER ON SAVE -->
+    <input type="hidden" id="KycStatus" name="KycStatus" value="@kycStatus" />
 
     <h3>Customer Details</h3>
 
@@ -245,7 +357,7 @@
         }
     </div>
     <br>
-   
+
     <div class="flex-header">
         <h4>Credit Cards</h4>
         <button class="btn-primary" onclick="openCardModal()">+ Add Card</button>
@@ -392,9 +504,8 @@
                 <label>Remarks</label>
                 <input id="tRemarks" class="form-control" />
             </div>
-         </div>
+        </div>
         <!-- Body -->
-        
         <!-- Footer -->
         <div style="text-align:right;margin-top:15px">
             <button class="btn-danger" onclick="clearTransaction()">Clear</button>
@@ -449,6 +560,39 @@
         </div>
     </div>
 </div>
+<script>
+    function toggleKycMenu() {
+        document.getElementById("kycMenu").style.display =
+            document.getElementById("kycMenu").style.display === "block"
+                ? "none"
+                : "block";
+    }
+
+    function selectKycStatus(status) {
+        // update text
+        document.getElementById("kycText").innerText = status;
+
+        // update hidden input (THIS GOES TO CONTROLLER)
+        document.getElementById("KycStatus").value = status;
+
+        // update color
+        const badge = document.getElementById("kycstatus");
+        badge.classList.remove("kyc-pending", "kyc-approved", "kyc-rejected");
+
+        if (status === "Pending") badge.classList.add("kyc-pending");
+        if (status === "Approved") badge.classList.add("kyc-approved");
+        if (status === "Rejected") badge.classList.add("kyc-rejected");
+
+        // close menu
+        document.getElementById("kycMenu").style.display = "none";
+    }
+
+    document.addEventListener("click", function (e) {
+        if (!e.target.closest(".kyc-wrapper")) {
+            document.getElementById("kycMenu").style.display = "none";
+        }
+    });
+</script>
 
 <script>
     const customerId = @Model?.CustomerId ?? 0;
@@ -681,7 +825,7 @@
     let customerBanks = [];
 
         function openTransactionModal() {
-        
+
 
         // Platforms
         fetch('/Employee/GetPlatforms')
@@ -728,7 +872,7 @@
     function closeTransactionModal(){
         document.getElementById("transactionModal").style.display="none";
     }
-    
+
     tPlatform.onchange = function(){
         debugger
         fetch('/Employee/GetGateways?platformId='+this.value).then(r=>r.json()).then(d=>{
@@ -905,8 +1049,8 @@
 
         bankModal.style.display = "flex";
     }
-      
-      
+
+
 
 
     function closeBankModal() {

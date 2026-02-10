@@ -528,7 +528,7 @@
         .then(res => {
         if (res.updatedRowsCount > 0) {
             alert("✅ Customer saved successfully");
-            window.location.href = "/Employee/Customers";
+            window.location.href = "/Admin/Customers";
         } else {
             alert("❌ " + (res.message || "Something went wrong"));
         }

@@ -18,6 +18,9 @@ namespace vnenterprises.Models
     {
         public int TransactionId { get; set; }
         public string TransactionType { get; set; }
+        public string BranchId { get; set; }
+        public string PlatformId { get; set; }
+        public string GatewayId { get; set; }
         public string SearchText { get; set; }
         public string StartDate { get; set; }
         public string EndDate { get; set; }
@@ -78,6 +81,7 @@ namespace vnenterprises.Models
         public decimal EmployeeChargePercent { get; set; }
         public decimal EmployeeChargeAmount { get; set; }
         public decimal FinalAmount { get; set; }
+        public decimal PayOut { get; set; }
     }
 
 

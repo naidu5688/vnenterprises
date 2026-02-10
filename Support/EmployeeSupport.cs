@@ -437,6 +437,7 @@ namespace vnenterprises.Support
                     cmd.Parameters.AddWithValue("@EmployeeChargePercent", model.EmployeeChargePercent);
                     cmd.Parameters.AddWithValue("@EmployeeChargeAmount", model.EmployeeChargeAmount);
                     cmd.Parameters.AddWithValue("@FinalAmount", model.FinalAmount);
+                    cmd.Parameters.AddWithValue("@PayOut", model.PayOut);
                     cmd.Parameters.AddWithValue("@UserId", UserId);
 
                     con.Open();

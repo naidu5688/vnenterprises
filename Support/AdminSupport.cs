@@ -43,6 +43,53 @@ namespace vnenterprises.Support
             }
         }
 
+
+
+        public TransactionSummary GetTransactionSummary()
+        {
+            TransactionSummary result = new TransactionSummary();
+
+            try
+            {
+                using (SqlConnection con = new SqlConnection(_connectionString))
+                using (SqlCommand cmd = new SqlCommand("usp_fn_GetTransactionSummary", con))
+                {
+                    cmd.CommandType = CommandType.StoredProcedure;
+
+                    con.Open();
+
+                    using (SqlDataReader dr = cmd.ExecuteReader())
+                    {
+                        if (dr.Read())
+                        {
+                            result.TotalTransaction =
+                                dr["TotalTransaction"] == DBNull.Value ? 0 : Convert.ToInt32(dr["TotalTransaction"]);
+
+                            result.TotalTransactionsAmount =
+                                dr["TotalTransactionsAmount"] == DBNull.Value ? 0 : Convert.ToDecimal(dr["TotalTransactionsAmount"]);
+
+                            result.TodayTransaction =
+                                dr["TodayTransaction"] == DBNull.Value ? 0 : Convert.ToInt32(dr["TodayTransaction"]);
+
+                            result.TodayTransactionsAmount =
+                                dr["TodayTransactionsAmount"] == DBNull.Value ? 0 : Convert.ToInt32(dr["TodayTransactionsAmount"]);
+
+                            result.ProfitOverall =
+                                dr["ProfitOverall"] == DBNull.Value ? 0 : Convert.ToInt32(dr["ProfitOverall"]);
+
+                            result.ProfitToday =
+                                dr["ProfitToday"] == DBNull.Value ? 0 : Convert.ToInt32(dr["ProfitToday"]);
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                result = new TransactionSummary();
+            }
+
+            return result;
+        }
         private DataTable ToIntListTable(List<int> list)
         {
             DataTable dt = new DataTable();
@@ -54,7 +101,63 @@ namespace vnenterprises.Support
             return dt;
         }
 
+        public (List<TransactionListModel> data, int totalCount) GetTransactionsForAdmin(TransactionviewModel model)
+        {
+            List<TransactionListModel> result = new();
+            int totalCount = 0;
 
+            using SqlConnection con = new SqlConnection(_connectionString);
+            using SqlCommand cmd = new SqlCommand("usp_fn_GetTransactionforAdmin", con);
+
+            cmd.CommandType = CommandType.StoredProcedure;
+            cmd.Parameters.AddWithValue("@TransactionId", model.TransactionId);
+            cmd.Parameters.AddWithValue("@TransactionType", model.TransactionType ?? "");
+            cmd.Parameters.AddWithValue("@BranchId", model.BranchId ?? "");
+            cmd.Parameters.AddWithValue("@PlatformId", model.PlatformId ?? "");
+            cmd.Parameters.AddWithValue("@GatewayId", model.GatewayId ?? "");
+            cmd.Parameters.AddWithValue("@SearchText", model.SearchText ?? "");
+            cmd.Parameters.AddWithValue("@StartDate", model.StartDate ?? "");
+            cmd.Parameters.AddWithValue("@EndDate", model.EndDate ?? "");
+            cmd.Parameters.AddWithValue("@PageNo", model.PageNo);      // ✅ FIX
+            cmd.Parameters.AddWithValue("@PageSize", model.PageSize);
+            con.Open();
+
+            using (SqlDataReader dr = cmd.ExecuteReader())
+            {
+                while (dr.Read())
+                {
+                    result.Add(new TransactionListModel
+                    {
+                        TransactionId = Convert.ToInt32(dr["TransactionId"]),
+                        CustomerName = dr["CustomerName"].ToString(),
+                        EmployeeName = dr["EmployeeName"].ToString(),
+                        CardNumber = dr["CardNumber"].ToString(),
+                        CardTypeName = dr["CardTypeName"].ToString(),
+                        CardCVV = dr["CardCVV"].ToString(),
+                        CardExpiryDate = dr["CardExpiryDate"].ToString(),
+                        BankAccountNumber = dr["BankAccountNumber"].ToString(),
+                        BankIFSC = dr["BankIFSC"].ToString(),
+                        PlatformName = dr["PlatformName"].ToString(),
+                        GatewayName = dr["GatewayName"].ToString(),
+                        IncentiveName = dr["IncentiveName"].ToString(),
+                        PlatformCharge = Convert.ToDecimal(dr["PlatformCharge"]),
+                        GatewayCharge = Convert.ToDecimal(dr["GatewayCharge"]),
+                        EmployeeChargePercent = Convert.ToDecimal(dr["EmployeeChargePercent"]),
+                        EmployeeChargeAmount = Convert.ToDecimal(dr["EmployeeChargeAmount"]),
+                        TransactionAmount = Convert.ToDecimal(dr["TransactionAmount"]),
+                        FinalAmount = Convert.ToDecimal(dr["FinalAmount"]),
+                        CreatedOn = Convert.ToDateTime(dr["CreatedOn"]),
+                        Remark = dr["Remark"].ToString()
+                    });
+                }
+
+                // 👉 NEXT RESULT = TOTAL COUNT (you must add this in SP)
+                if (dr.NextResult() && dr.Read())
+                    totalCount = Convert.ToInt32(dr["TotalCount"]);
+            }
+
+            return (result, totalCount);
+        }
         public ResultResponse UpdateorInsertManager(ManagerModel model , int UserId)
         {
             var response = new ResultResponse();
