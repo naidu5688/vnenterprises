@@ -46,6 +46,7 @@ namespace vnenterprises.Models
         public string EmployeeName { get; set; }
         public string IncentiveName { get; set; }
         public decimal TransactionAmount { get; set; }
+        public decimal PayOut { get; set; }
         public decimal FinalAmount { get; set; }
         public DateTime CreatedOn { get; set; }  
         public int PlatformId { get; set; }
@@ -82,6 +83,19 @@ namespace vnenterprises.Models
         public decimal EmployeeChargeAmount { get; set; }
         public decimal FinalAmount { get; set; }
         public decimal PayOut { get; set; }
+        public string PayoutMode { get; set; }
+        public int PayoutBankId { get; set; }
+        public int PayoutCardId { get; set; }
+
+        public decimal BillAmount { get; set; }
+        public decimal SwipeAmount { get; set; }
+        public decimal RemainingAmount { get; set; }
+
+        public decimal UpiAmount { get; set; }
+        public decimal AccountAmount { get; set; }
+        public decimal QrAmount { get; set; }
+        public decimal ManualAmount { get; set; }
+
     }
 
 

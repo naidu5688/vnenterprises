@@ -351,6 +351,7 @@ namespace vnenterprises.Support
                         EmployeeChargePercent = Convert.ToDecimal(dr["EmployeeChargePercent"]),
                         EmployeeChargeAmount = Convert.ToDecimal(dr["EmployeeChargeAmount"]),
                         TransactionAmount = Convert.ToDecimal(dr["TransactionAmount"]),
+                        PayOut = Convert.ToDecimal(dr["PayOut"] ?? 0.0) ,
                         FinalAmount = Convert.ToDecimal(dr["FinalAmount"]),
                         CreatedOn = Convert.ToDateTime(dr["CreatedOn"]),
                         Remark = dr["Remark"].ToString()

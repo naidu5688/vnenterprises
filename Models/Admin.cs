@@ -95,6 +95,7 @@
         public string ConfirmPassword { get; set; }
         public string AadhaarNumber { get; set; } 
         public string PanNumber { get; set; }
+        public string KycStatus { get; set; }
         public IFormFile AadhaarFrontImage { get; set; }   // REQUIRED
         public IFormFile AadhaarBackImage { get; set; }    // REQUIRED
         public IFormFile PanFrontImage { get; set; }       // REQUIRED

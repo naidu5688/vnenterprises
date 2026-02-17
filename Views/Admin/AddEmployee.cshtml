@@ -343,6 +343,7 @@
                 <input asp-for="PanNumber" class="form-control" required placeholder="Enter PAN Number" />
             </div>
         </div>
+        <input type="hidden" asp-for="KycStatus" value="Pending" />
 
         <!-- DOCUMENT UPLOAD -->
         <h4>Documents</h4>
@@ -526,7 +527,7 @@
         .then(r => {
             if (!r.ok) throw new Error();
             alert("Employee added successfully");
-            window.location.reload();
+            window.location.href = "/Admin/Employee";
         })
         .catch(() => alert("Error saving employee"));
     }

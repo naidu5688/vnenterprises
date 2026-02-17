@@ -42,7 +42,94 @@ namespace vnenterprises.Support
                 return result;
             }
         }
+        public string ConvertFromBase64(string base64Password)
+        {
+            var bytes = Convert.FromBase64String(base64Password);
+            return System.Text.Encoding.UTF8.GetString(bytes);
+        }
+        public EmployeeModel getEditEmployeeDetail(GetEmployeeModel modelobj)
+        {
+            EmployeeModel model = new EmployeeModel();
 
+            using (SqlConnection con = new SqlConnection(_connectionString))
+            using (SqlCommand cmd = new SqlCommand("usp_fn_GetUserDetails", con))
+            {
+                cmd.CommandType = CommandType.StoredProcedure;
+                cmd.Parameters.AddWithValue("@BranchIds", modelobj.BranchIds);
+                cmd.Parameters.AddWithValue("@UserId", modelobj.UserId);
+                cmd.Parameters.AddWithValue("@RoleIds", modelobj.RoleIds);
+                cmd.Parameters.AddWithValue("@Kyc", modelobj.Kyc);
+                cmd.Parameters.AddWithValue("@SearchText", modelobj.SearchText ?? "");
+                cmd.Parameters.AddWithValue("@PageNo", modelobj.page);
+                cmd.Parameters.AddWithValue("@PageSize", modelobj.pageSize);
+
+                con.Open();
+
+                using (SqlDataReader dr = cmd.ExecuteReader())
+                {
+                    /* ========================
+                       RESULT SET 1 → USER
+                    ======================== */
+                    if (dr.Read())
+                    {
+                        model.EmployeeId = Convert.ToInt32(dr["UserId"]);
+                        model.MobileNumber = Convert.ToString(dr["MobileNumber"]);
+                        model.FirstName = Convert.ToString(dr["UserFirstName"]);
+                        model.LastName = Convert.ToString(dr["UserLastName"]);
+
+                        model.AadhaarNumber = Convert.ToString(dr["AadharNumber"]);
+                        model.PanNumber = Convert.ToString(dr["PanNumber"]);
+
+                        model.aadharfrontpath = Convert.ToString(dr["AadharImgFront"]);
+                        model.aadharbackpath = Convert.ToString(dr["AadharImgBack"]);
+                        model.panfrontpath = Convert.ToString(dr["PanImgFront"]);
+                        model.panbackpath = Convert.ToString(dr["PanImgBack"]);
+                        model.MPIN = Convert.ToString(dr["Mpin"]);
+                        model.KycStatus = Convert.ToString(dr["KYCStatus"]);
+
+                        // If password stored base64
+                        if (dr["Password"] != DBNull.Value)
+                        {
+                            string encPwd = Convert.ToString(dr["Password"]);
+                            model.Password = ConvertFromBase64(encPwd);
+                            model.ConfirmPassword = model.Password;
+                        }
+                    }
+
+                    /* ========================
+                       RESULT SET 2 → BRANCHES
+                    ======================== */
+                    if (dr.NextResult())
+                    {
+                        model.SelectedBranches = new List<int>();
+
+                        while (dr.Read())
+                        {
+                            model.SelectedBranches.Add(
+                                Convert.ToInt32(dr["BranchId"])
+                            );
+                        }
+                    }
+
+                    /* ========================
+                       RESULT SET 3 → GATEWAYS
+                    ======================== */
+                    if (dr.NextResult())
+                    {
+                        model.SelectedGateways = new List<int>();
+
+                        while (dr.Read())
+                        {
+                            model.SelectedGateways.Add(
+                                Convert.ToInt32(dr["GatewayID"])
+                            );
+                        }
+                    }
+                }
+            }
+
+            return model;
+        }
 
 
         public TransactionSummary GetTransactionSummary()
@@ -355,6 +442,7 @@ namespace vnenterprises.Support
                     cmd.Parameters.AddWithValue("@AadhaarBackImage", model.aadharbackpath);
                     cmd.Parameters.AddWithValue("@PanFrontImage", model.panfrontpath);
                     cmd.Parameters.AddWithValue("@PanBackImage", model.panbackpath ?? "");
+                    cmd.Parameters.AddWithValue("@KycStatus", model.KycStatus ?? "");
                     cmd.Parameters.Add(new SqlParameter("@SelectedGateways", SqlDbType.Structured)
                     {
                         TypeName = "dbo.IntList",

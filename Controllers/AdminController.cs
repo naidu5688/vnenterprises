@@ -135,9 +135,15 @@ namespace vnenterprises.Controllers
         }
         [HttpGet]
         [AuthorizeUser(1)]
-        public IActionResult EditEmployee()
+        public IActionResult EditEmployee(GetEmployeeModel model)
         {
-            return View();
+            var result = _adminsupport.getEditEmployeeDetail(model);
+            PlatformGatewayViewModel platforms = _adminsupport.GetPlatformGatewayList();
+            List<Branches> branches = _adminsupport.GetBranchList();
+
+            result.PlatformGatewayModel = platforms;
+            result.branchmodel = branches;
+            return View(result);
         }
         [HttpGet]
         [AuthorizeUser(1)]
@@ -227,7 +233,7 @@ namespace vnenterprises.Controllers
         public IActionResult AddManager(ManagerModel model)
         {
             model.Password = ConvertToBase64(model.Password);
-            model.MPIN = ConvertToBase64(model.MPIN);
+            //model.MPIN = ConvertToBase64(model.MPIN);
             UserId = Convert.ToInt32(Request.Cookies["UserId"]);
             var response = _adminsupport.UpdateorInsertManager(model , UserId);
 
@@ -248,7 +254,7 @@ namespace vnenterprises.Controllers
         public async Task<IActionResult> AddEmployee([FromForm] EmployeeModel modelobj)
         {
             modelobj.Password = ConvertToBase64(modelobj.Password);
-            modelobj.MPIN = ConvertToBase64(modelobj.MPIN);
+            //modelobj.MPIN = ConvertToBase64(modelobj.MPIN);
             UserId = Convert.ToInt32(Request.Cookies["UserId"]);
             if(modelobj.AadhaarFrontImage != null && modelobj.AadhaarFrontImage.Length > 0)
             {
@@ -272,7 +278,7 @@ namespace vnenterprises.Controllers
             }
             var response = _adminsupport.UpdateorInsertEmployee(modelobj, UserId);
             TempData["SuccessMessage"] = response.StatusMessage.ToString();
-            return RedirectToAction("Manager", "Admin");
+            return RedirectToAction("Employee", "Admin");
         }
 
 
