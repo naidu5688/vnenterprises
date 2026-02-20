@@ -72,7 +72,7 @@ namespace vnenterprises.Support
                     ======================== */
                     if (dr.Read())
                     {
-                        model.EmployeeId = Convert.ToInt32(dr["UserId"]);
+                        model.EmployeeId = Convert.ToInt32(dr["EmployeeId"]);
                         model.MobileNumber = Convert.ToString(dr["MobileNumber"]);
                         model.FirstName = Convert.ToString(dr["UserFirstName"]);
                         model.LastName = Convert.ToString(dr["UserLastName"]);

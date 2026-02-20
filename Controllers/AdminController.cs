@@ -145,6 +145,41 @@ namespace vnenterprises.Controllers
             result.branchmodel = branches;
             return View(result);
         }
+
+        [HttpPost]
+        public async Task<IActionResult> EditEmployee(EmployeeModel modelobj)
+        {
+            modelobj.Password = ConvertToBase64(modelobj.Password);
+            //modelobj.MPIN = ConvertToBase64(modelobj.MPIN);
+            UserId = Convert.ToInt32(Request.Cookies["UserId"]);
+            if (modelobj.AadhaarFrontImage != null && modelobj.AadhaarFrontImage.Length > 0)
+            {
+                var uploadResult = await _s3service.UploadFileToS3Bucket(modelobj.AadhaarFrontImage);
+                modelobj.aadharfrontpath = uploadResult.FileCompletePath;
+            }
+            if (modelobj.AadhaarBackImage != null && modelobj.AadhaarBackImage.Length > 0)
+            {
+                var uploadResult = await _s3service.UploadFileToS3Bucket(modelobj.AadhaarBackImage);
+                modelobj.aadharbackpath = uploadResult.FileCompletePath;
+            }
+            if (modelobj.PanFrontImage != null && modelobj.PanFrontImage.Length > 0)
+            {
+                var uploadResult = await _s3service.UploadFileToS3Bucket(modelobj.PanFrontImage);
+                modelobj.panfrontpath = uploadResult.FileCompletePath;
+            }
+            if (modelobj.PanBackImage != null && modelobj.PanBackImage.Length > 0)
+            {
+                var uploadResult = await _s3service.UploadFileToS3Bucket(modelobj.PanBackImage);
+                modelobj.panbackpath = uploadResult.FileCompletePath;
+            }
+            var response = _adminsupport.UpdateorInsertEmployee(modelobj, UserId);
+
+            return Json(new
+            {
+                success = response.result == 1,  // adjust if needed
+                message = response.StatusMessage
+            });
+        }
         [HttpGet]
         [AuthorizeUser(1)]
         public IActionResult AddCustomer()
@@ -277,8 +312,13 @@ namespace vnenterprises.Controllers
                 modelobj.panbackpath = uploadResult.FileCompletePath;
             }
             var response = _adminsupport.UpdateorInsertEmployee(modelobj, UserId);
-            TempData["SuccessMessage"] = response.StatusMessage.ToString();
-            return RedirectToAction("Employee", "Admin");
+
+            return Json(new
+            {
+                success = response.result == 1,  // adjust if needed
+                message = response.StatusMessage
+            });
+
         }
 
 

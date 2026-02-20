@@ -389,12 +389,12 @@
                     <input id="tFinalAmount" class="form-control" readonly>
                 </div>
                 <div class="field">
-                    <label>Remaing Amount</label>
+                    <label>Wallet Amount</label>
                     <input id="tremaing" class="form-control" readonly>
                 </div>
 
                 <div class="field">
-                    <label>Wallet Amount</label>
+                    <label>To be Paid By Customer</label>
                     <input id="tWalletAmount" class="form-control"
                            oninput="this.value=this.value.replace(/[^0-9.]/g,''); calculateAmounts()">
                 </div>
@@ -435,27 +435,31 @@
                 <div class="field payment-field">
                         <label>QR Pay</label>
                         <input id="tQrPayAmount" class="form-control"
-                               oninput="allowNumber(this)">
+                           oninput="allowNumber(this); calculateAmounts();">
                     </div>
 
                 <div class="field payment-field">
                         <label>Account Transfer</label>
                         <input id="tAccTransAmount" class="form-control"
-                               oninput="allowNumber(this)">
+                           oninput="allowNumber(this); calculateAmounts();">
                     </div>
 
                 <div class="field payment-field">
                         <label>UPI Pay</label>
                         <input id="tUpiPayAmount" class="form-control"
-                               oninput="allowNumber(this)">
+                           oninput="allowNumber(this); calculateAmounts();">
                     </div>
 
                 <div class="field payment-field">
                         <label>Others</label>
                         <input id="tOtherPayAmount" class="form-control"
-                               oninput="allowNumber(this)">
-                    </div>
-
+                           oninput="allowNumber(this); calculateAmounts();">
+                </div>
+                <div class="field payment-field">
+                    <label>Difference</label>
+                    <input id="tDifferenceAmount" class="form-control"
+                           oninput="allowNumber(this)">
+                </div>
             </div>
             <div class="field">
                 <label>Remarks</label>
@@ -898,12 +902,13 @@
         let platformPercent = parseFloat(tChargePercent.value || 0);
         let empPercent = parseFloat(tEmpPercent.value || 0);
         let payout = parseFloat(tpayout.value || 0);
-        let txnType = parseInt(tTransactiontype.value || 0);
-
+            let txnType = parseInt(tTransactiontype.value || 0);
+            
         // Charges
         let platformCharge = txnAmount * (platformPercent / 100);
         let employeeCharge = txnAmount * (empPercent / 100);
 
+        
         // Remaining = Bill - Transaction
         let remaining = billAmount - txnAmount;
 @*         if (remaining < 0) remaining = 0;
@@ -925,12 +930,23 @@
 @*             if (finalAmount < 0) finalAmount = 0;
  *@        }
 
-        // Assign values
+
+         let walletamt = employeeCharge - remaining;
+
+                 let otherpay = parseInt(tOtherPayAmount.value || 0);
+                 let upipay = parseInt(tUpiPayAmount.value || 0);
+                     let qrpay = parseInt(tQrPayAmount.value || 0);
+                     let accntpay = parseInt(tAccTransAmount.value || 0);
+
+                              let differenceamt = (otherpay + upipay + qrpay + accntpay ) - walletamt;
+            // Assign values
         tChargeAmount.value = platformCharge.toFixed(2);
         tEmpChargeAmount.value = profit.toFixed(2);
         tremaing.value = remaining.toFixed(2);
         tFinalAmount.value = finalAmount.toFixed(2);
-    }
+        tWalletAmount.value = walletamt.toFixed(2);
+            tDifferenceAmount.value = differenceamt.toFixed(2);
+        }
 
         function clearPaymentFields() {
         tQrPayAmount.value = "";
@@ -1071,21 +1087,40 @@
     }
 
 
-            function saveTransaction() {
+ function saveTransaction() {
 
-        if (
-            !tPlatform.value ||
-            !tGateway.value ||
-            !tTransactiontype.value ||
-            !tCard.value ||
-            !tAmount.value ||
-            !tFinalAmount.value ||
-            !tAccountSelect.value
-        ) {
+        if (!tPlatform.value || !tGateway.value || !tTransactiontype.value ||!tAmount.value || !tEmpPercent.value )
+        {
             alert("⚠️ All fields are mandatory");
             return;
         }
-          
+
+            if(parseInt(tTransactiontype.value) == 2){
+                if(!tCard.value && !tWithdrawAccountSelect.value)
+                {
+                        alert("⚠️ Payment Card/Bank Details are mandatory");
+                        return;
+                }
+                if(!tAccountSelect.value && !tTransferCard.value)
+                {
+                        alert("⚠️ Swiped Card/Bank Details are mandatory");
+                        return;
+                }
+            }
+            if(parseInt(tTransactiontype.value) == 3){
+                if(!tCard.value && !tWithdrawAccountSelect.value)
+                {
+                        alert("⚠️ Withdraw Card/Bank Details are mandatory");
+                        return;
+                }
+                if(!tAccountSelect.value && !tTransferCard.value)
+                {
+                        alert("⚠️ Swiped Card/Bank Details are mandatory");
+                        return;
+                }
+            }
+
+        
 
         if (!confirm("Are you sure you want to save this transaction?")) return;
 
@@ -1129,7 +1164,7 @@
 
 
 
-        function validateTransactionFields() {
+        @* function validateTransactionFields() {
         const requiredFields = [
             tPlatform,
             tGateway,
@@ -1154,7 +1189,7 @@
         }
 
         return true;
-    }
+    } *@
 
 </script>
 <script>
@@ -1185,17 +1220,40 @@
             "tQrPayAmount",
             "tAccTransAmount",
             "tUpiPayAmount",
-            "tOtherPayAmount"
+            "tOtherPayAmount",
+            "tWithdrawAccountSelect",
+            "tWithdrawIfsc",
+            "tWithdrawBankName",
+            "tremaing",
+            "tWalletAmount",
+             "tDifferenceAmount",
+                 "tBillAmount"
         ];
 
         tQrPayAmount.value = "";
             tAccTransAmount.value = "";
                 tUpiPayAmount.value = "";
                 tOtherPayAmount.value = "";
+
         ids.forEach(id => {
             const field = document.getElementById(id)?.closest(".field");
             if (field) field.style.display = isPayment ? "block" : "none";
         });
+
+        tCard.value = "";
+
+        if(isPayment){
+                   tCard.closest(".field").querySelector("label").innerText = "Payment Card Details";
+                    tWithdrawAccountSelect.closest(".field").querySelector("label").innerText = "Payment Bank Details";
+                    tAccountSelect.closest(".field").querySelector("label").innerText = "Swiped Bank Details";
+                    tTransferCard.closest(".field").querySelector("label").innerText = "Swiped Card Details";
+
+        }
+        else {
+                 tCard.closest(".field").querySelector("label").innerText = "Withdraw Card Details";
+                 tWithdrawAccountSelect.closest(".field").querySelector("label").innerText = "Payment Bank Details";
+
+            }
 
         calculateAmounts();
     };

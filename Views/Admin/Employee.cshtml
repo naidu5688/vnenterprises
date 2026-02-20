@@ -381,6 +381,17 @@
                 }
 
                 res.data.forEach(e => {
+                    let url = "#";
+
+                    if (e.userRoleId == 2) {
+                        url = `/Admin/EditManager?userId=${e.userId}`;
+                    }
+                    else if (e.userRoleId == 3) {
+                        url = `/Admin/EditEmployee?userId=${e.userId}`;
+                    }
+                    else if (e.userRoleId == 4) {
+                        url = `/Admin/EditRetailer?userId=${e.userId}`;
+                    }
                     tbody.innerHTML += `
                     <tr>
                         <td>${e.userId}</td>
@@ -398,8 +409,8 @@
                         <td>${e.createdBy || '-'}</td>
                         <td>
                             <button class="btn-edit"
-                              onclick="window.location.href='/Admin/EditEmployee?userId=${e.userId}'">
-                              Edit
+                                onclick="window.location.href='${url}'">
+                                Edit
                             </button>
                         </td>
                     </tr>`;

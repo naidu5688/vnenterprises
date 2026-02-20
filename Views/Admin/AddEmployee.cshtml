@@ -524,12 +524,18 @@
             method: 'POST',
             body: data
         })
-        .then(r => {
-            if (!r.ok) throw new Error();
-            alert("Employee added successfully");
+        .then(response => response.json())
+        .then(result => {
+
+        if (result.success) {
+            alert(result.message);
             window.location.href = "/Admin/Employee";
-        })
-        .catch(() => alert("Error saving employee"));
+        } else {
+            alert(result.message);
+        }
+
+    })
+    .catch(() => alert("Error saving employee"));
     }
 
         function validateForm() {
