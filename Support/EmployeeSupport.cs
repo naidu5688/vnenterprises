@@ -427,18 +427,30 @@ namespace vnenterprises.Support
                 {
                     cmd.CommandType = CommandType.StoredProcedure;
                     cmd.Parameters.AddWithValue("@CustomerId", model.CustomerId);
-                    cmd.Parameters.AddWithValue("@PlatformID", model.PlatformId);
-                    cmd.Parameters.AddWithValue("@GatewayID", model.GatewayId);
-                    cmd.Parameters.AddWithValue("@CreditCardId", model.CardId);
-                    cmd.Parameters.AddWithValue("@BankDetailId", model.BankDetailsId);
-                    cmd.Parameters.AddWithValue("@Remarks", model.Remarks);
+                    cmd.Parameters.AddWithValue("@PlatformId", model.PlatformId);
+                    cmd.Parameters.AddWithValue("@GatewayId", model.GatewayId);
                     cmd.Parameters.AddWithValue("@TransactionTypeId", model.TransactionTypeId);
+                    cmd.Parameters.AddWithValue("@WithdrawCardId", model.WithdrawCardId);
+                    cmd.Parameters.AddWithValue("@WithdrawBankId", model.WithdrawBankId);
                     cmd.Parameters.AddWithValue("@TransactionAmount", model.TransactionAmount);
+                    cmd.Parameters.AddWithValue("@BillAmount", model.BillAmount);
                     cmd.Parameters.AddWithValue("@PlatformChargeAmount", model.PlatformChargeAmount);
                     cmd.Parameters.AddWithValue("@EmployeeChargePercent", model.EmployeeChargePercent);
-                    cmd.Parameters.AddWithValue("@EmployeeChargeAmount", model.EmployeeChargeAmount);
-                    cmd.Parameters.AddWithValue("@FinalAmount", model.FinalAmount);
+                    cmd.Parameters.AddWithValue("@ProfitAmount", model.ProfitAmount);
                     cmd.Parameters.AddWithValue("@PayOut", model.PayOut);
+                    cmd.Parameters.AddWithValue("@FinalAmount", model.FinalAmount);
+                    cmd.Parameters.AddWithValue("@WalletAmount", model.WalletAmount);
+                    cmd.Parameters.AddWithValue("@ToBePaidByCustomer", model.ToBePaidByCustomer);
+                    cmd.Parameters.AddWithValue("@CardTransferAmount", model.CardTransferAmount);
+                    cmd.Parameters.AddWithValue("@BankTransferAmount", model.BankTransferAmount);
+                    cmd.Parameters.AddWithValue("@TransferBankId", model.TransferBankId);
+                    cmd.Parameters.AddWithValue("@TransferCardId", model.TransferCardId);
+                    cmd.Parameters.AddWithValue("@QrTransferAmt", model.QrTransferAmt);
+                    cmd.Parameters.AddWithValue("@AcntTransferAmt", model.AcntTransferAmt);
+                    cmd.Parameters.AddWithValue("@UpiTransferAmt", model.UpiTransferAmt);
+                    cmd.Parameters.AddWithValue("@OthersTransferAmt", model.OthersTransferAmt);
+                    cmd.Parameters.AddWithValue("@DifferneceAmt", model.DifferneceAmt);
+                    cmd.Parameters.AddWithValue("@Remarks", model.Remarks);
                     cmd.Parameters.AddWithValue("@UserId", UserId);
 
                     con.Open();

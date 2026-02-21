@@ -73,29 +73,29 @@ namespace vnenterprises.Models
         public int CustomerId { get; set; }
         public int PlatformId { get; set; }
         public int GatewayId { get; set; }
-        public int CardId { get; set; }
-        public int BankDetailsId { get; set; }
-        public string Remarks { get; set; }
         public int TransactionTypeId { get; set; }
+        public int WithdrawCardId { get; set; }
+        public int WithdrawBankId { get; set; }
         public decimal TransactionAmount { get; set; }
+        public decimal BillAmount { get; set; }
         public decimal PlatformChargeAmount { get; set; }
         public decimal EmployeeChargePercent { get; set; }
-        public decimal EmployeeChargeAmount { get; set; }
-        public decimal FinalAmount { get; set; }
+        public decimal ProfitAmount { get; set; }
         public decimal PayOut { get; set; }
-        public string PayoutMode { get; set; }
-        public int PayoutBankId { get; set; }
-        public int PayoutCardId { get; set; }
-
-        public decimal BillAmount { get; set; }
-        public decimal SwipeAmount { get; set; }
-        public decimal RemainingAmount { get; set; }
-
-        public decimal UpiAmount { get; set; }
-        public decimal AccountAmount { get; set; }
-        public decimal QrAmount { get; set; }
-        public decimal ManualAmount { get; set; }
-
+        public decimal FinalAmount { get; set; }
+        public decimal WalletAmount { get; set; }
+        public decimal ToBePaidByCustomer { get; set; }
+        public decimal CardTransferAmount { get; set; }
+        public decimal BankTransferAmount { get; set; }
+        public int TransferBankId { get; set; }
+        public int TransferCardId { get; set; }
+        public decimal QrTransferAmt { get; set; }
+        public decimal AcntTransferAmt { get; set; }
+        public decimal UpiTransferAmt { get; set; }
+        public decimal OthersTransferAmt { get; set; }
+        public decimal DifferneceAmt { get; set; }
+        public string Remarks { get; set; }
+                    
     }
 
 

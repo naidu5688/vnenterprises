@@ -411,6 +411,11 @@
                     <input id="tIfsc" class="form-control" readonly>
                 </div>
                 <div class="field">
+                    <label>Card Transfer Amount</label>
+                    <input id="tcardAmount" class="form-control"
+                           oninput="this.value=this.value.replace(/[^0-9.]/g,'');">
+                </div>
+                <div class="field">
                     <label>Transfer Card Number  </label>
                     <select id="tTransferCard" class="form-control"></select>
                 </div>
@@ -431,6 +436,11 @@
                 <div class="field">
                     <label>Expiry Date</label>
                     <input id="tTransferCardExpiry" class="form-control" readonly>
+                </div>
+                <div class="field">
+                    <label>Bank Transfer Amount</label>
+                    <input id="tBankAmount" class="form-control"
+                           oninput="this.value=this.value.replace(/[^0-9.]/g,'');">
                 </div>
                 <div class="field payment-field">
                         <label>QR Pay</label>
@@ -1123,23 +1133,75 @@
         
 
         if (!confirm("Are you sure you want to save this transaction?")) return;
+        debugger
 
-        const data = {
+        @* const data = {
             CustomerId: customerId,
             PlatformId: parseInt(tPlatform.value),
             GatewayId: parseInt(tGateway.value),
             TransactionTypeId: parseInt(tTransactiontype.value),
-            CardId: parseInt(tCard.value),
-            BankDetailsId: parseInt(tAccountSelect.value),
-            Remarks : tRemarks.value,
+            WithdrawCardId: parseInt(tCard.value),
+            WithdrawBankId: parseInt(tWithdrawAccountSelect.value),
             TransactionAmount: parseFloat(tAmount.value),
+            BillAmount: parseFloat(tBillAmount.value),
             PlatformChargeAmount: parseFloat(tChargeAmount.value),
             EmployeeChargePercent: parseFloat(tEmpPercent.value),
-            EmployeeChargeAmount: parseFloat(tEmpChargeAmount.value),
+            ProfitAmount: parseFloat(tEmpChargeAmount.value),
+            PayOut: parseFloat(tpayout.value),
             FinalAmount: parseFloat(tFinalAmount.value),
-            PayOut: parseFloat(tpayout.value)
+            WalletAmount: parseFloat(tremaing.value),
+            ToBePaidByCustomer: parseFloat(tWalletAmount.value),
+            CardTransferAmount: parseFloat(tcardAmount.value),
+            BankTransferAmount: parseFloat(tBankAmount.value),
+            TransferBankId: parseInt(tAccountSelect.value),
+            TransferCardId: parseInt(tTransferCard.value),
+            QrTransferAmt: parseInt(tQrPayAmount.value),
+            AcntTransferAmt: parseInt(tAccTransAmount.value),
+            UpiTransferAmt: parseInt(tUpiPayAmount.value),
+            OthersTransferAmt: parseInt(tTransferCard.value),
+            DifferneceAmt: parseInt(tDifferenceAmount.value),
+            Remarks : tRemarks.value,
+            
+        }; *@
 
-        };
+            const data = {
+        CustomerId: customerId || 0,
+
+        PlatformId: parseInt(tPlatform.value) || 0,
+        GatewayId: parseInt(tGateway.value) || 0,
+        TransactionTypeId: parseInt(tTransactiontype.value) || 0,
+
+        WithdrawCardId: parseInt(tCard.value) || 0,
+        WithdrawBankId: parseInt(tWithdrawAccountSelect.value) || 0,
+
+        TransactionAmount: parseFloat(tAmount.value) || 0,
+        BillAmount: parseFloat(tBillAmount.value) || 0,
+        PlatformChargeAmount: parseFloat(tChargeAmount.value) || 0,
+
+        EmployeeChargePercent: parseFloat(tEmpPercent.value) || 0,
+        ProfitAmount: parseFloat(tEmpChargeAmount.value) || 0,
+        PayOut: parseFloat(tpayout.value) || 0,
+
+        FinalAmount: parseFloat(tFinalAmount.value) || 0,
+        WalletAmount: parseFloat(tremaing.value) || 0,
+        ToBePaidByCustomer: parseFloat(tWalletAmount.value) || 0,
+
+        CardTransferAmount: parseFloat(tcardAmount.value) || 0,
+        BankTransferAmount: parseFloat(tBankAmount.value) || 0,
+
+        TransferBankId: parseInt(tAccountSelect.value) || 0,
+        TransferCardId: parseInt(tTransferCard.value) || 0,
+
+        QrTransferAmt: parseFloat(tQrPayAmount.value) || 0,
+        AcntTransferAmt: parseFloat(tAccTransAmount.value) || 0,
+        UpiTransferAmt: parseFloat(tUpiPayAmount.value) || 0,
+
+        OthersTransferAmt: parseFloat(tOtherPayAmount.value) || 0,
+
+        DifferneceAmt: parseFloat(tDifferenceAmount.value) || 0,
+
+        Remarks: tRemarks.value || ""
+    };
 
         fetch('/Employee/AddTransaction', {
             method: 'POST',
@@ -1152,6 +1214,7 @@
                 alert('✅ Transaction saved successfully');
                 closeTransactionModal();
                 clearTransaction();
+                    location.reload();
             } else {
                 alert('❌ Failed to save transaction');
             }
@@ -1164,32 +1227,6 @@
 
 
 
-        @* function validateTransactionFields() {
-        const requiredFields = [
-            tPlatform,
-            tGateway,
-            tTransactiontype,
-            tCard,
-            tAmount,
-            tChargePercent,
-            tEmpPercent,
-            tFinalAmount
-        ];
-
-        for (let field of requiredFields) {
-            if (!field || field.value === "" || field.value === "0") {
-                alert("⚠️ All fields are mandatory");
-                return false;
-            }
-        }
-
-        if (!selectedBank || !selectedBank.bankId) {
-            alert("⚠️ Please select a bank account");
-            return false;
-        }
-
-        return true;
-    } *@
 
 </script>
 <script>
@@ -1201,8 +1238,7 @@
         tAccountSelect.value = "";
         tBankName.value = "";
         tIfsc.value = "";
-@*         tAccountSelect.disabled = true;
- *@    }
+  }
 
     function resetCard() {
         tTransferCard.value = "";
@@ -1210,10 +1246,9 @@
         tTransferCardType.value = "";
         tTransferCardExpiry.value = "";
         tTransferCardCvv.value = "";
-@*         tTransferCard.disabled = true;
- *@    }
+   }
 
-            tTransactiontype.onchange = function () {
+ tTransactiontype.onchange = function () {
         const isPayment = parseInt(this.value) === 2;
 
         const ids = [
@@ -1226,21 +1261,41 @@
             "tWithdrawBankName",
             "tremaing",
             "tWalletAmount",
-             "tDifferenceAmount",
-                 "tBillAmount"
+            "tDifferenceAmount",
+            "tBillAmount"
         ];
 
-        tQrPayAmount.value = "";
+            tCard.value = "";
+            tCardHolder.value = "";
+            tCardCvv.value = "";
+            tCardType.value = "";
+            tCardExpiry.value = "";
+            tWithdrawAccountSelect.value = "";
+            tWithdrawBankName.value = "";
+            tWithdrawIfsc.value = "";
+            tBillAmount.value = "";
+            tremaing.value = "";
+            tWalletAmount.value = "";
+            tAccountSelect.value = "";
+            tBankName.value = "";
+            tIfsc.value = "";
+            tcardAmount.value = "";
+            tTransferCard.value = "";
+            tTransferCardHolder.value = "";
+            tTransferCardType.value = "";
+            tTransferCardCvv.value = "";
+            tTransferCardExpiry.value = "";
+            tBankAmount.value = "";
+            tQrPayAmount.value = "";
             tAccTransAmount.value = "";
-                tUpiPayAmount.value = "";
-                tOtherPayAmount.value = "";
+            tUpiPayAmount.value = "";
+            tOtherPayAmount.value = "";
+            tDifferenceAmount.value = "";
 
         ids.forEach(id => {
             const field = document.getElementById(id)?.closest(".field");
             if (field) field.style.display = isPayment ? "block" : "none";
         });
-
-        tCard.value = "";
 
         if(isPayment){
                    tCard.closest(".field").querySelector("label").innerText = "Payment Card Details";
@@ -1252,7 +1307,8 @@
         else {
                  tCard.closest(".field").querySelector("label").innerText = "Withdraw Card Details";
                  tWithdrawAccountSelect.closest(".field").querySelector("label").innerText = "Payment Bank Details";
-
+                tAccountSelect.closest(".field").querySelector("label").innerText = "Bank Details";
+                tTransferCard.closest(".field").querySelector("label").innerText = "Card Details";
             }
 
         calculateAmounts();
@@ -1262,7 +1318,7 @@
     resetBank();
     resetCard();
 
-    chkBank.addEventListener("change", () => {
+   @*  chkBank.addEventListener("change", () => {
         if (chkBank.checked) {
             chkCard.checked = false;
             tAccountSelect.disabled = false;
@@ -1280,7 +1336,7 @@
         } else {
             resetCard();
         }
-    });
+    }); *@
 
 
 </script>
