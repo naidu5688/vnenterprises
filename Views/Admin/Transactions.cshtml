@@ -26,7 +26,7 @@
     /* ===== SUMMARY ===== */
     .summary-grid {
         display: grid;
-        grid-template-columns: repeat(6, 1fr);
+        grid-template-columns: repeat(4, 1fr);
         gap: 15px;
         margin-bottom: 25px;
     }
@@ -49,7 +49,7 @@
         align-items: center;
         gap: 14px;
         width: 80%;
-        height: 100px;
+        height: 65px;
     }
 
         .summary-box h3 {
@@ -282,8 +282,8 @@
 
 <div class="page-container">
 
-    <h2>Transactions</h2>
-
+@*     <h2>Transactions</h2>
+ *@
     <!-- ✅ TRANSACTION SUMMARY -->
     <div class="summary-grid">
         <div class="summary-box summary-flex">
@@ -815,7 +815,7 @@
             empBody.innerHTML = "";
 
             if (!res.data || res.data.length === 0) {
-                empBody.innerHTML = `<tr><td colspan="9">No records found</td></tr>`;
+                empBody.innerHTML = `<tr><td colspan="10">No records found</td></tr>`;
                 paginationDiv.innerHTML = "";
                 return;
             }
@@ -830,7 +830,7 @@
                         <td>${e.transactionAmount}</td>
                         <td>${e.profitAmount}</td>
                         <td>${e.finalAmount}</td>
-                        <td>${e.createdOn}</td>
+                        <td>${formatDate(e.createdOn)}</td>
                         <td>${e.employeeName}</td>
                         <td><button class="btn-primary" onclick="viewTransaction(${e.transactionId})">View</button></td>
                         
@@ -839,6 +839,19 @@
 
             renderPagination();
         });
+    }
+        function formatDate(dateString) {
+        const d = new Date(dateString);
+
+        const yyyy = d.getFullYear();
+        const mm = String(d.getMonth() + 1).padStart(2, '0'); // months are 0-based
+        const dd = String(d.getDate()).padStart(2, '0');
+
+        const hh = String(d.getHours()).padStart(2, '0');
+        const min = String(d.getMinutes()).padStart(2, '0');
+        const sec = String(d.getSeconds()).padStart(2, '0');
+
+        return `${yyyy}-${mm}-${dd} ${hh}:${min}:${sec}`;
     }
     function loadTransactionForExcel() {
 
@@ -868,7 +881,7 @@
             empBody.innerHTML = "";
 
             if (!res.data || res.data.length === 0) {
-                empBody.innerHTML = `<tr><td colspan="10">No records found</td></tr>`;
+                empempBodyBody.innerHTML = `<tr><td colspan="10">No records found</td></tr>`;
                 paginationDiv.innerHTML = "";
                 return;
             }

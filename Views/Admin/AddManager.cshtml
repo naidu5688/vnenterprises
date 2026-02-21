@@ -186,7 +186,7 @@
 
     <h3>Add Manager</h3>
 
-    <form asp-action="AddManager" asp-controller="Admin" method="post" onsubmit="return validateForm()">
+    <form id="managerForm" asp-action="AddManager" asp-controller="Admin" method="post" onsubmit="return validateForm()">
 
         <!-- Manager Details -->
         <div class="manager-details">
@@ -292,37 +292,86 @@
 </div>
 
 <script>
+    // Convert First & Last Name to uppercase while typing
+    const firstNameInput = document.querySelector('[name="UserFirstName"]');
+    const lastNameInput = document.querySelector('[name="UserLastName"]');
+
+    firstNameInput.addEventListener('input', function() {
+        this.value = this.value.toUpperCase().trimStart(); // remove leading spaces
+    });
+
+    lastNameInput.addEventListener('input', function() {
+        this.value = this.value.toUpperCase().trimStart(); // remove leading spaces
+    });
+
+    // Remove spaces in Password and Confirm Password while typing
+    const passwordInput = document.querySelector('[name="Password"]');
+    const confirmPasswordInput = document.querySelector('[name="ConfirmPassword"]');
+
+    passwordInput.addEventListener('input', function() {
+        this.value = this.value.replace(/\s/g, '');
+    });
+
+    confirmPasswordInput.addEventListener('input', function() {
+        this.value = this.value.replace(/\s/g, '');
+    });
+
+    // Form validation
     function validateForm() {
-        var password = document.querySelector('[name="Password"]').value;
-        var confirmPassword = document.querySelector('[name="ConfirmPassword"]').value;
+        const password = passwordInput.value;
+        const confirmPassword = confirmPasswordInput.value;
+        const mobile = document.querySelector('[name="MobileNumber"]').value;
+        const mpin = document.querySelector('[name="MPIN"]').value;
+        const selectedBranches = document.querySelectorAll('input[name="SelectedBranches"]:checked');
 
-        if (password.indexOf(' ') >= 0 || confirmPassword.indexOf(' ') >= 0) {
-            alert("Password and Confirm Password cannot contain spaces.");
-            return false;
-        }
-
+        // Password match
         if (password !== confirmPassword) {
             alert("Password and Confirm Password must match.");
             return false;
         }
-    var mobile = document.querySelector('[name="MobileNumber"]').value;
-    var mpin = document.querySelector('[name="MPIN"]').value;
 
-    if (mobile.length !== 10) {
-        alert("Mobile number must be exactly 10 digits.");
-        return false;
-    }
+        // Mobile length
+        if (mobile.length !== 10) {
+            alert("Mobile number must be exactly 10 digits.");
+            return false;
+        }
 
-    if (mpin.length !== 4) {
-        alert("MPIN must be exactly 4 digits.");
-        return false;
-    }
-     var selectedBranches = document.querySelectorAll('input[name="SelectedBranches"]:checked');
+        // MPIN length
+        if (mpin.length !== 4) {
+            alert("MPIN must be exactly 4 digits.");
+            return false;
+        }
 
+        // At least one branch selected
         if (selectedBranches.length === 0) {
             alert("Please select at least one Branch.");
             return false;
         }
+
         return true;
     }
+
+    // Hook custom submit
+    document.getElementById('managerForm').addEventListener('submit', function(e) {
+        e.preventDefault(); // prevent default submit
+        if (!validateForm()) return;
+
+        const form = e.target;
+        const data = new FormData(form);
+
+        fetch(form.action, {
+            method: 'POST',
+            body: data
+        })
+        .then(res => res.json())
+        .then(result => {
+            if (result.success) {
+                alert(result.message);
+                window.location.href = "/Admin/Manager";
+            } else {
+                alert(result.message);
+            }
+        })
+        .catch(() => alert("Error saving Manager"));
+    });
 </script>

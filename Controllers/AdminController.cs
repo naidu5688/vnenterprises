@@ -120,6 +120,7 @@ namespace vnenterprises.Controllers
                 totalCount = result.totalCount
             });
         }
+
         public IActionResult GetTransactionForExcel([FromBody] TransactionviewModel model)
         {
             var result = _adminsupport.GetTransactionsForAdmin(model);
@@ -155,6 +156,18 @@ namespace vnenterprises.Controllers
             return View(result);
         }
 
+        [HttpGet]
+        [AuthorizeUser(1)]
+        public IActionResult EditRetailer(GetEmployeeModel model)
+        {
+            var result = _adminsupport.getEditEmployeeDetail(model);
+            PlatformGatewayViewModel platforms = _adminsupport.GetPlatformGatewayList();
+            List<Branches> branches = _adminsupport.GetBranchList();
+
+            result.PlatformGatewayModel = platforms;
+            result.branchmodel = branches;
+            return View(result);
+        }
         [HttpPost]
         public async Task<IActionResult> EditEmployee(EmployeeModel modelobj)
         {
@@ -182,6 +195,40 @@ namespace vnenterprises.Controllers
                 modelobj.panbackpath = uploadResult.FileCompletePath;
             }
             var response = _adminsupport.UpdateorInsertEmployee(modelobj, UserId);
+
+            return Json(new
+            {
+                success = response.result == 1,  // adjust if needed
+                message = response.StatusMessage
+            });
+        }
+        [HttpPost]
+        public async Task<IActionResult> EditRetailer(EmployeeModel modelobj)
+        {
+            modelobj.Password = ConvertToBase64(modelobj.Password);
+            //modelobj.MPIN = ConvertToBase64(modelobj.MPIN);
+            UserId = Convert.ToInt32(Request.Cookies["UserId"]);
+            if (modelobj.AadhaarFrontImage != null && modelobj.AadhaarFrontImage.Length > 0)
+            {
+                var uploadResult = await _s3service.UploadFileToS3Bucket(modelobj.AadhaarFrontImage);
+                modelobj.aadharfrontpath = uploadResult.FileCompletePath;
+            }
+            if (modelobj.AadhaarBackImage != null && modelobj.AadhaarBackImage.Length > 0)
+            {
+                var uploadResult = await _s3service.UploadFileToS3Bucket(modelobj.AadhaarBackImage);
+                modelobj.aadharbackpath = uploadResult.FileCompletePath;
+            }
+            if (modelobj.PanFrontImage != null && modelobj.PanFrontImage.Length > 0)
+            {
+                var uploadResult = await _s3service.UploadFileToS3Bucket(modelobj.PanFrontImage);
+                modelobj.panfrontpath = uploadResult.FileCompletePath;
+            }
+            if (modelobj.PanBackImage != null && modelobj.PanBackImage.Length > 0)
+            {
+                var uploadResult = await _s3service.UploadFileToS3Bucket(modelobj.PanBackImage);
+                modelobj.panbackpath = uploadResult.FileCompletePath;
+            }
+            var response = _adminsupport.UpdateorInsertRetailer(modelobj, UserId);
 
             return Json(new
             {
@@ -281,18 +328,40 @@ namespace vnenterprises.Controllers
             UserId = Convert.ToInt32(Request.Cookies["UserId"]);
             var response = _adminsupport.UpdateorInsertManager(model , UserId);
 
-            TempData["SuccessMessage"] = response.StatusMessage.ToString();
-            return RedirectToAction("Manager", "Admin");
-           
-                
+            return Json(new
+            {
+                success = response.result == 1,  // adjust if needed
+                message = response.StatusMessage
+            });
+
+
+        }
+        [HttpPost]
+        [AuthorizeUser(1)]
+        public IActionResult EditManager(ManagerModel model)
+        {
+            model.Password = ConvertToBase64(model.Password);
+            //model.MPIN = ConvertToBase64(model.MPIN);
+            UserId = Convert.ToInt32(Request.Cookies["UserId"]);
+            var response = _adminsupport.UpdateorInsertManager(model, UserId);
+
+            return Json(new
+            {
+                success = response.result == 1,  // adjust if needed
+                message = response.StatusMessage
+            });
+
+
         }
         [HttpGet]
         [AuthorizeUser(1)]
-        public IActionResult EditManager(int ManagerId)
+        public IActionResult EditManager(int UserId)
         {
             ManagerModel model = new ManagerModel();
-            var result = _adminsupport.GetManagerDetails(ManagerId);
-            return View();
+            var result = _adminsupport.GetManagerDetails(UserId);
+            List<Branches> branches = _adminsupport.GetBranchList();
+            result.branchmodel = branches;
+            return View(result);
         }
         [HttpPost]
         public async Task<IActionResult> AddEmployee([FromForm] EmployeeModel modelobj)
@@ -329,8 +398,41 @@ namespace vnenterprises.Controllers
             });
 
         }
+        [HttpPost]
+        public async Task<IActionResult> AddRetailer([FromForm] EmployeeModel modelobj)
+        {
+            modelobj.Password = ConvertToBase64(modelobj.Password);
+            //modelobj.MPIN = ConvertToBase64(modelobj.MPIN);
+            UserId = Convert.ToInt32(Request.Cookies["UserId"]);
+            if (modelobj.AadhaarFrontImage != null && modelobj.AadhaarFrontImage.Length > 0)
+            {
+                var uploadResult = await _s3service.UploadFileToS3Bucket(modelobj.AadhaarFrontImage);
+                modelobj.aadharfrontpath = uploadResult.FileCompletePath;
+            }
+            if (modelobj.AadhaarBackImage != null && modelobj.AadhaarBackImage.Length > 0)
+            {
+                var uploadResult = await _s3service.UploadFileToS3Bucket(modelobj.AadhaarBackImage);
+                modelobj.aadharbackpath = uploadResult.FileCompletePath;
+            }
+            if (modelobj.PanFrontImage != null && modelobj.PanFrontImage.Length > 0)
+            {
+                var uploadResult = await _s3service.UploadFileToS3Bucket(modelobj.PanFrontImage);
+                modelobj.panfrontpath = uploadResult.FileCompletePath;
+            }
+            if (modelobj.PanBackImage != null && modelobj.PanBackImage.Length > 0)
+            {
+                var uploadResult = await _s3service.UploadFileToS3Bucket(modelobj.PanBackImage);
+                modelobj.panbackpath = uploadResult.FileCompletePath;
+            }
+            var response = _adminsupport.UpdateorInsertRetailer(modelobj, UserId);
 
+            return Json(new
+            {
+                success = response.result == 1,  // adjust if needed
+                message = response.StatusMessage
+            });
 
+        }
         public string ConvertToBase64(string plainPassword)
         {
             var plainTextBytes = System.Text.Encoding.UTF8.GetBytes(plainPassword);
@@ -338,17 +440,44 @@ namespace vnenterprises.Controllers
         }
 
         [HttpPost]
+        [HttpPost]
         [AuthorizeUser(1)]
-        public IActionResult AddPlatform(Platforms platobj)
+        public IActionResult SavePlatform([FromBody] Platforms model)
         {
-            if (platobj.Id == 0)
-                return View();
-            else
-            {
+            if (model == null || string.IsNullOrEmpty(model.Name))
+                return BadRequest("Invalid data");
 
+            try
+            {
+                var savedPlatform = _adminsupport.SaveOrUpdatePlatform(model);
+                return Json(new { success = true, platform = savedPlatform });
             }
-                return View();
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
         }
+
+
+        [HttpPost]
+        [AuthorizeUser(1)]
+        public IActionResult SaveGateway([FromBody] Gateway model)
+        {
+            if (model == null || string.IsNullOrEmpty(model.Name) || model.PlatformId <= 0)
+                return BadRequest("Invalid gateway data");
+
+            try
+            {
+                var savedGateway = _adminsupport.SaveOrUpdateGateway(model);
+                return Json(new { success = true, gateway = savedGateway });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
+
 
         [HttpGet]
         [AuthorizeUser(1)]
@@ -364,16 +493,37 @@ namespace vnenterprises.Controllers
         {
             base.OnActionExecuting(context);
 
+            int userId = 0;
             if (Request.Cookies["UserId"] != null)
+                int.TryParse(Request.Cookies["UserId"], out userId);
+
+            // If no valid UserId, force logout
+            if (userId <= 0)
             {
-                var userId = Convert.ToInt32(Request.Cookies["UserId"]);
-                var user = _employeesupport.GetUserDetails(userId);
-                if (user != null)
+                // If AJAX request, return 401 Unauthorized
+                if (context.HttpContext.Request.Headers["X-Requested-With"] == "XMLHttpRequest")
                 {
-                    ViewBag.EmployeeName = user.UserName;
+                    context.Result = new JsonResult(new { error = "Unauthorized" })
+                    {
+                        StatusCode = 401
+                    };
                 }
+                else
+                {
+                    // Regular request: redirect to logout
+                    context.Result = new RedirectToActionResult("Index", "Home", null);
+                }
+                return;
+            }
+
+            // If user is valid, set ViewBag for regular pages
+            var user = _employeesupport.GetUserDetails(userId);
+            if (user != null)
+            {
+                ViewBag.EmployeeName = user.UserName;
             }
         }
+
 
     }
 

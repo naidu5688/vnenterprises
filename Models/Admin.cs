@@ -20,6 +20,7 @@
     {
         public int Id { get; set; }
         public string Name { get; set; }
+        public int PlatformId { get; set; }
         public string PlatformName { get; set; }
         public decimal Charge { get; set; }
         public string Status { get; set; } // Active / Inactive
@@ -66,6 +67,7 @@
         public string Password { get; set; }
         public string ConfirmPassword { get; set; }
         public string MPIN { get; set; }
+        public string KycStatus { get; set; }
         public PlatformGatewayViewModel platformgatwaymodel { get; set; }
         public List<Branches> branchmodel { get; set; }
         public bool IsEmployeeViewAccess { get; set; }
@@ -77,7 +79,6 @@
         public bool IsKycViewAccess { get; set; }
         public bool IsKycEditAccess { get; set; }
         public bool IsKycAddAccess { get; set; }
-        public List<int> SelectedGateways { get; set; } = new();
         public List<int> SelectedBranches { get; set; } = new();
         public bool IsActive { get; set; }
 

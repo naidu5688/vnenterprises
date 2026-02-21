@@ -1137,35 +1137,6 @@
         if (!confirm("Are you sure you want to save this transaction?")) return;
         debugger
 
-        @* const data = {
-            CustomerId: customerId,
-            PlatformId: parseInt(tPlatform.value),
-            GatewayId: parseInt(tGateway.value),
-            TransactionTypeId: parseInt(tTransactiontype.value),
-            WithdrawCardId: parseInt(tCard.value),
-            WithdrawBankId: parseInt(tWithdrawAccountSelect.value),
-            TransactionAmount: parseFloat(tAmount.value),
-            BillAmount: parseFloat(tBillAmount.value),
-            PlatformChargeAmount: parseFloat(tChargeAmount.value),
-            EmployeeChargePercent: parseFloat(tEmpPercent.value),
-            ProfitAmount: parseFloat(tEmpChargeAmount.value),
-            PayOut: parseFloat(tpayout.value),
-            FinalAmount: parseFloat(tFinalAmount.value),
-            WalletAmount: parseFloat(tremaing.value),
-            ToBePaidByCustomer: parseFloat(tWalletAmount.value),
-            CardTransferAmount: parseFloat(tcardAmount.value),
-            BankTransferAmount: parseFloat(tBankAmount.value),
-            TransferBankId: parseInt(tAccountSelect.value),
-            TransferCardId: parseInt(tTransferCard.value),
-            QrTransferAmt: parseInt(tQrPayAmount.value),
-            AcntTransferAmt: parseInt(tAccTransAmount.value),
-            UpiTransferAmt: parseInt(tUpiPayAmount.value),
-            OthersTransferAmt: parseInt(tTransferCard.value),
-            DifferneceAmt: parseInt(tDifferenceAmount.value),
-            Remarks : tRemarks.value,
-            
-        }; *@
-
             const data = {
         CustomerId: customerId || 0,
 
