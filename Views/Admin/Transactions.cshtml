@@ -1,7 +1,10 @@
 ﻿@{
     Layout = "~/Views/Shared/_SharedLayout_Admin.cshtml";
 }
+<head>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.20.2/xlsx.full.min.js"></script>
 
+</head>
 <style>
     body {
         background: #17362e;
@@ -404,6 +407,7 @@
     let pageSize = 10;
     let totalRecords = 0;
     let exportData = [];
+    let xlsxPromise = null;
 
     const fBranch = document.getElementById("fBranch");
     const fSearch = document.getElementById("fSearch");
@@ -415,13 +419,57 @@
     const startDate = document.getElementById("startDate");
     const endDate = document.getElementById("endDate");
 
-       document.addEventListener("DOMContentLoaded", async () => {
+    document.addEventListener("DOMContentLoaded", async () => {
         await loadTransactionTypes();
         await loadBranches();
         await loadPlatforms();
         await loadTransactionSummary();
         loadTransaction(); // ✅ NOW FILTERS ARE READY
     });
+
+    function ensureXlsxLoaded() {
+        if (typeof XLSX !== 'undefined') return Promise.resolve();
+
+        if (!xlsxPromise) {
+            xlsxPromise = new Promise((resolve, reject) => {
+                const cdnList = [
+                    'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js',
+                    'https://unpkg.com/xlsx@0.18.5/dist/xlsx.full.min.js',
+                    'https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js'
+                ];
+
+                let currentCdn = 0;
+
+                function tryNextCdn() {
+                    if (currentCdn >= cdnList.length) {
+                        reject(new Error('All CDNs failed'));
+                        return;
+                    }
+
+                    const script = document.createElement('script');
+                    script.src = cdnList[currentCdn];
+                    script.onload = () => {
+                        if (typeof XLSX !== 'undefined') {
+                            resolve();
+                        } else {
+                            currentCdn++;
+                            tryNextCdn();
+                        }
+                    };
+                    script.onerror = () => {
+                        currentCdn++;
+                        tryNextCdn();
+                    };
+                    document.head.appendChild(script);
+                }
+
+                tryNextCdn();
+            });
+        }
+        return xlsxPromise;
+    }
+
+
     /* ===== LOAD FILTER DATA ===== */
 
     function loadBranches() {
@@ -501,7 +549,172 @@
         loadTransaction();
     }
 
-        function exportTransaction() {
+    function resetExport(btn, originalText, originalPageSize) {
+        pageSize = originalPageSize;
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+    }
+    let xlsxLoaded = false;
+
+    async function downloadExcel(data) {
+        console.log('📊 Total records:', data.length);
+
+        const getIncentiveId = (row) => Number(row?.IncentiveId || row?.incentiveId || 0);
+        const payments = data.filter(row => getIncentiveId(row) === 2);
+        const withdrawals = data.filter(row => getIncentiveId(row) === 3);
+
+        console.log('📊 Payments:', payments.length, 'Withdrawals:', withdrawals.length);
+
+        if (payments.length === 0 && withdrawals.length === 0) {
+            alert('No Payment or Withdrawal data found');
+            return;
+        }
+
+        try {
+            await ensureXlsxLoaded();
+
+            const wb = XLSX.utils.book_new();
+
+            // ===== PAYMENTS SHEET =====
+            if (payments.length > 0) {
+                const header = [
+                    'Transaction ID', 'Employee Name', 'Customer Name', 'Platform', 'Gateway', 'Platform Charge(%)',
+                    'Transaction Type', 'Withdrawal Card Number', 'Card Holder Name', 'Card Type',
+                    'Card CVV', 'Card Expiry Date', 'Payment Bank Number', 'Bank Name', 'Bank IFSC',
+                    'Transaction Amount', 'Bill Amount', 'Platform Charge Amount', 'Employee Charge(%)',
+                    'Profit Amount', 'PayOut', 'Final Amount', 'Wallet Amount', 'To Be Paid By Customer',
+                    'Swiped Bank Number', 'Swiped Bank Name', 'Swiped IFSC', 'Bank Transfer Amount',
+                    'Swiped Card Number', 'Swiped Card Holder', 'Swiped Card Type', 'Swiped Card CVV',
+                    'Swiped Card Expiry', 'Card Transfer Amount', 'QR Pay', 'Account Pay', 'UPI Pay',
+                    'Others', 'Difference', 'Remark', 'Created On'
+                ];
+
+                const rows = payments.map(row => [
+                    row?.TransactionId || row?.transactionId || '',
+                    row?.EmployeeName || row?.employeeName || '',
+                    row?.CustomerName || row?.customerName || '',
+                    row?.PlatformName || row?.platformName || '',
+                    row?.GatewayName || row?.gatewayName || '',
+                    Number(row?.gatewayCharge || 0).toFixed(2) + '%',
+                    row?.IncentiveName || row?.incentiveName || '',
+                    row?.withdrawCardNumber || row?.WithdrawalCardNumber || '',
+                    row?.withdrawNameOnCard || row?.WithdrawNameOnCard || '',
+                    row?.withdrawCardType || row?.WithdrawCardType || '',
+                    row?.withdrawCardCVV || row?.WithdrawCardCVV || '',
+                    row?.withdrawCardExpiryDate || row?.WithdrawCardExpiryDate || '',
+                    row?.withdrawBankNumber || row?.WithdrawBankNumber || '',
+                    row?.withdrawBankName || row?.WithdrawBankName || '',
+                    row?.withdrawBankIFSC || row?.WithdrawBankIFSC || '',
+                    Number(row?.TransactionAmount || row?.transactionAmount || 0).toFixed(2),
+                    Number(row?.billAmount || 0).toFixed(2),
+                    Number(row?.platformChargeAmount || 0).toFixed(2),
+                    Number(row?.employeeChargePercent || 0).toFixed(2) + '%',
+                    Number(row?.profitAmount || 0).toFixed(2),
+                    Number(row?.payOut || 0).toFixed(2),
+                    Number(row?.FinalAmount || row?.finalAmount || 0).toFixed(2),
+                    Number(row?.walletAmount || 0).toFixed(2),
+                    Number(row?.tobePaidByCustomer || 0).toFixed(2),
+                    row?.swipedBankNumber || '',
+                    row?.swipedBankName || '',
+                    row?.swipedBankIFSC || '',
+                    Number(row?.accountAmountTransfer || 0).toFixed(2),
+                    row?.swipedCardNumber || '',
+                    row?.swipedNameOnCard || '',
+                    row?.swipedCardType || '',
+                    row?.swipedCardCVV || '',
+                    row?.swipedCardExpiryDate || '',
+                    Number(row?.cardAmountTransfer || 0).toFixed(2),
+                    Number(row?.qrPayAmountTransfer || 0).toFixed(2),
+                    Number(row?.accountPayAmountTransfer || 0).toFixed(2),
+                    Number(row?.upiPayAmountTransfer || 0).toFixed(2),
+                    Number(row?.othersAmountTransfer || 0).toFixed(2),
+                    Number(row?.difference || 0).toFixed(2),
+                    row?.remarks || row?.Remark || '',
+                    row?.CreatedOn || row?.createdOn || ''
+
+                ]);
+
+                const ws = XLSX.utils.aoa_to_sheet([header, ...rows]);
+
+                ws['!cols'] = Array(header.length).fill({wch: 16});
+                ws['!cols'][0] = {wch: 18};  
+                ws['!cols'][1] = {wch: 22};  
+                ws['!cols'][37] = {wch: 22}; 
+
+                XLSX.utils.book_append_sheet(wb, ws, 'Payments');
+            }
+
+
+            // ===== WITHDRAWALS SHEET =====
+            if (withdrawals.length > 0) {
+                const header = [
+                    'Transaction ID', 'Employee Name', 'Customer Name', 'Platform', 'Gateway', 'Platform Charge(%)',
+                    'Transaction Type', 'Withdraw Card Number', 'Card Holder Name', 'Card Type',
+                    'Card CVV', 'Card Expiry Date', 'Bank Number', 'Bank Name', 'Bank IFSC',
+                    'Transaction Amount', 'Platform Charge Amount', 'Employee Charge(%)',
+                    'Profit Amount', 'PayOut', 'Final Amount', 'Bank Transfer Amount',
+                    'Card Number', 'Card Holder Name', 'Card Type', 'Card CVV', 'Card Expiry Date',
+                    'Card Transfer Amount', 'Difference', 'Remark', 'Created On'
+                ];
+
+                const rows = withdrawals.map(row => [
+                    row?.TransactionId || row?.transactionId || '',
+                    row?.EmployeeName || row?.employeeName || '',
+                    row?.CustomerName || row?.customerName || '',
+                    row?.PlatformName || row?.platformName || '',
+                    row?.GatewayName || row?.gatewayName || '',
+                    Number(row?.gatewayCharge || 0).toFixed(2) + '%',
+                    row?.IncentiveName || row?.incentiveName || '',
+                    row?.withdrawCardNumber || row?.WithdrawCardNumber || '',
+                    row?.withdrawNameOnCard || row?.WithdrawNameOnCard || '',
+                    row?.withdrawCardType || row?.WithdrawCardType || '',
+                    row?.withdrawCardCVV || row?.WithdrawCardCVV || '',
+                    row?.withdrawCardExpiryDate || row?.WithdrawCardExpiryDate || '',
+                    row?.swipedBankNumber || '',
+                    row?.swipedBankName || '',
+                    row?.swipedBankIFSC || '',
+                    Number(row?.TransactionAmount || row?.transactionAmount || 0).toFixed(2),
+                    Number(row?.platformChargeAmount || 0).toFixed(2),
+                    Number(row?.employeeChargePercent || 0).toFixed(2) + '%',
+                    Number(row?.profitAmount || 0).toFixed(2),
+                    Number(row?.payOut || 0).toFixed(2),
+                    Number(row?.FinalAmount || row?.finalAmount || 0).toFixed(2),
+                    Number(row?.accountAmountTransfer || 0).toFixed(2),
+                    row?.swipedCardNumber || '',
+                    row?.swipedNameOnCard || '',
+                    row?.swipedCardType || '',
+                    row?.swipedCardCVV || '',
+                    row?.swipedCardExpiryDate || '',
+                    Number(row?.cardAmountTransfer || 0).toFixed(2),
+                    Number(row?.difference || 0).toFixed(2),
+                    row?.remarks || row?.Remark || '',
+                    row?.CreatedOn || row?.createdOn || ''
+            
+                ]);
+
+                const ws = XLSX.utils.aoa_to_sheet([header, ...rows]);
+
+                ws['!cols'] = Array(header.length).fill({wch: 16});
+                ws['!cols'][0] = {wch: 18};  
+                ws['!cols'][1] = {wch: 22};  
+                ws['!cols'][27] = {wch: 22}; 
+
+                XLSX.utils.book_append_sheet(wb, ws, 'Withdrawals');
+            }
+
+
+            const filename = `Transactions_${new Date().toISOString().slice(0,10)}.xlsx`;
+            XLSX.writeFile(wb, filename);
+            console.log('XLSX exported:', filename);
+
+        } catch (err) {
+            console.error('XLSX export failed:', err);
+            alert('Excel export failed, see console for details.');
+        }
+    }
+
+
+    function exportTransaction() {
         const originalPageSize = pageSize;
         pageSize = 50000;
 
@@ -516,11 +729,11 @@
             SearchText: fSearch.value || '',
             StartDate: start,
             EndDate: end,
-            PageNo: 1,  // ✅ Fixed
+            PageNo: 0,
             PageSize: pageSize
         };
 
-        const btn = event.target;
+        const btn = document.querySelector('button[onclick="exportTransaction()"]');
         const originalText = btn.innerHTML;
         btn.innerHTML = '⏳ Exporting...';
         btn.disabled = true;
@@ -536,102 +749,19 @@
 
             if (data.length === 0) {
                 alert('No data to export');
-                resetBtn(btn, originalText, originalPageSize);
-                return;
+            } else {
+                console.log('📥 Data loaded:', data.length);
+                return downloadExcel(data);
             }
-
-            downloadCSV(data);  // ✅ CSV function
-            resetBtn(btn, originalText, originalPageSize);
         })
         .catch(err => {
-            alert('Export failed');
-            resetBtn(btn, originalText, originalPageSize);
+            console.error('Export failed:', err);
+            alert('Export failed: ' + err.message);
+        })
+        .finally(() => {
+            resetExport(btn, originalText, originalPageSize);
         });
     }
-
-    function resetBtn(btn, originalText, originalPageSize) {
-        pageSize = originalPageSize;
-        btn.innerHTML = originalText;
-        btn.disabled = false;
-    }
-
-    function downloadCSV(data) {
-        console.log('🔍 First row:', data[0]); // DEBUG property names
-
-        // Split data by IncentiveId (case-safe)
-        const getIncentiveId = (row) => row.IncentiveId || row.incentiveId || 0;
-        const payments = data.filter(row => getIncentiveId(row) === 2);
-        const withdrawals = data.filter(row => getIncentiveId(row) === 3);
-
-        console.log('📊 Payments:', payments.length, 'Withdrawals:', withdrawals.length);
-
-        let csv = '';
-
-        // **PAYMENTS SECTION (IncentiveId = 2)**
-        if (payments.length > 0) {
-            csv += '\n=== PAYMENTS ===\n\n';
-            csv += 'Transaction ID,Customer Name,Employee Name,Incentive Name,Platform Name,Gateway Name,Transaction Amount,Employee Charge %,Employee Charge Amount,Final Amount,Created On,Card Last 4\n';
-
-            payments.forEach(row => {
-                csv += [
-                    row.TransactionId || row.transactionId || '',
-                    `"${(row.CustomerName || row.customerName || '').replace(/"/g, '""')}"`,
-                    `"${(row.EmployeeName || row.employeeName || '').replace(/"/g, '""')}"`,
-                    row.IncentiveName || row.incentiveName || '',
-                    row.PlatformName || row.platformName || '',
-                    row.GatewayName || row.gatewayName || '',
-                    (row.TransactionAmount || row.transactionAmount || 0).toFixed(2),
-                    ((row.EmployeeChargePercent || row.employeeChargePercent || 0).toFixed(2)) + '%',
-                    (row.EmployeeChargeAmount || row.employeeChargeAmount || 0).toFixed(2),
-                    (row.FinalAmount || row.finalAmount || 0).toFixed(2),
-                    row.CreatedOn || row.createdOn || '',
-                    row.CardNumber || row.cardNumber || ''
-                ].join(',') + '\n';
-            });
-            csv += '\n';
-        }
-
-        // **WITHDRAWALS SECTION (IncentiveId = 3)**
-        if (withdrawals.length > 0) {
-            csv += '\n=== WITHDRAWALS ===\n\n';
-            csv += 'Transaction ID,Customer Name,Employee Name,Incentive Name,Platform Name,Gateway Name,Transaction Amount,Employee Charge %,Employee Charge Amount,Platform Charge,Gateway Charge,Final Amount,Created On,Card Last 4\n';
-
-            withdrawals.forEach(row => {
-                csv += [
-                    row.TransactionId || row.transactionId || '',
-                    `"${(row.CustomerName || row.customerName || '').replace(/"/g, '""')}"`,
-                    `"${(row.EmployeeName || row.employeeName || '').replace(/"/g, '""')}"`,
-                    row.IncentiveName || row.incentiveName || '',
-                    row.PlatformName || row.platformName || '',
-                    row.GatewayName || row.gatewayName || '',
-                    (row.TransactionAmount || row.transactionAmount || 0).toFixed(2),
-                    ((row.EmployeeChargePercent || row.employeeChargePercent || 0).toFixed(2)) + '%',
-                    (row.EmployeeChargeAmount || row.employeeChargeAmount || 0).toFixed(2),
-                    (row.PlatformCharge || row.platformCharge || 0).toFixed(2),
-                    (row.GatewayCharge || row.gatewayCharge || 0).toFixed(2),
-                    (row.FinalAmount || row.finalAmount || 0).toFixed(2),
-                    row.CreatedOn || row.createdOn || '',
-                    row.CardNumber || row.cardNumber || ''
-                ].join(',') + '\n';
-            });
-        }
-
-        if (csv === '') {
-            alert('No Payment (ID=2) or Withdrawal (ID=3) data found');
-            return;
-        }
-
-        // Download CSV
-        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-        const link = document.createElement('a');
-        const url = URL.createObjectURL(blob);
-        link.href = url;
-        link.download = `Transactions_${new Date().toISOString().slice(0,10)}.csv`;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-    }
-
 
 
 
@@ -738,7 +868,7 @@
             empBody.innerHTML = "";
 
             if (!res.data || res.data.length === 0) {
-                empBody.innerHTML = `<tr><td colspan="9">No records found</td></tr>`;
+                empBody.innerHTML = `<tr><td colspan="10">No records found</td></tr>`;
                 paginationDiv.innerHTML = "";
                 return;
             }
@@ -767,6 +897,7 @@
     viewModal.style.display = 'none';
     }
     function viewTransaction(id) {
+
         fetch('/Employee/GetTransactionById?transactionid=' + id)
             .then(r => r.json())
             .then(d => {
@@ -776,88 +907,436 @@
                     return;
                 }
 
-                transactionDetails.innerHTML = `
-                <div class="detail-box">
-                    <label>Transaction ID</label>
-                    <input value="${d.transactionId}" readonly>
-                </div>
-                <div class="detail-box">
-                    <label>Customer Name</label>
-                    <input value="${d.customerName}" readonly>
-                </div>
-                <div class="detail-box">
-                    <label>Platform Name</label>
-                    <input value="${d.platformName}" readonly>
-                </div>
-                <div class="detail-box">
-                    <label>Gateway Name</label>
-                    <input value="${d.gatewayName}" readonly>
-                </div>
-                <div class="detail-box">
-                    <label>Platform Charge(%)</label>
-                    <input value="${d.gatewayCharge}" readonly>
-                </div>
-                <div class="detail-box">
-                    <label>Transaction Type</label>
-                    <input value="${d.incentiveName}" readonly>
-                </div>
-                <div class="detail-box">
-                    <label>Credit Card Number</label>
-                    <input value="${d.cardNumber}" readonly>
-                </div>
-                <div class="detail-box">
-                    <label>Card Type</label>
-                    <input value="${d.cardTypeName}" readonly>
-                </div>
-                <div class="detail-box">
-                    <label>Card CVV</label>
-                    <input value="${d.cardCVV}" readonly>
-                </div>
-                <div class="detail-box">
-                    <label>Expiry Date</label>
-                    <input value="${d.cardExpiryDate}" readonly>
-                </div>
-                <div class="detail-box">
-                    <label>Transaction Amount</label>
-                    <input value="${d.transactionAmount}" readonly>
-                </div>
-                <div class="detail-box">
-                    <label>Platform Charge Amount</label>
-                    <input value="${d.platformCharge}" readonly>
-                </div>
-                <div class="detail-box">
-                    <label>Employee Charge Percent (%)</label>
-                    <input value="${d.employeeChargePercent}" readonly>
-                </div>
-                <div class="detail-box">
-                    <label>Profit Amount</label>
-                    <input value="${d.employeeChargeAmount}" readonly>
-                </div>
-                <div class="detail-box">
-                    <label>PayOut Amount</label>
-                    <input value="${d.payOut}" readonly>
-                </div>
-                <div class="detail-box">
-                    <label>Final Amount</label>
-                    <input value="₹${d.finalAmount}" readonly>
-                </div>
-                <div class="detail-box">
-                    <label>Bank Account Number</label>
-                    <input value="${d.bankAccountNumber}" readonly>
-                </div>
-                <div class="detail-box">
-                    <label>Bank IFSC</label>
-                    <input value="${d.bankIFSC}" readonly>
-                </div>
-                <div class="detail-box">
-                    <label>Remark</label>
-                    <input value="${d.remark}" readonly>
-                </div>
-                `;
+                const container = document.getElementById("transactionDetails");
+                let html = "";
 
-                viewModal.style.display = 'flex';
+
+                if (d.incentiveId === 2) {
+
+                    html += `
+
+                    <div class="detail-box">
+                        <label>Transaction ID</label>
+                        <input value="${d.transactionId}" readonly>
+                    </div>
+
+                    <div class="detail-box">
+                        <label>Customer Name</label>
+                        <input value="${d.customerName}" readonly>
+                    </div>
+
+                    <div class="detail-box">
+                        <label>Platform</label>
+                        <input value="${d.platformName}" readonly>
+                    </div>
+
+                    <div class="detail-box">
+                        <label>Gateway</label>
+                        <input value="${d.gatewayName}" readonly>
+                    </div>
+                    <div class="detail-box">
+                        <label>Platform Charge</label>
+                        <input value="${d.gatewayCharge}%" readonly>
+                    </div>
+                    <div class="detail-box">
+                        <label>Transaction Type</label>
+                        <input value="${d.incentiveName}" readonly>
+                    </div>
+
+                    <div class="detail-box">
+                        <label>Payment Card Number</label>
+                        <input value="${d.withdrawCardNumber}" readonly>
+                    </div>
+
+                    <div class="detail-box">
+                        <label>Card Holder Name</label>
+                        <input value="${d.withdrawNameOnCard}" readonly>
+                    </div>
+
+                    <div class="detail-box">
+                        <label>Card Type</label>
+                        <input value="${d.withdrawCardType}" readonly>
+                    </div>
+
+                    <div class="detail-box">
+                        <label>Card CVV</label>
+                        <input value="${d.withdrawCardCVV}" readonly>
+                    </div>
+
+                    <div class="detail-box">
+                        <label>Card Expriy Date</label>
+                        <input value="${d.withdrawCardExpiryDate}" readonly>
+                    </div>
+
+                    <div class="detail-box">
+                        <label>Payment Bank Number</label>
+                        <input value="${d.withdrawBankNumber}" readonly>
+                    </div>
+
+                    <div class="detail-box">
+                        <label>Bank Name</label>
+                        <input value="${d.withdrawBankName}" readonly>
+                    </div>
+
+                    <div class="detail-box">
+                        <label>Bank IFSC</label>
+                        <input value="${d.withdrawBankIFSC}" readonly>
+                    </div>
+
+                    <div class="detail-box">
+                        <label>Transaction Amount</label>
+                        <input value="₹${d.transactionAmount}" readonly>
+                    </div>
+
+                    <div class="detail-box">
+                        <label>Bill Amount</label>
+                        <input value="₹${d.billAmount}" readonly>
+                    </div>
+
+                    <div class="detail-box">
+                        <label>Platform Charge Amount</label>
+                        <input value="₹${d.platformChargeAmount}" readonly>
+                    </div>
+
+                    <div class="detail-box">
+                        <label>Employee Charge</label>
+                        <input value="${d.employeeChargePercent}%" readonly>
+                    </div>
+
+                    <div class="detail-box">
+                        <label>Profit Amount</label>
+                        <input value="₹${d.profitAmount}" readonly>
+                    </div>
+                        <div class="detail-box">
+                            <label>PayOut</label>
+                            <input value="₹${d.payOut}" readonly>
+                        </div>
+
+                        <div class="detail-box">
+                            <label>Final Amount</label>
+                            <input value="₹${d.finalAmount}" readonly>
+                        </div>
+
+                        <div class="detail-box">
+                            <label>Wallet Amount</label>
+                            <input value="₹${d.walletAmount}" readonly>
+                        </div>
+
+                        <div class="detail-box">
+                            <label>To Be Paid By Customer</label>
+                            <input value="₹${d.tobePaidByCustomer}" readonly>
+                        </div>
+                         <div class="detail-box">
+                            <label>Swiped Bank Number</label>
+                            <input value="${d.swipedBankNumber}" readonly>
+                        </div>
+
+                        <div class="detail-box">
+                            <label>Bank Name</label>
+                            <input value="${d.swipedBankName}" readonly>
+                        </div>
+                        <div class="detail-box">
+                            <label>IFSC Code</label>
+                            <input value="${d.swipedBankIFSC}" readonly>
+                        </div>
+
+                        <div class="detail-box">
+                            <label>Bank Transfer Amount</label>
+                            <input value="₹${d.accountAmountTransfer}" readonly>
+                        </div>
+                        <div class="detail-box">
+                            <label>Swiped Card Number</label>
+                            <input value="${d.swipedCardNumber}" readonly>
+                        </div>
+                        <div class="detail-box">
+                            <label>Card Holder Name</label>
+                            <input value="${d.swipedNameOnCard}" readonly>
+                        </div>
+
+                        <div class="detail-box">
+                            <label>Card Type</label>
+                            <input value="${d.swipedCardType}" readonly>
+                        </div>
+
+                        <div class="detail-box">
+                            <label>Card CVV</label>
+                            <input value="${d.swipedCardCVV}" readonly>
+                        </div>
+                        <div class="detail-box">
+                            <label>Card Expiry Date</label>
+                            <input value="${d.swipedCardExpiryDate}" readonly>
+                        </div>
+                        <div class="detail-box">
+                            <label>Card Transfer Amount</label>
+                            <input value="₹${d.cardAmountTransfer}" readonly>
+                        </div>
+                        <div class="detail-box">
+                            <label>QR Pay</label>
+                            <input value="₹${d.qrPayAmountTransfer}" readonly>
+                        </div>
+                        <div class="detail-box">
+                            <label>Account Pay</label>
+                            <input value="₹${d.accountPayAmountTransfer}" readonly>
+                        </div>
+                        <div class="detail-box">
+                            <label>UPI Pay</label>
+                            <input value="₹${d.upiPayAmountTransfer}" readonly>
+                        </div>
+                        <div class="detail-box">
+                            <label>Others</label>
+                            <input value="₹${d.othersAmountTransfer}" readonly>
+                        </div>
+
+                        <div class="detail-box">
+                            <label>Difference</label>
+                            <input value="₹${d.difference}" readonly>
+                        </div>
+                        <div class="detail-box">
+                            <label>Remark</label>
+                            <input value="${d.remarks}" readonly>
+                        </div>
+                    `;
+                }
+                if (d.incentiveId === 3) {
+
+                    html += `
+
+                    <div class="detail-box">
+                        <label>Transaction ID</label>
+                        <input value="${d.transactionId}" readonly>
+                    </div>
+
+                    <div class="detail-box">
+                        <label>Customer Name</label>
+                        <input value="${d.customerName}" readonly>
+                    </div>
+
+                    <div class="detail-box">
+                        <label>Platform</label>
+                        <input value="${d.platformName}" readonly>
+                    </div>
+
+                    <div class="detail-box">
+                        <label>Gateway</label>
+                        <input value="${d.gatewayName}" readonly>
+                    </div>
+                    <div class="detail-box">
+                        <label>Platform Charge</label>
+                        <input value="${d.gatewayCharge}%" readonly>
+                    </div>
+                    <div class="detail-box">
+                        <label>Transaction Type</label>
+                        <input value="${d.incentiveName}" readonly>
+                    </div>
+
+                    <div class="detail-box">
+                        <label>Withdraw Card Number</label>
+                        <input value="${d.withdrawCardNumber}" readonly>
+                    </div>
+
+                    <div class="detail-box">
+                        <label>Card Holder Name</label>
+                        <input value="${d.withdrawNameOnCard}" readonly>
+                    </div>
+
+                    <div class="detail-box">
+                        <label>Card Type</label>
+                        <input value="${d.withdrawCardType}" readonly>
+                    </div>
+
+                    <div class="detail-box">
+                        <label>Card CVV</label>
+                        <input value="${d.withdrawCardCVV}" readonly>
+                    </div>
+
+                    <div class="detail-box">
+                        <label>Card Expriy Date</label>
+                        <input value="${d.withdrawCardExpiryDate}" readonly>
+                    </div>
+
+                    <div class="detail-box">
+                        <label>Transaction Amount</label>
+                        <input value="₹${d.transactionAmount}" readonly>
+                    </div>
+
+                    <div class="detail-box">
+                        <label>Platform Charge Amount</label>
+                        <input value="₹${d.platformChargeAmount}" readonly>
+                    </div>
+
+                    <div class="detail-box">
+                        <label>Employee Charge</label>
+                        <input value="${d.employeeChargePercent}%" readonly>
+                    </div>
+
+                    <div class="detail-box">
+                        <label>Profit Amount</label>
+                        <input value="₹${d.profitAmount}" readonly>
+                    </div>
+                        <div class="detail-box">
+                            <label>PayOut</label>
+                            <input value="₹${d.payOut}" readonly>
+                        </div>
+
+                        <div class="detail-box">
+                            <label>Final Amount</label>
+                            <input value="₹${d.finalAmount}" readonly>
+                        </div>
+
+                         <div class="detail-box">
+                            <label>Bank Number</label>
+                            <input value="${d.swipedBankNumber}" readonly>
+                        </div>
+
+                        <div class="detail-box">
+                            <label>Bank Name</label>
+                            <input value="${d.swipedBankName}" readonly>
+                        </div>
+                        <div class="detail-box">
+                            <label>IFSC Code</label>
+                            <input value="${d.swipedBankIFSC}" readonly>
+                        </div>
+
+                        <div class="detail-box">
+                            <label>Bank Transfer Amount</label>
+                            <input value="₹${d.accountAmountTransfer}" readonly>
+                        </div>
+                        <div class="detail-box">
+                            <label>Card Number</label>
+                            <input value="${d.swipedCardNumber}" readonly>
+                        </div>
+                        <div class="detail-box">
+                            <label>Card Holder Name</label>
+                            <input value="${d.swipedNameOnCard}" readonly>
+                        </div>
+
+                        <div class="detail-box">
+                            <label>Card Type</label>
+                            <input value="${d.swipedCardType}" readonly>
+                        </div>
+
+                        <div class="detail-box">
+                            <label>Card CVV</label>
+                            <input value="${d.swipedCardCVV}" readonly>
+                        </div>
+                        <div class="detail-box">
+                            <label>Card Expiry Date</label>
+                            <input value="${d.swipedCardExpiryDate}" readonly>
+                        </div>
+                        <div class="detail-box">
+                            <label>Card Transfer Amount</label>
+                            <input value="₹${d.cardAmountTransfer}" readonly>
+                        </div>
+
+                        <div class="detail-box">
+                            <label>Difference</label>
+                            <input value="₹${d.difference}" readonly>
+                        </div>
+                        <div class="detail-box">
+                            <label>Remark</label>
+                            <input value="${d.remarks}" readonly>
+                        </div>
+                    `;
+                }
+
+                container.innerHTML = html;
+
+                document.getElementById("viewModal").style.display = "flex";
             });
     }
+    /*Old View Transaction*/
+    // function viewTransaction(id) {
+    //     fetch('/Employee/GetTransactionById?transactionid=' + id)
+    //         .then(r => r.json())
+    //         .then(d => {
+
+    //             if (!d) {
+    //                 alert("No data found");
+    //                 return;
+    //             }
+
+    //             transactionDetails.innerHTML = `
+    //             <div class="detail-box">
+    //                 <label>Transaction ID</label>
+    //                 <input value="${d.transactionId}" readonly>
+    //             </div>
+    //             <div class="detail-box">
+    //                 <label>Customer Name</label>
+    //                 <input value="${d.customerName}" readonly>
+    //             </div>
+    //             <div class="detail-box">
+    //                 <label>Platform Name</label>
+    //                 <input value="${d.platformName}" readonly>
+    //             </div>
+    //             <div class="detail-box">
+    //                 <label>Gateway Name</label>
+    //                 <input value="${d.gatewayName}" readonly>
+    //             </div>
+    //             <div class="detail-box">
+    //                 <label>Platform Charge(%)</label>
+    //                 <input value="${d.gatewayCharge}" readonly>
+    //             </div>
+    //             <div class="detail-box">
+    //                 <label>Transaction Type</label>
+    //                 <input value="${d.incentiveName}" readonly>
+    //             </div>
+    //             <div class="detail-box">
+    //                 <label>Credit Card Number</label>
+    //                 <input value="${d.cardNumber}" readonly>
+    //             </div>
+    //             <div class="detail-box">
+    //                 <label>Card Type</label>
+    //                 <input value="${d.cardTypeName}" readonly>
+    //             </div>
+    //             <div class="detail-box">
+    //                 <label>Card CVV</label>
+    //                 <input value="${d.cardCVV}" readonly>
+    //             </div>
+    //             <div class="detail-box">
+    //                 <label>Expiry Date</label>
+    //                 <input value="${d.cardExpiryDate}" readonly>
+    //             </div>
+    //             <div class="detail-box">
+    //                 <label>Transaction Amount</label>
+    //                 <input value="${d.transactionAmount}" readonly>
+    //             </div>
+    //             <div class="detail-box">
+    //                 <label>Platform Charge Amount</label>
+    //                 <input value="${d.platformCharge}" readonly>
+    //             </div>
+    //             <div class="detail-box">
+    //                 <label>Employee Charge Percent (%)</label>
+    //                 <input value="${d.employeeChargePercent}" readonly>
+    //             </div>
+    //             <div class="detail-box">
+    //                 <label>Profit Amount</label>
+    //                 <input value="${d.employeeChargeAmount}" readonly>
+    //             </div>
+    //             <div class="detail-box">
+    //                 <label>PayOut Amount</label>
+    //                 <input value="${d.payOut}" readonly>
+    //             </div>
+    //             <div class="detail-box">
+    //                 <label>Final Amount</label>
+    //                 <input value="₹${d.finalAmount}" readonly>
+    //             </div>
+    //             <div class="detail-box">
+    //                 <label>Bank Account Number</label>
+    //                 <input value="${d.bankAccountNumber}" readonly>
+    //             </div>
+    //             <div class="detail-box">
+    //                 <label>Bank IFSC</label>
+    //                 <input value="${d.bankIFSC}" readonly>
+    //             </div>
+    //             <div class="detail-box">
+    //                 <label>Remark</label>
+    //                 <input value="${d.remark}" readonly>
+    //             </div>
+    //             `;
+
+    //             viewModal.style.display = 'flex';
+    //         });
+    // }
 
     /* ===== PAGINATION ===== */
 

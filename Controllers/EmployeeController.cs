@@ -39,6 +39,7 @@ namespace vnenterprises.Controllers
         }
 
         [HttpGet]
+        [AuthorizeUser(3)]
         public IActionResult Transactions()
         {
             ViewBag.UserId = Convert.ToInt32(Request.Cookies["UserId"]);
@@ -82,6 +83,7 @@ namespace vnenterprises.Controllers
         }
 
         [HttpGet]
+        [AuthorizeUser(3)]
         public IActionResult AddCustomer()
         {
             return View();
@@ -99,6 +101,7 @@ namespace vnenterprises.Controllers
             }));
         }
         [HttpGet]
+        [AuthorizeUser(3)]
         public IActionResult CustomerDetails(int CustomerId)
         {
             var Model = _employeesupport.GetCustomerDetails(CustomerId);
