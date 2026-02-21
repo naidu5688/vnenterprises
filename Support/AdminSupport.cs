@@ -378,13 +378,7 @@ namespace vnenterprises.Support
                 cmd.Parameters.AddWithValue("@MobileNumber", model.MobileNumber);
                 cmd.Parameters.AddWithValue("@Password", model.Password);
                 cmd.Parameters.AddWithValue("@MPIN", model.MPIN);
-                //cmd.Parameters.AddWithValue("@SelectedGateways", model.SelectedGateways);
-                //cmd.Parameters.AddWithValue("@SelectedBranches", model.SelectedBranches);
-                //cmd.Parameters.Add(new SqlParameter("@SelectedGateways", SqlDbType.Structured)
-                //{
-                //    TypeName = "dbo.IntList",
-                //    Value = ToIntListTable(model.SelectedGateways)
-                //});
+                cmd.Parameters.AddWithValue("@KycStatus", model.KycStatus ?? "");
 
                 cmd.Parameters.Add(new SqlParameter("@SelectedBranches", SqlDbType.Structured)
                 {
@@ -592,15 +586,69 @@ namespace vnenterprises.Support
             }
             return response;
         }
+        public ResultResponse UpdateorInsertRetailer(EmployeeModel model, int UserId)
+        {
+            var response = new ResultResponse();
+            try
+            {
+                using (SqlConnection con = new SqlConnection(_connectionString))
+                using (SqlCommand cmd = new SqlCommand("vn_InsertorupdateRetailer", con))
+                {
+                    cmd.CommandType = CommandType.StoredProcedure;
+
+                    cmd.Parameters.AddWithValue("@EmployeeId", model.EmployeeId);
+                    cmd.Parameters.AddWithValue("@UserFirstName", model.FirstName);
+                    cmd.Parameters.AddWithValue("@UserLastName", model.LastName);
+                    cmd.Parameters.AddWithValue("@MobileNumber", model.MobileNumber);
+                    cmd.Parameters.AddWithValue("@Password", model.Password);
+                    cmd.Parameters.AddWithValue("@MPIN", model.MPIN);
+                    cmd.Parameters.AddWithValue("@AadhaarNumber", model.AadhaarNumber);
+                    cmd.Parameters.AddWithValue("@PanNumber", model.PanNumber);
+                    cmd.Parameters.AddWithValue("@AadhaarFrontImage", model.aadharfrontpath);
+                    cmd.Parameters.AddWithValue("@AadhaarBackImage", model.aadharbackpath);
+                    cmd.Parameters.AddWithValue("@PanFrontImage", model.panfrontpath);
+                    cmd.Parameters.AddWithValue("@PanBackImage", model.panbackpath ?? "");
+                    cmd.Parameters.AddWithValue("@KycStatus", model.KycStatus ?? "");
+                    cmd.Parameters.Add(new SqlParameter("@SelectedGateways", SqlDbType.Structured)
+                    {
+                        TypeName = "dbo.IntList",
+                        Value = ToIntListTable(model.SelectedGateways)
+                    });
+                    cmd.Parameters.AddWithValue("@UserId", UserId);
+
+                    con.Open();
+                    using SqlDataReader dr = cmd.ExecuteReader();
+                    if (dr.Read())
+                    {
+                        response.result = Convert.ToInt32(dr["Result"]);
+                        response.StatusMessage = dr["Status"].ToString();
+                    }
+                }
+
+            }
+            catch (Exception e)
+            {
+                response.result = 0; ;
+                response.StatusMessage = "Something Wrong. Please Try again.";
+            }
+            return response;
+        }
         public ManagerModel GetManagerDetails(int ManagerId)
         {
             ManagerModel model = new ManagerModel();
             using (SqlConnection con = new SqlConnection(_connectionString))
-            using (SqlCommand cmd = new SqlCommand("vn_GetManagerDetails", con))
+            using (SqlCommand cmd = new SqlCommand("usp_fn_GetUserDetails", con))
             {
                 cmd.CommandType = CommandType.StoredProcedure;
 
-                cmd.Parameters.AddWithValue("@ManagerId", ManagerId);
+                cmd.CommandType = CommandType.StoredProcedure;
+                cmd.Parameters.AddWithValue("@BranchIds", "");
+                cmd.Parameters.AddWithValue("@UserId", ManagerId);
+                cmd.Parameters.AddWithValue("@RoleIds", "");
+                cmd.Parameters.AddWithValue("@Kyc", "");
+                cmd.Parameters.AddWithValue("@SearchText",  "");
+                cmd.Parameters.AddWithValue("@PageNo", 1);
+                cmd.Parameters.AddWithValue("@PageSize", 10);
 
                 con.Open();
                 using (SqlDataReader dr = cmd.ExecuteReader())
@@ -609,16 +657,44 @@ namespace vnenterprises.Support
                     {
                         while (dr.Read())
                         {
-                            model.ManagerId = dr["ManagerId"] != DBNull.Value ? Convert.ToInt32(dr["ManagerId"]) : 0;
+                            model.UserId = dr["UserId"] != DBNull.Value ? Convert.ToInt32(dr["UserId"]) : 0;
+                            model.ManagerId = dr["EmployeeId"] != DBNull.Value ? Convert.ToInt32(dr["EmployeeId"]) : 0;
+
                             model.UserFirstName = dr["UserFirstName"] != DBNull.Value ? Convert.ToString(dr["UserFirstName"]) : "";
                             model.UserLastName = dr["UserLastName"] != DBNull.Value ? Convert.ToString(dr["UserLastName"]) : "";
-                            model.Password = dr["Password"] != DBNull.Value ? Convert.ToString(dr["Password"]) : "";
-                            model.ConfirmPassword = dr["Password"] != DBNull.Value ? Convert.ToString(dr["Password"]) : "";
+
+                            model.MobileNumber = dr["MobileNumber"] != DBNull.Value ? Convert.ToString(dr["MobileNumber"]) : "";
+                            string encPwd = dr["Password"] != DBNull.Value ? Convert.ToString(dr["Password"]) : "";
+                            model.Password = ConvertFromBase64(encPwd);
+                            model.ConfirmPassword = model.Password;
                             model.MPIN = dr["MPIN"] != DBNull.Value ? Convert.ToString(dr["MPIN"]) : "";
-                            model.UserFirstName = dr["UserFirstName"] != DBNull.Value ? Convert.ToString(dr["UserFirstName"]) : "";
-                            model.UserFirstName = dr["UserFirstName"] != DBNull.Value ? Convert.ToString(dr["UserFirstName"]) : "";
-                            model.UserFirstName = dr["UserFirstName"] != DBNull.Value ? Convert.ToString(dr["UserFirstName"]) : "";
-                            model.UserFirstName = dr["UserFirstName"] != DBNull.Value ? Convert.ToString(dr["UserFirstName"]) : "";
+                            model.KycStatus = dr["KycStatus"] != DBNull.Value ? Convert.ToString(dr["KycStatus"]) : "Pending";
+
+                            model.IsEmployeeViewAccess = dr["IsEmployeeViewAccess"] != DBNull.Value ? Convert.ToBoolean(dr["IsEmployeeViewAccess"]) : false;
+                            model.IsEmployeeAddAccess = dr["IsEmployeeAddAccess"] != DBNull.Value ? Convert.ToBoolean(dr["IsEmployeeAddAccess"]) : false;
+                            model.IsEmployeeEditAccess = dr["IsEmployeeEditAccess"] != DBNull.Value ? Convert.ToBoolean(dr["IsEmployeeEditAccess"]) : false;
+
+                            model.IsRetailerViewAccess = dr["IsRetailerViewAccess"] != DBNull.Value ? Convert.ToBoolean(dr["IsRetailerViewAccess"]) : false;
+                            model.IsRetailerAddAccess = dr["IsRetailerAddAccess"] != DBNull.Value ? Convert.ToBoolean(dr["IsRetailerAddAccess"]) : false;
+                            model.IsRetailerEditAccess = dr["IsRetailerEditAccess"] != DBNull.Value ? Convert.ToBoolean(dr["IsRetailerEditAccess"]) : false;
+
+                            model.IsKycViewAccess = dr["IsKycViewAccess"] != DBNull.Value ? Convert.ToBoolean(dr["IsKycViewAccess"]) : false;
+                            model.IsKycAddAccess = dr["IsKycAddAccess"] != DBNull.Value ? Convert.ToBoolean(dr["IsKycAddAccess"]) : false;
+                            model.IsKycEditAccess = dr["IsKycEditAccess"] != DBNull.Value ? Convert.ToBoolean(dr["IsKycEditAccess"]) : false;
+
+                            model.IsActive = dr["IsActive"] != DBNull.Value ? Convert.ToBoolean(dr["IsActive"]) : false;
+
+                        }
+                        if (dr.NextResult())
+                        {
+                            model.SelectedBranches = new List<int>();
+
+                            while (dr.Read())
+                            {
+                                model.SelectedBranches.Add(
+                                    Convert.ToInt32(dr["BranchId"])
+                                );
+                            }
                         }
                     }
 

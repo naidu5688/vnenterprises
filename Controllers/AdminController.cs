@@ -282,18 +282,40 @@ namespace vnenterprises.Controllers
             UserId = Convert.ToInt32(Request.Cookies["UserId"]);
             var response = _adminsupport.UpdateorInsertManager(model , UserId);
 
-            TempData["SuccessMessage"] = response.StatusMessage.ToString();
-            return RedirectToAction("Manager", "Admin");
-           
-                
+            return Json(new
+            {
+                success = response.result == 1,  // adjust if needed
+                message = response.StatusMessage
+            });
+
+
+        }
+        [HttpPost]
+        [AuthorizeUser(1)]
+        public IActionResult EditManager(ManagerModel model)
+        {
+            model.Password = ConvertToBase64(model.Password);
+            //model.MPIN = ConvertToBase64(model.MPIN);
+            UserId = Convert.ToInt32(Request.Cookies["UserId"]);
+            var response = _adminsupport.UpdateorInsertManager(model, UserId);
+
+            return Json(new
+            {
+                success = response.result == 1,  // adjust if needed
+                message = response.StatusMessage
+            });
+
+
         }
         [HttpGet]
         [AuthorizeUser(1)]
-        public IActionResult EditManager(int ManagerId)
+        public IActionResult EditManager(int UserId)
         {
             ManagerModel model = new ManagerModel();
-            var result = _adminsupport.GetManagerDetails(ManagerId);
-            return View();
+            var result = _adminsupport.GetManagerDetails(UserId);
+            List<Branches> branches = _adminsupport.GetBranchList();
+            result.branchmodel = branches;
+            return View(result);
         }
         [HttpPost]
         public async Task<IActionResult> AddEmployee([FromForm] EmployeeModel modelobj)
@@ -330,8 +352,41 @@ namespace vnenterprises.Controllers
             });
 
         }
+        [HttpPost]
+        public async Task<IActionResult> AddRetailer([FromForm] EmployeeModel modelobj)
+        {
+            modelobj.Password = ConvertToBase64(modelobj.Password);
+            //modelobj.MPIN = ConvertToBase64(modelobj.MPIN);
+            UserId = Convert.ToInt32(Request.Cookies["UserId"]);
+            if (modelobj.AadhaarFrontImage != null && modelobj.AadhaarFrontImage.Length > 0)
+            {
+                var uploadResult = await _s3service.UploadFileToS3Bucket(modelobj.AadhaarFrontImage);
+                modelobj.aadharfrontpath = uploadResult.FileCompletePath;
+            }
+            if (modelobj.AadhaarBackImage != null && modelobj.AadhaarBackImage.Length > 0)
+            {
+                var uploadResult = await _s3service.UploadFileToS3Bucket(modelobj.AadhaarBackImage);
+                modelobj.aadharbackpath = uploadResult.FileCompletePath;
+            }
+            if (modelobj.PanFrontImage != null && modelobj.PanFrontImage.Length > 0)
+            {
+                var uploadResult = await _s3service.UploadFileToS3Bucket(modelobj.PanFrontImage);
+                modelobj.panfrontpath = uploadResult.FileCompletePath;
+            }
+            if (modelobj.PanBackImage != null && modelobj.PanBackImage.Length > 0)
+            {
+                var uploadResult = await _s3service.UploadFileToS3Bucket(modelobj.PanBackImage);
+                modelobj.panbackpath = uploadResult.FileCompletePath;
+            }
+            var response = _adminsupport.UpdateorInsertRetailer(modelobj, UserId);
 
+            return Json(new
+            {
+                success = response.result == 1,  // adjust if needed
+                message = response.StatusMessage
+            });
 
+        }
         public string ConvertToBase64(string plainPassword)
         {
             var plainTextBytes = System.Text.Encoding.UTF8.GetBytes(plainPassword);
