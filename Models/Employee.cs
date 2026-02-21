@@ -31,34 +31,58 @@ namespace vnenterprises.Models
 
     public class TransactionListModel
     {
+
         public int TransactionId { get; set; }
+        public int UserId { get; set; }
         public int CustomerId { get; set; }
-        public int CardTypeId { get; set; }
-        public string CardTypeName { get; set; }
-        public  string CardHolder { get; set; }
-		public string CardExpiryDate { get; set; }
-		public string CardCVV { get; set; }
-        public string CardNumber { get; set; }
-        public string BankAccountNumber { get; set; }
-        public string BankIFSC { get; set; }
-        public string BankId { get; set; }
-        public string CustomerName { get; set; }
-        public string EmployeeName { get; set; }
-        public int IncentiveId { get; set; }
-        public string IncentiveName { get; set; }
-        public decimal TransactionAmount { get; set; }
-        public decimal PayOut { get; set; }
-        public decimal FinalAmount { get; set; }
-        public DateTime CreatedOn { get; set; }  
         public int PlatformId { get; set; }
         public string PlatformName { get; set; }
-        public decimal PlatformCharge { get; set; }
         public int GatewayId { get; set; }
         public string GatewayName { get; set; }
         public decimal GatewayCharge { get; set; }
+        public int IncentiveId { get; set; }
+        public string IncentiveName { get; set; }
+        public decimal IncentiveAmount { get; set; }
+        public int WithdrawCardId { get; set; }
+        public string WithdrawCardNumber { get; set; }
+        public string WithdrawNameOnCard { get; set; }
+        public string WithdrawCardType { get; set; }
+        public string WithdrawCardCVV { get; set; }
+        public string WithdrawCardExpiryDate { get; set; }
+        public int WithdrawBankId { get; set; }
+        public string WithdrawBankNumber { get; set; }
+        public string WithdrawBankName { get; set; }
+        public string WithdrawBankIFSC { get; set; }
+        public decimal TransactionAmount { get; set; }
+        public decimal BillAmount { get; set; }
+        public decimal PlatformChargeAmount { get; set; }
         public decimal EmployeeChargePercent { get; set; }
-        public decimal EmployeeChargeAmount { get; set; }
-        public string Remark { get; set; }
+        public decimal ProfitAmount { get; set; }
+        public decimal PayOut { get; set; }
+        public decimal FinalAmount { get; set; }
+        public decimal WalletAmount { get; set; }
+        public decimal TobePaidByCustomer { get; set; }
+        public int SwipedCardId { get; set; }
+        public string SwipedCardNumber { get; set; }
+        public string SwipedNameOnCard { get; set; }
+        public string SwipedCardType { get; set; }
+        public string SwipedCardCVV { get; set; }
+        public string SwipedCardExpiryDate { get; set; }
+        public int SwipedBankId { get; set; }
+        public string SwipedBankNumber { get; set; }
+        public string SwipedBankName { get; set; }
+        public string SwipedBankIFSC { get; set; }
+        public decimal CardAmountTransfer { get; set; }
+        public decimal AccountAmountTransfer { get; set; }
+        public decimal QRPayAmountTransfer { get; set; }
+        public decimal AccountPayAmountTransfer { get; set; }
+        public decimal UPIPayAmountTransfer { get; set; }
+        public decimal OthersAmountTransfer { get; set; }
+        public decimal Difference { get; set; }
+        public string Remarks { get; set; }
+        public DateTime CreatedOn { get; set; }
+        public string CustomerName { get; set; }
+        public string EmployeeName { get; set; }
     }
     public class UserTransactionsummary
     {
@@ -74,29 +98,29 @@ namespace vnenterprises.Models
         public int CustomerId { get; set; }
         public int PlatformId { get; set; }
         public int GatewayId { get; set; }
-        public int CardId { get; set; }
-        public int BankDetailsId { get; set; }
-        public string Remarks { get; set; }
         public int TransactionTypeId { get; set; }
+        public int WithdrawCardId { get; set; }
+        public int WithdrawBankId { get; set; }
         public decimal TransactionAmount { get; set; }
+        public decimal BillAmount { get; set; }
         public decimal PlatformChargeAmount { get; set; }
         public decimal EmployeeChargePercent { get; set; }
-        public decimal EmployeeChargeAmount { get; set; }
-        public decimal FinalAmount { get; set; }
+        public decimal ProfitAmount { get; set; }
         public decimal PayOut { get; set; }
-        public string PayoutMode { get; set; }
-        public int PayoutBankId { get; set; }
-        public int PayoutCardId { get; set; }
-
-        public decimal BillAmount { get; set; }
-        public decimal SwipeAmount { get; set; }
-        public decimal RemainingAmount { get; set; }
-
-        public decimal UpiAmount { get; set; }
-        public decimal AccountAmount { get; set; }
-        public decimal QrAmount { get; set; }
-        public decimal ManualAmount { get; set; }
-
+        public decimal FinalAmount { get; set; }
+        public decimal WalletAmount { get; set; }
+        public decimal ToBePaidByCustomer { get; set; }
+        public decimal CardTransferAmount { get; set; }
+        public decimal BankTransferAmount { get; set; }
+        public int TransferBankId { get; set; }
+        public int TransferCardId { get; set; }
+        public decimal QrTransferAmt { get; set; }
+        public decimal AcntTransferAmt { get; set; }
+        public decimal UpiTransferAmt { get; set; }
+        public decimal OthersTransferAmt { get; set; }
+        public decimal DifferneceAmt { get; set; }
+        public string Remarks { get; set; }
+                    
     }
 
 

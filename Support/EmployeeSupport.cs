@@ -334,27 +334,65 @@ namespace vnenterprises.Support
                 {
                     result.Add(new TransactionListModel
                     {
+
                         TransactionId = Convert.ToInt32(dr["TransactionId"]),
-                        CustomerName = dr["CustomerName"].ToString(),
-                        EmployeeName = dr["EmployeeName"].ToString(),
-                        CardNumber = dr["CardNumber"].ToString(),
-                        CardTypeName = dr["CardTypeName"].ToString(),
-                        CardCVV = dr["CardCVV"].ToString(),
-                        CardExpiryDate = dr["CardExpiryDate"].ToString(),
-                        BankAccountNumber = dr["BankAccountNumber"].ToString(),
-                        BankIFSC = dr["BankIFSC"].ToString(),
+                        UserId = Convert.ToInt32(dr["UserId"]),
+                        CustomerId = Convert.ToInt32(dr["CustomerId"]),
+                        PlatformId = Convert.ToInt32(dr["PlatformId"]),
                         PlatformName = dr["PlatformName"].ToString(),
+                        GatewayId = Convert.ToInt32(dr["GatewayId"]),
                         GatewayName = dr["GatewayName"].ToString(),
-                        IncentiveName = dr["IncentiveName"].ToString(),
-                        PlatformCharge = Convert.ToDecimal(dr["PlatformCharge"]),
                         GatewayCharge = Convert.ToDecimal(dr["GatewayCharge"]),
-                        EmployeeChargePercent = Convert.ToDecimal(dr["EmployeeChargePercent"]),
-                        EmployeeChargeAmount = Convert.ToDecimal(dr["EmployeeChargeAmount"]),
+                        IncentiveId = Convert.ToInt32(dr["IncentiveId"]),
+                        IncentiveName = dr["IncentiveName"].ToString(),
+                        IncentiveAmount = Convert.ToDecimal(dr["IncentiveAmount"]),
+
+                        WithdrawCardId = Convert.ToInt32(dr["WithdrawCardId"]),
+                        WithdrawCardNumber = dr["WithdrawCardNumber"].ToString(),
+                        WithdrawNameOnCard = dr["WithdrawNameOnCard"].ToString(),
+                        WithdrawCardType = dr["WithdrawCardType"].ToString(),
+                        WithdrawCardCVV = dr["WithdrawCardCVV"].ToString(),
+                        WithdrawCardExpiryDate = dr["WithdrawCardExpiryDate"].ToString(),
+
+                        WithdrawBankId = Convert.ToInt32(dr["WithdrawBankId"]),
+                        WithdrawBankNumber = dr["WithdrawBankNumber"].ToString(),
+                        WithdrawBankName = dr["WithdrawBankName"].ToString(),
+                        WithdrawBankIFSC = dr["WithdrawBankIFSC"].ToString(),
+
                         TransactionAmount = Convert.ToDecimal(dr["TransactionAmount"]),
-                        PayOut = Convert.ToDecimal(dr["PayOut"] ?? 0.0) ,
+                        BillAmount = Convert.ToDecimal(dr["BillAmount"]),
+                        PlatformChargeAmount = Convert.ToDecimal(dr["PlatformChargeAmount"]),
+                        EmployeeChargePercent = Convert.ToDecimal(dr["EmployeeChargePercent"]),
+                        ProfitAmount = Convert.ToDecimal(dr["ProfitAmount"]),
+                        PayOut = Convert.ToDecimal(dr["PayOut"]),
                         FinalAmount = Convert.ToDecimal(dr["FinalAmount"]),
+                        WalletAmount = Convert.ToDecimal(dr["WalletAmount"]),
+                        TobePaidByCustomer = Convert.ToDecimal(dr["TobePaidByCustomer"]),
+
+                        SwipedCardId = Convert.ToInt32(dr["SwipedCardId"]),
+                        SwipedCardNumber = dr["SwipedCardNumber"].ToString(),
+                        SwipedNameOnCard = dr["SwipedNameOnCard"].ToString(),
+                        SwipedCardType = dr["SwipedCardType"].ToString(),
+                        SwipedCardCVV = dr["SwipedCardCVV"].ToString(),
+                        SwipedCardExpiryDate = dr["SwipedCardExpiryDate"].ToString(),
+
+                        SwipedBankId = Convert.ToInt32(dr["SwipedBankId"]),
+                        SwipedBankNumber = dr["SwipedBankNumber"].ToString(),
+                        SwipedBankName = dr["SwipedBankName"].ToString(),
+                        SwipedBankIFSC = dr["SwipedBankIFSC"].ToString(),
+
+                        CardAmountTransfer = Convert.ToDecimal(dr["CardAmountTransfer"]),
+                        AccountAmountTransfer = Convert.ToDecimal(dr["AccountAmountTransfer"]),
+                        QRPayAmountTransfer = Convert.ToDecimal(dr["QRPayAmountTransfer"]),
+                        AccountPayAmountTransfer = Convert.ToDecimal(dr["AccountPayAmountTransfer"]),
+                        UPIPayAmountTransfer = Convert.ToDecimal(dr["UPIPayAmountTransfer"]),
+                        OthersAmountTransfer = Convert.ToDecimal(dr["OthersAmountTransfer"]),
+                        Difference = Convert.ToDecimal(dr["Difference"]),
+
+                        Remarks = dr["Remarks"].ToString(),
                         CreatedOn = Convert.ToDateTime(dr["CreatedOn"]),
-                        Remark = dr["Remark"].ToString()
+                        CustomerName = dr["CustomerName"].ToString(),
+                        EmployeeName = dr["EmployeeName"].ToString()
                     });
                 }
 
@@ -427,18 +465,30 @@ namespace vnenterprises.Support
                 {
                     cmd.CommandType = CommandType.StoredProcedure;
                     cmd.Parameters.AddWithValue("@CustomerId", model.CustomerId);
-                    cmd.Parameters.AddWithValue("@PlatformID", model.PlatformId);
-                    cmd.Parameters.AddWithValue("@GatewayID", model.GatewayId);
-                    cmd.Parameters.AddWithValue("@CreditCardId", model.CardId);
-                    cmd.Parameters.AddWithValue("@BankDetailId", model.BankDetailsId);
-                    cmd.Parameters.AddWithValue("@Remarks", model.Remarks);
+                    cmd.Parameters.AddWithValue("@PlatformId", model.PlatformId);
+                    cmd.Parameters.AddWithValue("@GatewayId", model.GatewayId);
                     cmd.Parameters.AddWithValue("@TransactionTypeId", model.TransactionTypeId);
+                    cmd.Parameters.AddWithValue("@WithdrawCardId", model.WithdrawCardId);
+                    cmd.Parameters.AddWithValue("@WithdrawBankId", model.WithdrawBankId);
                     cmd.Parameters.AddWithValue("@TransactionAmount", model.TransactionAmount);
+                    cmd.Parameters.AddWithValue("@BillAmount", model.BillAmount);
                     cmd.Parameters.AddWithValue("@PlatformChargeAmount", model.PlatformChargeAmount);
                     cmd.Parameters.AddWithValue("@EmployeeChargePercent", model.EmployeeChargePercent);
-                    cmd.Parameters.AddWithValue("@EmployeeChargeAmount", model.EmployeeChargeAmount);
-                    cmd.Parameters.AddWithValue("@FinalAmount", model.FinalAmount);
+                    cmd.Parameters.AddWithValue("@ProfitAmount", model.ProfitAmount);
                     cmd.Parameters.AddWithValue("@PayOut", model.PayOut);
+                    cmd.Parameters.AddWithValue("@FinalAmount", model.FinalAmount);
+                    cmd.Parameters.AddWithValue("@WalletAmount", model.WalletAmount);
+                    cmd.Parameters.AddWithValue("@ToBePaidByCustomer", model.ToBePaidByCustomer);
+                    cmd.Parameters.AddWithValue("@CardTransferAmount", model.CardTransferAmount);
+                    cmd.Parameters.AddWithValue("@BankTransferAmount", model.BankTransferAmount);
+                    cmd.Parameters.AddWithValue("@TransferBankId", model.TransferBankId);
+                    cmd.Parameters.AddWithValue("@TransferCardId", model.TransferCardId);
+                    cmd.Parameters.AddWithValue("@QrTransferAmt", model.QrTransferAmt);
+                    cmd.Parameters.AddWithValue("@AcntTransferAmt", model.AcntTransferAmt);
+                    cmd.Parameters.AddWithValue("@UpiTransferAmt", model.UpiTransferAmt);
+                    cmd.Parameters.AddWithValue("@OthersTransferAmt", model.OthersTransferAmt);
+                    cmd.Parameters.AddWithValue("@DifferneceAmt", model.DifferneceAmt);
+                    cmd.Parameters.AddWithValue("@Remarks", model.Remarks);
                     cmd.Parameters.AddWithValue("@UserId", UserId);
 
                     con.Open();
