@@ -120,6 +120,15 @@ namespace vnenterprises.Controllers
                 totalCount = result.totalCount
             });
         }
+        public IActionResult GetTransactionForExcel([FromBody] TransactionviewModel model)
+        {
+            var result = _adminsupport.GetTransactionsForAdmin(model);
+            return Json(new
+            {
+                data = result.data,
+                totalCount = result.totalCount
+            });
+        }
         [HttpGet]
         public IActionResult CustomerDetails(int CustomerId)
         {

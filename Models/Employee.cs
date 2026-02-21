@@ -44,6 +44,7 @@ namespace vnenterprises.Models
         public string BankId { get; set; }
         public string CustomerName { get; set; }
         public string EmployeeName { get; set; }
+        public int IncentiveId { get; set; }
         public string IncentiveName { get; set; }
         public decimal TransactionAmount { get; set; }
         public decimal PayOut { get; set; }

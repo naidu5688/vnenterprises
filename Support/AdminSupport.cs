@@ -226,6 +226,7 @@ namespace vnenterprises.Support
                         BankIFSC = dr["BankIFSC"].ToString(),
                         PlatformName = dr["PlatformName"].ToString(),
                         GatewayName = dr["GatewayName"].ToString(),
+                        IncentiveId = Convert.ToInt32(dr["IncentiveId"].ToString()),
                         IncentiveName = dr["IncentiveName"].ToString(),
                         PlatformCharge = Convert.ToDecimal(dr["PlatformCharge"]),
                         GatewayCharge = Convert.ToDecimal(dr["GatewayCharge"]),

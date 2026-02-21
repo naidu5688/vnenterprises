@@ -355,6 +355,7 @@
 
         <input id="fSearch" class="form-control" placeholder="Search Transaction ID or Customer Name..">
         <button class="btn-primary" onclick="searchTransaction()">Search</button>
+        <button class="btn-primary" onclick="exportTransaction()">ExportView</button>
     </div>
     <div class="modal-overlay" id="viewModal">
         <div class="modal-box">
@@ -402,6 +403,7 @@
     let currentPage = 1;
     let pageSize = 10;
     let totalRecords = 0;
+    let exportData = [];
 
     const fBranch = document.getElementById("fBranch");
     const fSearch = document.getElementById("fSearch");
@@ -499,6 +501,140 @@
         loadTransaction();
     }
 
+        function exportTransaction() {
+        const originalPageSize = pageSize;
+        pageSize = 50000;
+
+        let start = startDate.value ? startDate.value + " 00:00:00" : '';
+        let end = endDate.value ? endDate.value + " 23:59:59" : '';
+
+        const query = {
+            BranchId: fBranch.value || '',
+            PlatformId: tPlatform.value || '',
+            GatewayId: tGateway.value || '',
+            TransactionType: fTransactiontype.value || '',
+            SearchText: fSearch.value || '',
+            StartDate: start,
+            EndDate: end,
+            PageNo: 1,  // ✅ Fixed
+            PageSize: pageSize
+        };
+
+        const btn = event.target;
+        const originalText = btn.innerHTML;
+        btn.innerHTML = '⏳ Exporting...';
+        btn.disabled = true;
+
+        fetch('/Admin/GetTransactionForExcel', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(query)
+        })
+        .then(r => r.json())
+        .then(res => {
+            const data = res.data || [];
+
+            if (data.length === 0) {
+                alert('No data to export');
+                resetBtn(btn, originalText, originalPageSize);
+                return;
+            }
+
+            downloadCSV(data);  // ✅ CSV function
+            resetBtn(btn, originalText, originalPageSize);
+        })
+        .catch(err => {
+            alert('Export failed');
+            resetBtn(btn, originalText, originalPageSize);
+        });
+    }
+
+    function resetBtn(btn, originalText, originalPageSize) {
+        pageSize = originalPageSize;
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+    }
+
+    function downloadCSV(data) {
+        console.log('🔍 First row:', data[0]); // DEBUG property names
+
+        // Split data by IncentiveId (case-safe)
+        const getIncentiveId = (row) => row.IncentiveId || row.incentiveId || 0;
+        const payments = data.filter(row => getIncentiveId(row) === 2);
+        const withdrawals = data.filter(row => getIncentiveId(row) === 3);
+
+        console.log('📊 Payments:', payments.length, 'Withdrawals:', withdrawals.length);
+
+        let csv = '';
+
+        // **PAYMENTS SECTION (IncentiveId = 2)**
+        if (payments.length > 0) {
+            csv += '\n=== PAYMENTS ===\n\n';
+            csv += 'Transaction ID,Customer Name,Employee Name,Incentive Name,Platform Name,Gateway Name,Transaction Amount,Employee Charge %,Employee Charge Amount,Final Amount,Created On,Card Last 4\n';
+
+            payments.forEach(row => {
+                csv += [
+                    row.TransactionId || row.transactionId || '',
+                    `"${(row.CustomerName || row.customerName || '').replace(/"/g, '""')}"`,
+                    `"${(row.EmployeeName || row.employeeName || '').replace(/"/g, '""')}"`,
+                    row.IncentiveName || row.incentiveName || '',
+                    row.PlatformName || row.platformName || '',
+                    row.GatewayName || row.gatewayName || '',
+                    (row.TransactionAmount || row.transactionAmount || 0).toFixed(2),
+                    ((row.EmployeeChargePercent || row.employeeChargePercent || 0).toFixed(2)) + '%',
+                    (row.EmployeeChargeAmount || row.employeeChargeAmount || 0).toFixed(2),
+                    (row.FinalAmount || row.finalAmount || 0).toFixed(2),
+                    row.CreatedOn || row.createdOn || '',
+                    row.CardNumber || row.cardNumber || ''
+                ].join(',') + '\n';
+            });
+            csv += '\n';
+        }
+
+        // **WITHDRAWALS SECTION (IncentiveId = 3)**
+        if (withdrawals.length > 0) {
+            csv += '\n=== WITHDRAWALS ===\n\n';
+            csv += 'Transaction ID,Customer Name,Employee Name,Incentive Name,Platform Name,Gateway Name,Transaction Amount,Employee Charge %,Employee Charge Amount,Platform Charge,Gateway Charge,Final Amount,Created On,Card Last 4\n';
+
+            withdrawals.forEach(row => {
+                csv += [
+                    row.TransactionId || row.transactionId || '',
+                    `"${(row.CustomerName || row.customerName || '').replace(/"/g, '""')}"`,
+                    `"${(row.EmployeeName || row.employeeName || '').replace(/"/g, '""')}"`,
+                    row.IncentiveName || row.incentiveName || '',
+                    row.PlatformName || row.platformName || '',
+                    row.GatewayName || row.gatewayName || '',
+                    (row.TransactionAmount || row.transactionAmount || 0).toFixed(2),
+                    ((row.EmployeeChargePercent || row.employeeChargePercent || 0).toFixed(2)) + '%',
+                    (row.EmployeeChargeAmount || row.employeeChargeAmount || 0).toFixed(2),
+                    (row.PlatformCharge || row.platformCharge || 0).toFixed(2),
+                    (row.GatewayCharge || row.gatewayCharge || 0).toFixed(2),
+                    (row.FinalAmount || row.finalAmount || 0).toFixed(2),
+                    row.CreatedOn || row.createdOn || '',
+                    row.CardNumber || row.cardNumber || ''
+                ].join(',') + '\n';
+            });
+        }
+
+        if (csv === '') {
+            alert('No Payment (ID=2) or Withdrawal (ID=3) data found');
+            return;
+        }
+
+        // Download CSV
+        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement('a');
+        const url = URL.createObjectURL(blob);
+        link.href = url;
+        link.download = `Transactions_${new Date().toISOString().slice(0,10)}.csv`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    }
+
+
+
+
     /* ===== TRANSACTION SUMMARY ===== */
 
     function loadTransactionSummary() {
@@ -568,6 +704,59 @@
                         <td>${e.employeeName}</td>
                         <td><button class="btn-primary" onclick="viewTransaction(${e.transactionId})">View</button></td>
                         
+                    </tr>`;
+            });
+
+            renderPagination();
+        });
+    }
+    function loadTransactionForExcel() {
+
+        let start = startDate.value ? startDate.value + " 00:00:00" : '';
+        let end = endDate.value ? endDate.value + " 23:59:59" : '';
+
+        const query = {
+            BranchId: fBranch.value || '',
+            PlatformId: tPlatform.value || '',
+            GatewayId: tGateway.value || '',
+            TransactionType: fTransactiontype.value || '',
+            SearchText: fSearch.value || '',
+            StartDate: start,
+            EndDate: end,
+            PageNo: currentPage,
+            PageSize: pageSize
+        };
+
+        fetch('/Admin/GetTransactionForExcel', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(query)
+        })
+        .then(r => r.json())
+        .then(res => {
+            totalRecords = res.totalCount || 0;
+            empBody.innerHTML = "";
+
+            if (!res.data || res.data.length === 0) {
+                empBody.innerHTML = `<tr><td colspan="9">No records found</td></tr>`;
+                paginationDiv.innerHTML = "";
+                return;
+            }
+
+            res.data.forEach(e => {
+                empBody.innerHTML += `
+                    <tr>
+                        <td>${e.transactionId}</td>
+                        <td>${e.customerName}</td>
+                        <td>${e.incentiveName}</td>
+                        <td>${e.platformName}</td>
+                        <td>${e.transactionAmount}</td>
+                        <td>${e.employeeChargeAmount}</td>
+                        <td>${e.finalAmount}</td>
+                        <td>${e.createdOn}</td>
+                        <td>${e.employeeName}</td>
+                        <td><button class="btn-primary" onclick="viewTransaction(${e.transactionId})">View</button></td>
+
                     </tr>`;
             });
 
