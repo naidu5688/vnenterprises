@@ -379,6 +379,10 @@
                 background: rgba(255,255,255,.1);
             }
 
+    .uppercase {
+        text-transform: uppercase;
+    }
+
 </style>
 
 <div class="page-container">
@@ -425,11 +429,11 @@
         <div class="manager-details">
             <div>
                 <label>First Name</label>
-                <input asp-for="FirstName" class="form-control" />
+                <input asp-for="FirstName" class="form-control uppercase" />
             </div>
             <div>
                 <label>Last Name</label>
-                <input asp-for="LastName" class="form-control" />
+                <input asp-for="LastName" class="form-control uppercase" />
             </div>
             <div>
                 <label>Mobile</label>
@@ -449,7 +453,8 @@
             </div>
             <div>
                 <label>Aadhaar</label>
-                <input asp-for="AadhaarNumber" class="form-control" />
+                <input asp-for="AadhaarNumber" class="form-control" maxlength="12"
+                       oninput="this.value=this.value.replace(/[^0-9]/g,'')" />
             </div>
             <div>
                 <label>PAN</label>
@@ -743,13 +748,18 @@
 
         const password = document.querySelector('[name="Password"]').value.trim();
         const confirm = document.querySelector('[name="ConfirmPassword"]').value.trim();
-        const firstname = document.querySelector('[name="FirstName"]').value.trim();
-        const lastname = document.querySelector('[name="LastName"]').value.trim();
+        let firstname = document.querySelector('[name="FirstName"]').value.trim();
+        let lastname = document.querySelector('[name="LastName"]').value.trim();
         const mobilenumber = document.querySelector('[name="MobileNumber"]').value.trim();
         const mpin = document.querySelector('[name="MPIN"]').value.trim();
         const aadhar = document.querySelector('[name="AadhaarNumber"]').value.trim();
         const pan = document.querySelector('[name="PanNumber"]').value.trim();
 
+        firstname = firstname.toUpperCase();
+        lastname = lastname.toUpperCase();
+
+        document.querySelector('[name="FirstName"]').value = firstname;
+        document.querySelector('[name="LastName"]').value = lastname;
         // ✅ REQUIRED TEXT FIELDS
         if (
             firstname === "" ||

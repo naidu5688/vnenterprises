@@ -216,6 +216,10 @@
                 background: rgba(255,255,255,.1);
             }
 
+    .uppercase {
+        text-transform: uppercase;
+    }
+
 </style>
 
 <div class="page-container">
@@ -250,11 +254,11 @@
         <div class="manager-details">
             <div>
                 <label>First Name</label>
-                <input asp-for="UserFirstName" class="form-control" placeholder="First Name" required value="@Model.UserFirstName" />
+                <input asp-for="UserFirstName" class="form-control uppercase" placeholder="First Name" required value="@Model.UserFirstName" />
             </div>
             <div>
                 <label>Last Name</label>
-                <input asp-for="UserLastName" class="form-control" placeholder="Last Name" required value="@Model.UserLastName" />
+                <input asp-for="UserLastName" class="form-control uppercase" placeholder="Last Name" required value="@Model.UserLastName" />
             </div>
             <div>
                 <label>Mobile Number</label>
@@ -331,8 +335,13 @@
 
 <script>
     // Uppercase first & last name
-    const firstNameInput = document.querySelector('[name="UserFirstName"]');
-    const lastNameInput = document.querySelector('[name="UserLastName"]');
+    let firstNameInput = document.querySelector('[name="UserFirstName"]');
+    let lastNameInput = document.querySelector('[name="UserLastName"]');
+    firstNameInput = firstNameInput.toUpperCase();
+    lastNameInput = lastNameInput.toUpperCase();
+
+    document.querySelector('[name="UserFirstName"]').value = firstNameInput;
+    document.querySelector('[name="UserLastName"]').value = lastNameInput;
     firstNameInput.addEventListener('input', () => firstNameInput.value = firstNameInput.value.toUpperCase().trimStart());
     lastNameInput.addEventListener('input', () => lastNameInput.value = lastNameInput.value.toUpperCase().trimStart());
 

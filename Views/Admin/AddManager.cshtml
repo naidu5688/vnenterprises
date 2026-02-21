@@ -179,6 +179,9 @@
         .permission-row strong {
             color: #d4af37;
         }
+    .uppercase{
+        text-transform: uppercase;
+    }
 
 </style>
 
@@ -192,11 +195,11 @@
         <div class="manager-details">
             <div>
                 <label>First Name</label>
-                <input asp-for="UserFirstName" class="form-control" placeholder="First Name" required/>
+                <input asp-for="UserFirstName" class="form-control uppercase" placeholder="First Name" required />
             </div>
             <div>
                 <label>Last Name</label>
-                <input asp-for="UserLastName" class="form-control" placeholder="Last Name" required />
+                <input asp-for="UserLastName" class="form-control uppercase" placeholder="Last Name" required />
             </div>
             <div>
                 <label>Mobile Number</label>
@@ -292,17 +295,19 @@
 </div>
 
 <script>
-    // Convert First & Last Name to uppercase while typing
-    const firstNameInput = document.querySelector('[name="UserFirstName"]');
-    const lastNameInput = document.querySelector('[name="UserLastName"]');
+    document.addEventListener('DOMContentLoaded', function() {
+        const firstNameInput = document.querySelector('[name="UserFirstName"]');
+        const lastNameInput = document.querySelector('[name="UserLastName"]');
 
-    firstNameInput.addEventListener('input', function() {
-        this.value = this.value.toUpperCase().trimStart(); // remove leading spaces
+        firstNameInput.addEventListener('input', function() {
+            this.value = this.value.toUpperCase().trimStart();
+        });
+
+        lastNameInput.addEventListener('input', function() {
+            this.value = this.value.toUpperCase().trimStart();
+        });
     });
 
-    lastNameInput.addEventListener('input', function() {
-        this.value = this.value.toUpperCase().trimStart(); // remove leading spaces
-    });
 
     // Remove spaces in Password and Confirm Password while typing
     const passwordInput = document.querySelector('[name="Password"]');
