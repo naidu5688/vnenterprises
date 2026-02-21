@@ -512,13 +512,13 @@
 
         if (result.success) {
             alert(result.message);
-            window.location.href = "/Admin/Retailer";
+            window.location.href = "/Admin/Employee";
         } else {
             alert(result.message);
         }
 
     })
-    .catch(() => alert("Error saving employee"));
+    .catch(() => alert("Error saving Retailer"));
     }
 
         function validateForm() {
@@ -574,11 +574,6 @@
             return false;
         }
 
-        /* BRANCH CHECK */
-        if (!document.querySelector('.branch-checkbox:checked')) {
-            alert("Select one Branch");
-            return false;
-        }
 
         return true;
     }
