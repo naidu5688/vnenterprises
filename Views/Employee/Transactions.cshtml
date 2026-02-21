@@ -177,7 +177,6 @@
         align-items: center;
         position: sticky;
         top: 0;
-        background: #0b6b55;
         padding-bottom: 10px;
         z-index: 2;
     }
@@ -204,7 +203,6 @@
         margin-top: 15px;
         position: sticky;
         bottom: 0;
-        background: #0b6b55;
         padding-top: 10px;
     }
 
@@ -365,7 +363,8 @@
     pagination.innerHTML = html;
     }
 
-        function viewTransaction(id) {
+         function viewTransaction(id) {
+
         fetch('/Employee/GetTransactionById?transactionid=' + id)
             .then(r => r.json())
             .then(d => {
@@ -375,82 +374,341 @@
                     return;
                 }
 
-                transactionDetails.innerHTML = `
-                <div class="detail-box">
-                    <label>Transaction ID</label>
-                    <input value="${d.transactionId}" readonly>
-                </div>
-                <div class="detail-box">
-                    <label>Customer Name</label>
-                    <input value="${d.customerName}" readonly>
-                </div>
-                <div class="detail-box">
-                    <label>Platform Name</label>
-                    <input value="${d.platformName}" readonly>
-                </div>
-                <div class="detail-box">
-                    <label>Gateway Name</label>
-                    <input value="${d.gatewayName}" readonly>
-                </div>
-                <div class="detail-box">
-                    <label>Platform Charge(%)</label>
-                    <input value="${d.gatewayCharge}" readonly>
-                </div>
-                <div class="detail-box">
-                    <label>Transaction Type</label>
-                    <input value="${d.incentiveName}" readonly>
-                </div>
-                <div class="detail-box">
-                    <label>Credit Card Number</label>
-                    <input value="${d.cardNumber}" readonly>
-                </div>
-                <div class="detail-box">
-                    <label>Card Type</label>
-                    <input value="${d.cardTypeName}" readonly>
-                </div>
-                <div class="detail-box">
-                    <label>Card CVV</label>
-                    <input value="${d.cardCVV}" readonly>
-                </div>
-                <div class="detail-box">
-                    <label>Expiry Date</label>
-                    <input value="${d.cardExpiryDate}" readonly>
-                </div>
-                <div class="detail-box">
-                    <label>Transaction Amount</label>
-                    <input value="${d.transactionAmount}" readonly>
-                </div>
-                <div class="detail-box">
-                    <label>Platform Charge Amount</label>
-                    <input value="${d.platformCharge}" readonly>
-                </div>
-                <div class="detail-box">
-                    <label>Employee Charge Percent (%)</label>
-                    <input value="${d.employeeChargePercent}" readonly>
-                </div>
-                <div class="detail-box">
-                    <label>Employee Charge Amount</label>
-                    <input value="${d.employeeChargeAmount}" readonly>
-                </div>
-                <div class="detail-box">
-                    <label>Final Amount</label>
-                    <input value="₹${d.finalAmount}" readonly>
-                </div>
-                <div class="detail-box">
-                    <label>Bank Account Number</label>
-                    <input value="${d.bankAccountNumber}" readonly>
-                </div>
-                <div class="detail-box">
-                    <label>Bank IFSC</label>
-                    <input value="${d.bankIFSC}" readonly>
-                </div>
-                <div class="detail-box">
-                    <label>Remark</label>
-                    <input value="${d.remark}" readonly>
-                </div>
-                `;
+                const container = document.getElementById("transactionDetails");
+                let html = "";
 
-                viewModal.style.display = 'flex';
+
+                if (d.incentiveId === 2) {
+
+                    html += `
+
+                    <div class="detail-box">
+                        <label>Transaction ID</label>
+                        <input value="${d.transactionId}" readonly>
+                    </div>
+
+                    <div class="detail-box">
+                        <label>Customer Name</label>
+                        <input value="${d.customerName}" readonly>
+                    </div>
+
+                    <div class="detail-box">
+                        <label>Platform</label>
+                        <input value="${d.platformName}" readonly>
+                    </div>
+
+                    <div class="detail-box">
+                        <label>Gateway</label>
+                        <input value="${d.gatewayName}" readonly>
+                    </div>
+                    <div class="detail-box">
+                        <label>Platform Charge</label>
+                        <input value="${d.gatewayCharge}%" readonly>
+                    </div>
+                    <div class="detail-box">
+                        <label>Transaction Type</label>
+                        <input value="${d.incentiveName}" readonly>
+                    </div>
+
+                    <div class="detail-box">
+                        <label>Payment Card Number</label>
+                        <input value="${d.withdrawCardNumber}" readonly>
+                    </div>
+
+                    <div class="detail-box">
+                        <label>Card Holder Name</label>
+                        <input value="${d.withdrawNameOnCard}" readonly>
+                    </div>
+
+                    <div class="detail-box">
+                        <label>Card Type</label>
+                        <input value="${d.withdrawCardType}" readonly>
+                    </div>
+
+                    <div class="detail-box">
+                        <label>Card CVV</label>
+                        <input value="${d.withdrawCardCVV}" readonly>
+                    </div>
+
+                    <div class="detail-box">
+                        <label>Card Expriy Date</label>
+                        <input value="${d.withdrawCardExpiryDate}" readonly>
+                    </div>
+
+                    <div class="detail-box">
+                        <label>Payment Bank Number</label>
+                        <input value="${d.withdrawBankNumber}" readonly>
+                    </div>
+
+                    <div class="detail-box">
+                        <label>Bank Name</label>
+                        <input value="${d.withdrawBankName}" readonly>
+                    </div>
+
+                    <div class="detail-box">
+                        <label>Bank IFSC</label>
+                        <input value="${d.withdrawBankIFSC}" readonly>
+                    </div>
+
+                    <div class="detail-box">
+                        <label>Transaction Amount</label>
+                        <input value="₹${d.transactionAmount}" readonly>
+                    </div>
+
+                    <div class="detail-box">
+                        <label>Bill Amount</label>
+                        <input value="₹${d.billAmount}" readonly>
+                    </div>
+
+                    <div class="detail-box">
+                        <label>Platform Charge Amount</label>
+                        <input value="₹${d.platformChargeAmount}" readonly>
+                    </div>
+
+                    <div class="detail-box">
+                        <label>Employee Charge</label>
+                        <input value="${d.employeeChargePercent}%" readonly>
+                    </div>
+
+                    <div class="detail-box">
+                        <label>Profit Amount</label>
+                        <input value="₹${d.profitAmount}" readonly>
+                    </div>
+                        <div class="detail-box">
+                            <label>PayOut</label>
+                            <input value="₹${d.payOut}" readonly>
+                        </div>
+
+                        <div class="detail-box">
+                            <label>Final Amount</label>
+                            <input value="₹${d.finalAmount}" readonly>
+                        </div>
+
+                        <div class="detail-box">
+                            <label>Wallet Amount</label>
+                            <input value="₹${d.walletAmount}" readonly>
+                        </div>
+
+                        <div class="detail-box">
+                            <label>To Be Paid By Customer</label>
+                            <input value="₹${d.tobePaidByCustomer}" readonly>
+                        </div>
+                         <div class="detail-box">
+                            <label>Swiped Bank Number</label>
+                            <input value="${d.swipedBankNumber}" readonly>
+                        </div>
+
+                        <div class="detail-box">
+                            <label>Bank Name</label>
+                            <input value="${d.swipedBankName}" readonly>
+                        </div>
+                        <div class="detail-box">
+                            <label>IFSC Code</label>
+                            <input value="${d.swipedBankIFSC}" readonly>
+                        </div>
+
+                        <div class="detail-box">
+                            <label>Bank Transfer Amount</label>
+                            <input value="₹${d.accountAmountTransfer}" readonly>
+                        </div>
+                        <div class="detail-box">
+                            <label>Swiped Card Number</label>
+                            <input value="${d.swipedCardNumber}" readonly>
+                        </div>
+                        <div class="detail-box">
+                            <label>Card Holder Name</label>
+                            <input value="${d.swipedNameOnCard}" readonly>
+                        </div>
+
+                        <div class="detail-box">
+                            <label>Card Type</label>
+                            <input value="${d.swipedCardType}" readonly>
+                        </div>
+
+                        <div class="detail-box">
+                            <label>Card CVV</label>
+                            <input value="${d.swipedCardCVV}" readonly>
+                        </div>
+                        <div class="detail-box">
+                            <label>Card Expiry Date</label>
+                            <input value="${d.swipedCardExpiryDate}" readonly>
+                        </div>
+                        <div class="detail-box">
+                            <label>Card Transfer Amount</label>
+                            <input value="₹${d.cardAmountTransfer}" readonly>
+                        </div>
+                        <div class="detail-box">
+                            <label>QR Pay</label>
+                            <input value="₹${d.qrPayAmountTransfer}" readonly>
+                        </div>
+                        <div class="detail-box">
+                            <label>Account Pay</label>
+                            <input value="₹${d.accountPayAmountTransfer}" readonly>
+                        </div>
+                        <div class="detail-box">
+                            <label>UPI Pay</label>
+                            <input value="₹${d.upiPayAmountTransfer}" readonly>
+                        </div>
+                        <div class="detail-box">
+                            <label>Others</label>
+                            <input value="₹${d.othersAmountTransfer}" readonly>
+                        </div>
+
+                        <div class="detail-box">
+                            <label>Difference</label>
+                            <input value="₹${d.difference}" readonly>
+                        </div>
+                        <div class="detail-box">
+                            <label>Remark</label>
+                            <input value="${d.remarks}" readonly>
+                        </div>
+                    `;
+                }        
+                if (d.incentiveId === 3) {
+
+                    html += `
+
+                    <div class="detail-box">
+                        <label>Transaction ID</label>
+                        <input value="${d.transactionId}" readonly>
+                    </div>
+
+                    <div class="detail-box">
+                        <label>Customer Name</label>
+                        <input value="${d.customerName}" readonly>
+                    </div>
+
+                    <div class="detail-box">
+                        <label>Platform</label>
+                        <input value="${d.platformName}" readonly>
+                    </div>
+
+                    <div class="detail-box">
+                        <label>Gateway</label>
+                        <input value="${d.gatewayName}" readonly>
+                    </div>
+                    <div class="detail-box">
+                        <label>Platform Charge</label>
+                        <input value="${d.gatewayCharge}%" readonly>
+                    </div>
+                    <div class="detail-box">
+                        <label>Transaction Type</label>
+                        <input value="${d.incentiveName}" readonly>
+                    </div>
+
+                    <div class="detail-box">
+                        <label>Withdraw Card Number</label>
+                        <input value="${d.withdrawCardNumber}" readonly>
+                    </div>
+
+                    <div class="detail-box">
+                        <label>Card Holder Name</label>
+                        <input value="${d.withdrawNameOnCard}" readonly>
+                    </div>
+
+                    <div class="detail-box">
+                        <label>Card Type</label>
+                        <input value="${d.withdrawCardType}" readonly>
+                    </div>
+
+                    <div class="detail-box">
+                        <label>Card CVV</label>
+                        <input value="${d.withdrawCardCVV}" readonly>
+                    </div>
+
+                    <div class="detail-box">
+                        <label>Card Expriy Date</label>
+                        <input value="${d.withdrawCardExpiryDate}" readonly>
+                    </div>
+
+                    <div class="detail-box">
+                        <label>Transaction Amount</label>
+                        <input value="₹${d.transactionAmount}" readonly>
+                    </div>
+
+                    <div class="detail-box">
+                        <label>Platform Charge Amount</label>
+                        <input value="₹${d.platformChargeAmount}" readonly>
+                    </div>
+
+                    <div class="detail-box">
+                        <label>Employee Charge</label>
+                        <input value="${d.employeeChargePercent}%" readonly>
+                    </div>
+
+                    <div class="detail-box">
+                        <label>Profit Amount</label>
+                        <input value="₹${d.profitAmount}" readonly>
+                    </div>
+                        <div class="detail-box">
+                            <label>PayOut</label>
+                            <input value="₹${d.payOut}" readonly>
+                        </div>
+
+                        <div class="detail-box">
+                            <label>Final Amount</label>
+                            <input value="₹${d.finalAmount}" readonly>
+                        </div>
+
+                         <div class="detail-box">
+                            <label>Bank Number</label>
+                            <input value="${d.swipedBankNumber}" readonly>
+                        </div>
+
+                        <div class="detail-box">
+                            <label>Bank Name</label>
+                            <input value="${d.swipedBankName}" readonly>
+                        </div>
+                        <div class="detail-box">
+                            <label>IFSC Code</label>
+                            <input value="${d.swipedBankIFSC}" readonly>
+                        </div>
+
+                        <div class="detail-box">
+                            <label>Bank Transfer Amount</label>
+                            <input value="₹${d.accountAmountTransfer}" readonly>
+                        </div>
+                        <div class="detail-box">
+                            <label>Card Number</label>
+                            <input value="${d.swipedCardNumber}" readonly>
+                        </div>
+                        <div class="detail-box">
+                            <label>Card Holder Name</label>
+                            <input value="${d.swipedNameOnCard}" readonly>
+                        </div>
+
+                        <div class="detail-box">
+                            <label>Card Type</label>
+                            <input value="${d.swipedCardType}" readonly>
+                        </div>
+
+                        <div class="detail-box">
+                            <label>Card CVV</label>
+                            <input value="${d.swipedCardCVV}" readonly>
+                        </div>
+                        <div class="detail-box">
+                            <label>Card Expiry Date</label>
+                            <input value="${d.swipedCardExpiryDate}" readonly>
+                        </div>
+                        <div class="detail-box">
+                            <label>Card Transfer Amount</label>
+                            <input value="₹${d.cardAmountTransfer}" readonly>
+                        </div>
+                        
+                        <div class="detail-box">
+                            <label>Difference</label>
+                            <input value="₹${d.difference}" readonly>
+                        </div>
+                        <div class="detail-box">
+                            <label>Remark</label>
+                            <input value="${d.remarks}" readonly>
+                        </div>
+                    `;
+                }
+
+                container.innerHTML = html;
+
+                document.getElementById("viewModal").style.display = "flex";
             });
     }
 

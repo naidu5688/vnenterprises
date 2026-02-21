@@ -65,6 +65,11 @@ namespace vnenterprises.Controllers
         [HttpPost]
         public IActionResult GetTransactions([FromBody] TransactionviewModel model)
         {
+            int userId = 0;
+
+            if (Request.Cookies["UserId"] != null)
+                int.TryParse(Request.Cookies["UserId"], out userId);
+
             if (model == null)
                 return Json(new List<object>());
             var result = _employeesupport.GetTransactions(model);
@@ -270,21 +275,42 @@ namespace vnenterprises.Controllers
             var result = _employeesupport.GetCustomerCardsAndBanks(customerId);
             return Json(result);
         }
-        
+
         public override void OnActionExecuting(ActionExecutingContext context)
         {
             base.OnActionExecuting(context);
 
+            int userId = 0;
             if (Request.Cookies["UserId"] != null)
+                int.TryParse(Request.Cookies["UserId"], out userId);
+
+            // If no valid UserId, force logout
+            if (userId <= 0)
             {
-                var userId = Convert.ToInt32(Request.Cookies["UserId"]);
-                var user = _employeesupport.GetUserDetails(userId);
-                if (user != null)
+                // If AJAX request, return 401 Unauthorized
+                if (context.HttpContext.Request.Headers["X-Requested-With"] == "XMLHttpRequest")
                 {
-                    ViewBag.EmployeeName = user.UserName;
+                    context.Result = new JsonResult(new { error = "Unauthorized" })
+                    {
+                        StatusCode = 401
+                    };
                 }
+                else
+                {
+                    // Regular request: redirect to logout
+                    context.Result = new RedirectToActionResult("Index", "Home", null);
+                }
+                return;
+            }
+
+            // If user is valid, set ViewBag for regular pages
+            var user = _employeesupport.GetUserDetails(userId);
+            if (user != null)
+            {
+                ViewBag.EmployeeName = user.UserName;
             }
         }
+
 
     }
 }
