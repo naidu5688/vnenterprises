@@ -188,6 +188,87 @@ namespace vnenterprises.Support
             return dt;
         }
 
+        public Platforms SaveOrUpdatePlatform(Platforms model)
+        {
+            if (model == null) throw new ArgumentNullException(nameof(model));
+
+            int status = 0;
+
+            using (SqlConnection con = new SqlConnection(_connectionString))
+            using (var cmd = new SqlCommand("vn_InsertorUpdatePlatform", con))
+            {
+                cmd.CommandType = CommandType.StoredProcedure;
+                cmd.Parameters.AddWithValue("@PlatformId", model.Id);
+                cmd.Parameters.AddWithValue("@PlatformName", model.Name);
+                cmd.Parameters.AddWithValue("@IsActive", model.Status == "Active" ? 1 : 0);
+                cmd.Parameters.AddWithValue("@PlatformCharge", model.Charge);
+
+                con.Open();
+
+                using (var reader = cmd.ExecuteReader())
+                {
+                    if (reader.Read())
+                        status = reader.GetInt32(0); // SP returns Status
+                }
+
+                // If inserted, get the new PlatformId
+                if (model.Id == 0 && status == 1)
+                {
+                    // Get the newly inserted Id
+                    using (var idCmd = new SqlCommand("SELECT TOP 1 PlatformId FROM tblPlatforms ORDER BY CreatedOn DESC", con))
+                    {
+                        model.Id = (int)idCmd.ExecuteScalar();
+                    }
+                }
+            }
+
+            if (status == 2)
+                throw new Exception(model.Id == 0 ? "Platform already exists" : "PlatformId not found");
+
+            return model;
+        }
+        public Gateway SaveOrUpdateGateway(Gateway model)
+        {
+            if (model == null) throw new ArgumentNullException(nameof(model));
+            if (string.IsNullOrEmpty(model.Name) || model.PlatformId <= 0)
+                throw new ArgumentException("Invalid gateway data");
+
+            int status = 0;
+
+            using (var conn = new SqlConnection(_connectionString))
+            using (var cmd = new SqlCommand("vn_InsertorUpdateGateway", conn))
+            {
+                cmd.CommandType = CommandType.StoredProcedure;
+
+                cmd.Parameters.AddWithValue("@GatewayID", model.Id);
+                cmd.Parameters.AddWithValue("@PlatformID", model.PlatformId);
+                cmd.Parameters.AddWithValue("@GatewayName", model.Name);
+                cmd.Parameters.AddWithValue("@IsActive", model.Status == "Active" ? 1 : 0);
+                cmd.Parameters.AddWithValue("@GatewayCharge", model.Charge);
+
+                conn.Open();
+                using (var reader = cmd.ExecuteReader())
+                {
+                    if (reader.Read())
+                        status = reader.GetInt32(0);
+                }
+
+                // If inserted, get the new GatewayID
+                if (model.Id == 0 && status == 1)
+                {
+                    using (var idCmd = new SqlCommand("SELECT TOP 1 GatewayID FROM tblGateways ORDER BY CreatedOn DESC", conn))
+                    {
+                        model.Id = (int)idCmd.ExecuteScalar();
+                    }
+                }
+            }
+
+            if (status == 2)
+                throw new Exception(model.Id == 0 ? "Gateway already exists under this platform" : "GatewayID not found");
+
+            return model;
+        }
+
         public (List<TransactionListModel> data, int totalCount) GetTransactionsForAdmin(TransactionviewModel model)
         {
             List<TransactionListModel> result = new();

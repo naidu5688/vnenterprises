@@ -120,6 +120,7 @@ namespace vnenterprises.Controllers
                 totalCount = result.totalCount
             });
         }
+
         public IActionResult GetTransactionForExcel([FromBody] TransactionviewModel model)
         {
             var result = _adminsupport.GetTransactionsForAdmin(model);
@@ -338,17 +339,44 @@ namespace vnenterprises.Controllers
         }
 
         [HttpPost]
+        [HttpPost]
         [AuthorizeUser(1)]
-        public IActionResult AddPlatform(Platforms platobj)
+        public IActionResult SavePlatform([FromBody] Platforms model)
         {
-            if (platobj.Id == 0)
-                return View();
-            else
-            {
+            if (model == null || string.IsNullOrEmpty(model.Name))
+                return BadRequest("Invalid data");
 
+            try
+            {
+                var savedPlatform = _adminsupport.SaveOrUpdatePlatform(model);
+                return Json(new { success = true, platform = savedPlatform });
             }
-                return View();
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
         }
+
+
+        [HttpPost]
+        [AuthorizeUser(1)]
+        public IActionResult SaveGateway([FromBody] Gateway model)
+        {
+            if (model == null || string.IsNullOrEmpty(model.Name) || model.PlatformId <= 0)
+                return BadRequest("Invalid gateway data");
+
+            try
+            {
+                var savedGateway = _adminsupport.SaveOrUpdateGateway(model);
+                return Json(new { success = true, gateway = savedGateway });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
+
 
         [HttpGet]
         [AuthorizeUser(1)]
@@ -364,16 +392,37 @@ namespace vnenterprises.Controllers
         {
             base.OnActionExecuting(context);
 
+            int userId = 0;
             if (Request.Cookies["UserId"] != null)
+                int.TryParse(Request.Cookies["UserId"], out userId);
+
+            // If no valid UserId, force logout
+            if (userId <= 0)
             {
-                var userId = Convert.ToInt32(Request.Cookies["UserId"]);
-                var user = _employeesupport.GetUserDetails(userId);
-                if (user != null)
+                // If AJAX request, return 401 Unauthorized
+                if (context.HttpContext.Request.Headers["X-Requested-With"] == "XMLHttpRequest")
                 {
-                    ViewBag.EmployeeName = user.UserName;
+                    context.Result = new JsonResult(new { error = "Unauthorized" })
+                    {
+                        StatusCode = 401
+                    };
                 }
+                else
+                {
+                    // Regular request: redirect to logout
+                    context.Result = new RedirectToActionResult("Index", "Home", null);
+                }
+                return;
+            }
+
+            // If user is valid, set ViewBag for regular pages
+            var user = _employeesupport.GetUserDetails(userId);
+            if (user != null)
+            {
+                ViewBag.EmployeeName = user.UserName;
             }
         }
+
 
     }
 
