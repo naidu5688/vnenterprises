@@ -45,7 +45,7 @@
         }
 
     .btn-primary {
-        background: #17362e;
+        background: #d4af37;
         color: #fff;
         border: none;
         border-radius: 10px;
@@ -54,7 +54,7 @@
     }
 
         .btn-primary:hover {
-            background: #0f2a23;
+            background: #5a4b19;
         }
 
     /* ================= TABLE ================= */
@@ -232,7 +232,9 @@
         <button class="btn-primary" onclick="loadTransactions(1)">Search</button>
         
     </div>
-    <button class="btn-primary " onclick="exportTransaction()">ExportView</button>
+    <div style="display:flex; justify-content: flex-end; gap:15px; margin-bottom:20px;">
+        <button class="btn-primary " style="margin-right: 30px !important;" onclick="exportTransaction()">Export CSV</button>
+    </div>
     <!-- TABLE -->
     <div class="table-wrapper">
         <table>
@@ -950,7 +952,6 @@
 
         const btn = document.querySelector('button[onclick="exportTransaction()"]');
         const originalText = btn.innerHTML;
-        btn.innerHTML = '⏳ Exporting...';
         btn.disabled = true;
 
         fetch('/Employee/GetTransactions', {
