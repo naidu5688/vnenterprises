@@ -1,5 +1,7 @@
 ﻿<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-
+<head>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
 <style>
     body {
         margin: 0;
@@ -95,6 +97,18 @@
             background-color: #2e5e50;
         }
 
+    .sidebar button i {
+        margin-right: 8px;
+        width: 16px;
+    }
+
+    .sidebar button {
+        display: flex;
+        align-items: center;
+        text-align: left;
+    }
+
+
 </style>
 
 <!-- HEADER -->
@@ -119,37 +133,37 @@
     <div class="layoutlink">
         <div class="sidebar">
             <button onclick="location.href='@Url.Action("Index", "Admin")'">
-                Home
+                <i class="fas fa-home"></i> Home
             </button>
             <button onclick="location.href='@Url.Action("Franchise", "Admin")'">
-                Franchise
+                <i class="fas fa-building"></i> Franchise
             </button>
-@*             <button onclick="location.href='@Url.Action("AddManager", "Admin")'">
+            @*<button onclick="location.href='@Url.Action("AddManager", "Admin")'">
                 Manager
             </button> *@
             <button onclick="location.href='@Url.Action("Employee", "Admin")'">
-                Employee
+                <i class="fas fa-users"></i> Employee
             </button>
             @* <button onclick="location.href='@Url.Action("AddRetailer", "Admin")'">
                 Retailer
             </button> *@
             <button onclick="location.href='@Url.Action("Customers", "Admin")'">
-                Customers
+                <i class="fas fa-user-friends"></i> Customers
             </button>
             <button onclick="location.href='@Url.Action("CustomerKyc", "Admin")'">
-                Customers KYC
+                <i class="fas fa-id-card"></i> Customers KYC
             </button>
             <button onclick="location.href='@Url.Action("Transactions", "Admin")'">
-                Transactions
+                <i class="fas fa-exchange-alt"></i> Transactions
             </button>
             <button onclick="location.href='@Url.Action("Platform", "Admin")'">
-                Platform & Gateway
+                <i class="fas fa-cogs"></i> Platform & Gateway
             </button>
             @* <button onclick="location.href='@Url.Action("PaymentGateway", "Admin")'">
                 Gateway
             </button> *@
             <button onclick="location.href='@Url.Action("Index", "Home")'">
-                Log Out
+                <i class="fas fa-sign-out-alt"></i> Log Out
             </button>
         </div>
 

@@ -1,4 +1,7 @@
-﻿<style>
+﻿<head>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<style>
     body {
         margin: 0;
     }
@@ -94,6 +97,17 @@
             background-color: #2e5e50;
         }
 
+    .sidebar button i {
+        margin-right: 8px;
+        width: 16px;
+    }
+
+    .sidebar button {
+        display: flex;
+        align-items: center;
+        text-align: left;
+    }
+
 </style>
 <!-- HEADER -->
 <div class="partialview">
@@ -117,14 +131,13 @@
     <div class="layoutlink">
         <div class="sidebar">
             <button onclick="location.href='@Url.Action("Customers", "Employee")'">
-                Customer
+                <i class="fas fa-user-friends"></i> Customer
             </button>
-            
             <button onclick="location.href='@Url.Action("Transactions", "Employee")'">
-                Transacations
+                <i class="fas fa-exchange-alt"></i> Transactions
             </button>
             <button onclick="location.href='@Url.Action("Index", "Home")'">
-                Log Out
+                <i class="fas fa-sign-out-alt"></i> Log Out
             </button>
         </div>
 
