@@ -2,7 +2,10 @@
     Layout = "~/Views/Shared/_SharedLayout_Employee.cshtml";
     var userId = ViewBag.UserId;
 }
-
+<head>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.20.2/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+</head>
 <style>
     /* ================= SUMMARY ================= */
     .summary-grid {
@@ -212,12 +215,12 @@
 
     <!-- SUMMARY -->
     <div class="summary-grid">
-        <div class="summary-card"><h6>Total Transactions</h6><h3 id="totalTransactions">0</h3></div>
-        <div class="summary-card"><h6>Today Transactions</h6><h3 id="todayTransactions">0</h3></div>
-        <div class="summary-card"><h6>Total Incentives</h6><h3 id="totalIncentives">₹0</h3></div>
-        <div class="summary-card"><h6>Today Incentives</h6><h3 id="todayIncentives">₹0</h3></div>
-        <div class="summary-card"><h6>Total Customers Added</h6><h3 id="totalCustomers">0</h3></div>
-        <div class="summary-card"><h6>Today Customers Added</h6><h3 id="todayCustomers">0</h3></div>
+        <div class="summary-card"><h3>Total Transactions</h3><h1 id="totalTransactions">0</h1></div>
+        <div class="summary-card"><h3>Today Transactions</h3><h1 id="todayTransactions">0</h1></div>
+        <div class="summary-card"><h3>Total Incentives</h3><h1 id="totalIncentives">₹0</h1></div>
+        <div class="summary-card"><h3>Today Incentives</h3><h1 id="todayIncentives">₹0</h1></div>
+        <div class="summary-card"><h3>Total Customers Added</h3><h1 id="totalCustomers">0</h1></div>
+        <div class="summary-card"><h3>Today Customers Added</h3><h1 id="todayCustomers">0</h1></div>
     </div>
 
     <!-- FILTERS -->
@@ -227,8 +230,9 @@
         <input type="date" id="endDate">
         <select id="transactionType"></select>
         <button class="btn-primary" onclick="loadTransactions(1)">Search</button>
+        
     </div>
-
+    <button class="btn-primary " onclick="exportTransaction()">ExportView</button>
     <!-- TABLE -->
     <div class="table-wrapper">
         <table>
@@ -278,10 +282,52 @@
 
 <script>
     const userId = @userId;
+    let xlsxPromise = null;
     const pageSize = 10;
         document.addEventListener('keydown', e => {
         if (e.key === "Escape") closeView();
     });
+    function ensureXlsxLoaded() {
+        if (typeof XLSX !== 'undefined') return Promise.resolve();
+
+        if (!xlsxPromise) {
+            xlsxPromise = new Promise((resolve, reject) => {
+                const cdnList = [
+                    'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js',
+                    'https://unpkg.com/xlsx@0.18.5/dist/xlsx.full.min.js',
+                    'https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js'
+                ];
+
+                let currentCdn = 0;
+
+                function tryNextCdn() {
+                    if (currentCdn >= cdnList.length) {
+                        reject(new Error('All CDNs failed'));
+                        return;
+                    }
+
+                    const script = document.createElement('script');
+                    script.src = cdnList[currentCdn];
+                    script.onload = () => {
+                        if (typeof XLSX !== 'undefined') {
+                            resolve();
+                        } else {
+                            currentCdn++;
+                            tryNextCdn();
+                        }
+                    };
+                    script.onerror = () => {
+                        currentCdn++;
+                        tryNextCdn();
+                    };
+                    document.head.appendChild(script);
+                }
+
+                tryNextCdn();
+            });
+        }
+        return xlsxPromise;
+    }
     /* SUMMARY */
     function loadSummary() {
         fetch('/Employee/GetUserTransaction?userId=' + userId)
@@ -363,7 +409,7 @@
     pagination.innerHTML = html;
     }
 
-         function viewTransaction(id) {
+    function viewTransaction(id) {
 
         fetch('/Employee/GetTransactionById?transactionid=' + id)
             .then(r => r.json())
@@ -720,4 +766,215 @@
     loadSummary();
     loadTransactions(1);
     });
+    function resetExport(btn, originalText, originalPageSize) {
+        pageSize = originalPageSize;
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+    }
+    let xlsxLoaded = false;
+
+    async function downloadExcel(data) {
+        console.log('📊 Total records:', data.length);
+
+        const getIncentiveId = (row) => Number(row?.IncentiveId || row?.incentiveId || 0);
+        const payments = data.filter(row => getIncentiveId(row) === 2);
+        const withdrawals = data.filter(row => getIncentiveId(row) === 3);
+
+        console.log('📊 Payments:', payments.length, 'Withdrawals:', withdrawals.length);
+
+        if (payments.length === 0 && withdrawals.length === 0) {
+            alert('No Payment or Withdrawal data found');
+            return;
+        }
+
+        try {
+            await ensureXlsxLoaded();
+
+            const wb = XLSX.utils.book_new();
+
+            // ===== PAYMENTS SHEET =====
+            if (payments.length > 0) {
+                const header = [
+                    'Transaction ID', 'Employee Name', 'Customer Name', 'Platform', 'Gateway', 'Platform Charge(%)',
+                    'Transaction Type', 'Withdrawal Card Number', 'Card Holder Name', 'Card Type',
+                    'Card CVV', 'Card Expiry Date', 'Payment Bank Number', 'Bank Name', 'Bank IFSC',
+                    'Transaction Amount', 'Bill Amount', 'Platform Charge Amount', 'Employee Charge(%)',
+                    'Profit Amount', 'PayOut', 'Final Amount', 'Wallet Amount', 'To Be Paid By Customer',
+                    'Swiped Bank Number', 'Swiped Bank Name', 'Swiped IFSC', 'Bank Transfer Amount',
+                    'Swiped Card Number', 'Swiped Card Holder', 'Swiped Card Type', 'Swiped Card CVV',
+                    'Swiped Card Expiry', 'Card Transfer Amount', 'QR Pay', 'Account Pay', 'UPI Pay',
+                    'Others', 'Difference', 'Remark', 'Created On'
+                ];
+
+                const rows = payments.map(row => [
+                    row?.TransactionId || row?.transactionId || '',
+                    row?.EmployeeName || row?.employeeName || '',
+                    row?.CustomerName || row?.customerName || '',
+                    row?.PlatformName || row?.platformName || '',
+                    row?.GatewayName || row?.gatewayName || '',
+                    Number(row?.gatewayCharge || 0).toFixed(2) + '%',
+                    row?.IncentiveName || row?.incentiveName || '',
+                    row?.withdrawCardNumber || row?.WithdrawalCardNumber || '',
+                    row?.withdrawNameOnCard || row?.WithdrawNameOnCard || '',
+                    row?.withdrawCardType || row?.WithdrawCardType || '',
+                    row?.withdrawCardCVV || row?.WithdrawCardCVV || '',
+                    row?.withdrawCardExpiryDate || row?.WithdrawCardExpiryDate || '',
+                    row?.withdrawBankNumber || row?.WithdrawBankNumber || '',
+                    row?.withdrawBankName || row?.WithdrawBankName || '',
+                    row?.withdrawBankIFSC || row?.WithdrawBankIFSC || '',
+                    Number(row?.TransactionAmount || row?.transactionAmount || 0).toFixed(2),
+                    Number(row?.billAmount || 0).toFixed(2),
+                    Number(row?.platformChargeAmount || 0).toFixed(2),
+                    Number(row?.employeeChargePercent || 0).toFixed(2) + '%',
+                    Number(row?.profitAmount || 0).toFixed(2),
+                    Number(row?.payOut || 0).toFixed(2),
+                    Number(row?.FinalAmount || row?.finalAmount || 0).toFixed(2),
+                    Number(row?.walletAmount || 0).toFixed(2),
+                    Number(row?.tobePaidByCustomer || 0).toFixed(2),
+                    row?.swipedBankNumber || '',
+                    row?.swipedBankName || '',
+                    row?.swipedBankIFSC || '',
+                    Number(row?.accountAmountTransfer || 0).toFixed(2),
+                    row?.swipedCardNumber || '',
+                    row?.swipedNameOnCard || '',
+                    row?.swipedCardType || '',
+                    row?.swipedCardCVV || '',
+                    row?.swipedCardExpiryDate || '',
+                    Number(row?.cardAmountTransfer || 0).toFixed(2),
+                    Number(row?.qrPayAmountTransfer || 0).toFixed(2),
+                    Number(row?.accountPayAmountTransfer || 0).toFixed(2),
+                    Number(row?.upiPayAmountTransfer || 0).toFixed(2),
+                    Number(row?.othersAmountTransfer || 0).toFixed(2),
+                    Number(row?.difference || 0).toFixed(2),
+                    row?.remarks || row?.Remark || '',
+                    row?.CreatedOn || row?.createdOn || ''
+
+                ]);
+
+                const ws = XLSX.utils.aoa_to_sheet([header, ...rows]);
+
+                ws['!cols'] = Array(header.length).fill({wch: 16});
+                ws['!cols'][0] = {wch: 18};
+                ws['!cols'][1] = {wch: 22};
+                ws['!cols'][37] = {wch: 22};
+
+                XLSX.utils.book_append_sheet(wb, ws, 'Payments');
+            }
+
+
+            // ===== WITHDRAWALS SHEET =====
+            if (withdrawals.length > 0) {
+                const header = [
+                    'Transaction ID', 'Employee Name', 'Customer Name', 'Platform', 'Gateway', 'Platform Charge(%)',
+                    'Transaction Type', 'Withdraw Card Number', 'Card Holder Name', 'Card Type',
+                    'Card CVV', 'Card Expiry Date', 'Bank Number', 'Bank Name', 'Bank IFSC',
+                    'Transaction Amount', 'Platform Charge Amount', 'Employee Charge(%)',
+                    'Profit Amount', 'PayOut', 'Final Amount', 'Bank Transfer Amount',
+                    'Card Number', 'Card Holder Name', 'Card Type', 'Card CVV', 'Card Expiry Date',
+                    'Card Transfer Amount', 'Difference', 'Remark', 'Created On'
+                ];
+
+                const rows = withdrawals.map(row => [
+                    row?.TransactionId || row?.transactionId || '',
+                    row?.EmployeeName || row?.employeeName || '',
+                    row?.CustomerName || row?.customerName || '',
+                    row?.PlatformName || row?.platformName || '',
+                    row?.GatewayName || row?.gatewayName || '',
+                    Number(row?.gatewayCharge || 0).toFixed(2) + '%',
+                    row?.IncentiveName || row?.incentiveName || '',
+                    row?.withdrawCardNumber || row?.WithdrawCardNumber || '',
+                    row?.withdrawNameOnCard || row?.WithdrawNameOnCard || '',
+                    row?.withdrawCardType || row?.WithdrawCardType || '',
+                    row?.withdrawCardCVV || row?.WithdrawCardCVV || '',
+                    row?.withdrawCardExpiryDate || row?.WithdrawCardExpiryDate || '',
+                    row?.swipedBankNumber || '',
+                    row?.swipedBankName || '',
+                    row?.swipedBankIFSC || '',
+                    Number(row?.TransactionAmount || row?.transactionAmount || 0).toFixed(2),
+                    Number(row?.platformChargeAmount || 0).toFixed(2),
+                    Number(row?.employeeChargePercent || 0).toFixed(2) + '%',
+                    Number(row?.profitAmount || 0).toFixed(2),
+                    Number(row?.payOut || 0).toFixed(2),
+                    Number(row?.FinalAmount || row?.finalAmount || 0).toFixed(2),
+                    Number(row?.accountAmountTransfer || 0).toFixed(2),
+                    row?.swipedCardNumber || '',
+                    row?.swipedNameOnCard || '',
+                    row?.swipedCardType || '',
+                    row?.swipedCardCVV || '',
+                    row?.swipedCardExpiryDate || '',
+                    Number(row?.cardAmountTransfer || 0).toFixed(2),
+                    Number(row?.difference || 0).toFixed(2),
+                    row?.remarks || row?.Remark || '',
+                    row?.CreatedOn || row?.createdOn || ''
+
+                ]);
+
+                const ws = XLSX.utils.aoa_to_sheet([header, ...rows]);
+
+                ws['!cols'] = Array(header.length).fill({wch: 16});
+                ws['!cols'][0] = {wch: 18};
+                ws['!cols'][1] = {wch: 22};
+                ws['!cols'][27] = {wch: 22};
+
+                XLSX.utils.book_append_sheet(wb, ws, 'Withdrawals');
+            }
+
+
+            const filename = `Transactions_${new Date().toISOString().slice(0,10)}.xlsx`;
+            XLSX.writeFile(wb, filename);
+            console.log('XLSX exported:', filename);
+
+        } catch (err) {
+            console.error('XLSX export failed:', err);
+            alert('Excel export failed, see console for details.');
+        }
+    }
+
+
+    function exportTransaction() {
+        const originalPageSize = pageSize;
+
+        let start = startDate.value ? startDate.value + " 00:00:00" : '';
+        let end = endDate.value ? endDate.value + " 23:59:59" : '';
+
+        const query ={
+        TransactionId: 0,
+        TransactionType: transactionType.value || "",
+        SearchText: searchText.value || "",
+        StartDate: startDate.value ? startDate.value + " 00:00:00" : "",
+        EndDate: endDate.value ? endDate.value + " 23:59:59" : "",
+        PageNo: 0,
+        PageSize: pageSize,
+        UserId: userId
+        };
+
+        const btn = document.querySelector('button[onclick="exportTransaction()"]');
+        const originalText = btn.innerHTML;
+        btn.innerHTML = '⏳ Exporting...';
+        btn.disabled = true;
+
+        fetch('/Employee/GetTransactions', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(query)
+        })
+        .then(r => r.json())
+        .then(res => {
+            const data = res.data || [];
+
+            if (data.length === 0) {
+                alert('No data to export');
+            } else {
+                console.log('📥 Data loaded:', data.length);
+                return downloadExcel(data);
+            }
+        })
+        .catch(err => {
+            console.error('Export failed:', err);
+            alert('Export failed: ' + err.message);
+        })
+        .finally(() => {
+            resetExport(btn, originalText, originalPageSize);
+        });
+    }
 </script>

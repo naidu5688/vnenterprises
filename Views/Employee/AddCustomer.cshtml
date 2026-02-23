@@ -141,6 +141,11 @@
     #firstName, #lastName, #pan, #bifsccode, #cHolder {
         text-transform: uppercase;
     }
+
+        #firstName::placeholder,
+        #lastName::placeholder {
+            text-transform: none; 
+        }
 </style>
 
 <div class="page-container">
@@ -150,7 +155,7 @@
     <div class="grid-3">
         <div>
             <label>Phone *</label>
-            <input id="phone" class="form-control" maxlength="10" value="@mobile"
+            <input id="phone" class="form-control" maxlength="10" value="@mobile" readonly
             oninput="this.value=this.value.replace(/[^0-9]/g,'')" placeholder="Enter Phone Number">
         </div>
         <div>

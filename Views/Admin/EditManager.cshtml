@@ -220,6 +220,9 @@
         text-transform: uppercase;
     }
 
+        .uppercase::placeholder {
+        text-transform: none;
+    }
 </style>
 
 <div class="page-container">
@@ -254,11 +257,13 @@
         <div class="manager-details">
             <div>
                 <label>First Name</label>
-                <input asp-for="UserFirstName" class="form-control uppercase" placeholder="First Name" required value="@Model.UserFirstName" />
+                <input asp-for="UserFirstName" class="form-control uppercase" placeholder="First Name" required value="@Model.UserFirstName" onkeypress="return event.charCode != 32;"
+                       oninput="this.value = this.value.replace(/\s/g, '');" />
             </div>
             <div>
                 <label>Last Name</label>
-                <input asp-for="UserLastName" class="form-control uppercase" placeholder="Last Name" required value="@Model.UserLastName" />
+                <input asp-for="UserLastName" class="form-control uppercase" placeholder="Last Name" required value="@Model.UserLastName" onkeypress="return event.charCode != 32;"
+                       oninput="this.value = this.value.replace(/\s/g, '');" />
             </div>
             <div>
                 <label>Mobile Number</label>
@@ -274,11 +279,13 @@
             </div>
             <div>
                 <label>Password</label>
-                <input asp-for="Password" type="text" class="form-control" placeholder="Password" required value="@Model.Password" />
+                <input asp-for="Password" type="text" class="form-control" placeholder="Password" onkeypress="return event.charCode != 32;"
+                       oninput="this.value = this.value.replace(/\s/g, '');" required value="@Model.Password" />
             </div>
             <div>
                 <label>Confirm Password</label>
-                <input asp-for="ConfirmPassword" type="text" class="form-control" placeholder="Confirm Password" required value="@Model.ConfirmPassword" />
+                <input asp-for="ConfirmPassword" type="text" class="form-control" placeholder="Confirm Password" onkeypress="return event.charCode != 32;"
+                       oninput="this.value = this.value.replace(/\s/g, '');" required value="@Model.ConfirmPassword" />
             </div>
         </div>
 

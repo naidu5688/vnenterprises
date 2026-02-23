@@ -297,6 +297,10 @@
         text-transform: uppercase;
     }
 
+        #firstName::placeholder,
+        #lastName::placeholder {
+            text-transform: none;
+        }
 </style>
 
 <div class="page-container">
@@ -313,11 +317,13 @@
         <div class="manager-details">
             <div>
                 <label>First Name</label>
-                <input asp-for="FirstName" class="form-control" id="FirstName" required placeholder="Enter First Name" />
+                <input asp-for="FirstName" class="form-control" id="FirstName" required onkeypress="return event.charCode != 32;"
+                       oninput="this.value = this.value.replace(/\s/g, '');" placeholder="Enter First Name" />
             </div>
             <div>
                 <label>Last Name</label>
-                <input asp-for="LastName" class="form-control" id="LastName" required placeholder="Enter Last Name" />
+                <input asp-for="LastName" class="form-control" id="LastName" required onkeypress="return event.charCode != 32;"
+                       oninput="this.value = this.value.replace(/\s/g, '');" placeholder="Enter Last Name" />
             </div>
             <div>
                 <label>Mobile Number</label>
@@ -333,11 +339,13 @@
             </div>
             <div>
                 <label>Password</label>
-                <input asp-for="Password" class="form-control" required placeholder="Enter Password" />
+                <input asp-for="Password" class="form-control" required onkeypress="return event.charCode != 32;"
+                       oninput="this.value = this.value.replace(/\s/g, '');" placeholder="Enter Password" />
             </div>
             <div>
                 <label>Confirm Password</label>
-                <input asp-for="ConfirmPassword" class="form-control" required placeholder="Enter Confirm Password" />
+                <input asp-for="ConfirmPassword" class="form-control" required onkeypress="return event.charCode != 32;"
+                       oninput="this.value = this.value.replace(/\s/g, '');" placeholder="Enter Confirm Password" />
             </div>
             <div>
                 <label>Aadhar Number</label>
@@ -346,7 +354,8 @@
             </div>
             <div>
                 <label>PAN Number</label>
-                <input asp-for="PanNumber" class="form-control" required placeholder="Enter PAN Number" />
+                <input asp-for="PanNumber" class="form-control" required maxlength="12" onkeypress="return event.charCode != 32;"
+                       oninput="this.value = this.value.replace(/\s/g, '');" placeholder="Enter PAN Number" />
             </div>
         </div>
         <input type="hidden" asp-for="KycStatus" value="Pending" />
@@ -526,7 +535,7 @@
     .catch(() => alert("Error saving Retailer"));
     }
 
-        function validateForm() {
+    function validateForm() {
 
         const password = document.querySelector('[name="Password"]').value.trim();
         const confirm = document.querySelector('[name="ConfirmPassword"]').value.trim();
@@ -587,7 +596,6 @@
 
         return true;
     }
-
 
 </script>
 

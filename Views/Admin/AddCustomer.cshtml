@@ -141,6 +141,11 @@
     #firstName, #lastName, #pan, #bifsccode, #cHolder {
         text-transform: uppercase;
     }
+
+        #firstName::placeholder,
+        #lastName::placeholder {
+            text-transform: none;
+        }
 </style>
 
 <div class="page-container">
@@ -150,26 +155,29 @@
     <div class="grid-3">
         <div>
             <label>Phone *</label>
-            <input id="phone" class="form-control" maxlength="10" value="@mobile"
+            <input id="phone" class="form-control" maxlength="10" value="@mobile" readonly
                    oninput="this.value=this.value.replace(/[^0-9]/g,'')" placeholder="Enter Phone Number">
         </div>
         <div>
             <label>First Name *</label>
-            <input id="firstName" class="form-control" placeholder="Enter First name">
+            <input id="firstName" class="form-control" onkeypress="return event.charCode != 32;"
+                   oninput="this.value = this.value.replace(/\s/g, '');" placeholder="Enter First name">
         </div>
         <div>
             <label>Last Name *</label>
-            <input id="lastName" class="form-control" placeholder="Enter Last name">
+            <input id="lastName" class="form-control" onkeypress="return event.charCode != 32;"
+                   oninput="this.value = this.value.replace(/\s/g, '');" placeholder="Enter Last name">
         </div>
 
         <div>
             <label>Aadhaar *</label>
-            <input id="aadhaar" class="form-control" maxlength="16"
+            <input id="aadhaar" class="form-control" maxlength="12"
                    oninput="this.value=this.value.replace(/[^0-9]/g,'')" placeholder="Enter Aadhar Number">
         </div>
         <div>
             <label>PAN *</label>
-            <input id="pan" class="form-control" placeholder="Enter PAN Number">
+            <input id="pan" class="form-control" maxlength="10" onkeypress="return event.charCode != 32;"
+                   oninput="this.value = this.value.replace(/\s/g, '');" placeholder="Enter PAN Number">
         </div>
     </div>
 

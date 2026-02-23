@@ -383,6 +383,9 @@
         text-transform: uppercase;
     }
 
+        .uppercase::placeholder {
+            text-transform: none;
+        }
 </style>
 
 <div class="page-container">
@@ -429,36 +432,43 @@
         <div class="manager-details">
             <div>
                 <label>First Name</label>
-                <input asp-for="FirstName" class="form-control uppercase" />
+                <input asp-for="FirstName" class="form-control uppercase" onkeypress="return event.charCode != 32;"
+                       oninput="this.value = this.value.replace(/\s/g, '');" />
             </div>
             <div>
                 <label>Last Name</label>
-                <input asp-for="LastName" class="form-control uppercase" />
+                <input asp-for="LastName" class="form-control uppercase" onkeypress="return event.charCode != 32;"
+                       oninput="this.value = this.value.replace(/\s/g, '');" />
             </div>
             <div>
                 <label>Mobile</label>
-                <input asp-for="MobileNumber" class="form-control" />
+                <input asp-for="MobileNumber" class="form-control" maxlength="10"
+                       oninput="this.value=this.value.replace(/[^0-9]/g,'').slice(0,10)" readonly/>
             </div>
             <div>
                 <label>MPIN</label>
-                <input asp-for="MPIN" class="form-control" />
+                <input asp-for="MPIN" class="form-control" maxlength="4"
+                       oninput="this.value=this.value.replace(/[^0-9]/g,'').slice(0,4)" required />
             </div>
             <div>
                 <label>Password</label>
-                <input asp-for="Password" class="form-control" />
+                <input asp-for="Password" class="form-control" onkeypress="return event.charCode != 32;"
+                       oninput="this.value = this.value.replace(/\s/g, '');" />
             </div>
             <div>
                 <label>Confirm Password</label>
-                <input asp-for="ConfirmPassword" class="form-control" />
+                <input asp-for="ConfirmPassword" class="form-control" onkeypress="return event.charCode != 32;"
+                       oninput="this.value = this.value.replace(/\s/g, '');" />
             </div>
             <div>
                 <label>Aadhaar</label>
                 <input asp-for="AadhaarNumber" class="form-control" maxlength="12"
-                       oninput="this.value=this.value.replace(/[^0-9]/g,'')" />
+                       oninput="this.value=this.value.replace(/[^0-9]/g,'')" required />
             </div>
             <div>
                 <label>PAN</label>
-                <input asp-for="PanNumber" class="form-control" />
+                <input asp-for="PanNumber" class="form-control" onkeypress="return event.charCode != 32;"
+                       oninput="this.value = this.value.replace(/\s/g, '');" required maxlength="10"/>
             </div>
         </div>
         <input type="hidden" name="aadharfrontpath" value="@Model?.aadharfrontpath" />

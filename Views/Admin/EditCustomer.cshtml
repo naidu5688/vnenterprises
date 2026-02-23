@@ -250,11 +250,13 @@
         <div class="manager-details">
             <div>
                 <label>First Name</label>
-                <input asp-for="FirstName" class="form-control" placeholder="First Name" required />
+                <input asp-for="FirstName" class="form-control" onkeypress="return event.charCode != 32;"
+                       oninput="this.value = this.value.replace(/\s/g, '');" placeholder="First Name" required />
             </div>
             <div>
                 <label>Last Name</label>
-                <input asp-for="LastName" class="form-control" placeholder="Last Name" required />
+                <input asp-for="LastName" class="form-control" onkeypress="return event.charCode != 32;"
+                       oninput="this.value = this.value.replace(/\s/g, '');" placeholder="Last Name" required />
             </div>
             <div>
                 <label>Mobile Number</label>
@@ -266,19 +268,23 @@
             </div>
             <div>
                 <label>Password</label>
-                <input asp-for="Password" type="password" class="form-control" placeholder="Password" required />
+                <input asp-for="Password" type="password" class="form-control" onkeypress="return event.charCode != 32;"
+                       oninput="this.value = this.value.replace(/\s/g, '');" placeholder="Password" required />
             </div>
             <div>
                 <label>Confirm Password</label>
-                <input asp-for="ConfirmPassword" type="password" class="form-control" placeholder="Confirm Password" required />
+                <input asp-for="ConfirmPassword" type="password" class="form-control" onkeypress="return event.charCode != 32;"
+                       oninput="this.value = this.value.replace(/\s/g, '');" placeholder="Confirm Password" required />
             </div>
             <div>
                 <label>Aadhar Number</label>
-                <input asp-for="AadhaarNumber" type="password" class="form-control" placeholder="Aadhar Number" required />
+                <input asp-for="AadhaarNumber" type="password" class="form-control" maxlength="12"
+                       oninput="this.value=this.value.replace(/[^0-9]/g,'')" placeholder=" Aadhar Number" required />
             </div>
             <div>
                 <label>PAN Number</label>
-                <input asp-for="PanNumber" type="password" class="form-control" placeholder="PAN Number" required />
+                <input asp-for="PanNumber" type="password" class="form-control" maxlength="10" onkeypress="return event.charCode != 32;"
+                       oninput="this.value = this.value.replace(/\s/g, '');" placeholder="PAN Number" required />
             </div>
         </div>
         <h4>Documents</h4>
