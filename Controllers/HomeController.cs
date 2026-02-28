@@ -36,7 +36,7 @@ namespace vnenterprises.Controllers
                     HttpOnly = true,
                     Expires = DateTimeOffset.Now.AddHours(2),
                     SameSite = SameSiteMode.Strict,
-                    Secure = true
+                    Secure = HttpContext.Request.IsHttps
                 };
 
                 Response.Cookies.Append("UserId", user.UserId.ToString(), userCookie);
