@@ -49,9 +49,9 @@ namespace vnenterprises.Controllers
                 if (user.AccessType == 3)
                     return RedirectToAction("Customers", "Employee");
                 if (user.AccessType == 4)
-                    return RedirectToAction("Index", "Retailer");
+                    return RedirectToAction("Customers", "Retailer");
                 else
-                    return RedirectToAction("Index", "Employee");
+                    return RedirectToAction("Index", "Home");
 
             }
             else

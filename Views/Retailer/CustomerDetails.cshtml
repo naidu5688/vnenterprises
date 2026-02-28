@@ -1,0 +1,1315 @@
+﻿@using System.Text.Json
+@{
+    Layout = "~/Views/Shared/_SharedLayout_Retailer.cshtml";
+    var mobile = Model?.PhoneNumber ?? "";
+    var kycStatus = Model?.KycStatus ?? "Pending";
+    var customerid = Model?.CustomerId ?? "Pending";
+}
+
+<style>
+    body {
+        font-family: 'Segoe UI',sans-serif;
+        background: #17362e;
+    }
+
+    .page-container {
+        max-width: 1200px;
+        margin: auto;
+        padding: 25px;
+        position: relative;
+    }
+
+    .kyc-status {
+        position: absolute;
+        top: 20px;
+        right: 20px;
+        padding: 5px 12px;
+        border-radius: 8px;
+        color: white;
+        font-weight: 600;
+    }
+
+    .kyc-pending {
+        background-color: #d4af37;
+        color: black;
+    }
+
+    .kyc-approved {
+        background-color: green;
+    }
+
+    .kyc-rejected {
+        background-color: red;
+    }
+
+    h3, h4 {
+        color: #d4af37;
+        margin-bottom: 15px;
+    }
+
+    label {
+        color: #fff;
+        font-size: 13px;
+        margin-bottom: 4px;
+        display: block;
+    }
+
+    .form-control {
+        width: 100%;
+        height: 38px;
+        background: #1e4a37;
+        border: 1px solid #d4af37;
+        border-radius: 8px;
+        color: white;
+        padding: 0 10px;
+        font-size: 13px;
+    }
+
+    .grid-3 {
+        display: grid;
+        grid-template-columns: repeat(3,1fr);
+        gap: 18px;
+    }
+
+    .grid-4 {
+        display: grid;
+        grid-template-columns: repeat(4,1fr);
+        gap: 18px;
+    }
+
+    .grid-2 {
+        display: grid;
+        grid-template-columns: repeat(2,1fr);
+        gap: 15px;
+    }
+
+    button {
+        border-radius: 8px;
+        padding: 7px 14px;
+        font-size: 13px;
+        border: none;
+        cursor: pointer;
+    }
+
+    .btn-primary {
+        background: #d4af37;
+        color: #17362e;
+        font-weight: 600;
+    }
+
+    .btn-danger {
+        background: #8d2525;
+        color: white;
+    }
+
+    .image-upload-box {
+        background: #1e4a37;
+        border-radius: 10px;
+        padding: 10px;
+        text-align: center;
+        height: 250px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        gap: 8px;
+    }
+
+    .image-preview {
+        max-height: 150px;
+        border-radius: 8px;
+        cursor: zoom-in;
+    }
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 12px;
+    }
+
+    th, td {
+        border: 1px solid #d4af37;
+        padding: 8px;
+        text-align: center;
+        color: white;
+        font-size: 13px;
+    }
+
+    th {
+        color: #d4af37;
+    }
+
+    .modal-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(0,0,0,.75);
+        display: none;
+        align-items: center;
+        justify-content: center;
+        z-index: 9999;
+    }
+
+    .modal-box {
+        background: #17362e;
+        border: 1px solid #d4af37;
+        border-radius: 12px;
+        padding: 20px;
+        width: 550px;
+    }
+
+    .flex-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    #firstName, #lastName, #pan {
+        text-transform: uppercase;
+    }
+
+    .modal-box {
+        background: #17362e;
+        border: 1px solid #d4af37;
+        border-radius: 12px;
+        padding: 20px;
+        width: 700px;
+        max-height: 90vh; /* ✅ LIMIT HEIGHT */
+        display: flex; /* ✅ FLEX LAYOUT */
+        flex-direction: column;
+    }
+
+    .transaction-body {
+        overflow-y: auto; /* ✅ ENABLE SCROLL */
+        padding-right: 8px;
+        margin-top: 15px;
+        flex: 1; /* ✅ TAKE AVAILABLE SPACE */
+    }
+
+</style>
+
+<div class="page-container">
+
+    <!-- CUSTOMER & KYC STATUS -->
+
+    <div class="kyc-status" style="position: absolute; right: 170px; background-color: #d4af37; color: black;">
+        CustomerId: @customerid
+    </div>
+    <div id="kycstatus" class="kyc-status @(kycStatus.ToLower() == "pending" ? "kyc-pending" : kycStatus.ToLower() == "approved" ? "kyc-approved" : "kyc-rejected")">
+        KYC: @kycStatus
+    </div>
+
+    <h3>Customer Details</h3>
+
+    <div class="grid-3">
+        <div><label>First Name *</label><input id="firstName" class="form-control" value="@Model?.FirstName" placeholder="Enter First name"></div>
+        <div><label>Last Name *</label><input id="lastName" class="form-control" value="@Model?.LastName" placeholder="Enter Last name"></div>
+        <div><label>Phone *</label><input id="phone" class="form-control" value="@mobile" readonly></div>
+        <div><label>Aadhaar *</label><input id="aadhaar" class="form-control" value="@Model?.aadharnumber" placeholder="Enter Aadhaar Number"></div>
+        <div><label>PAN *</label><input id="pan" class="form-control" value="@Model?.pannumber" placeholder="Enter PAN Number"></div>
+    </div>
+
+    <br>
+
+    <h4>Documents</h4>
+    <div class="grid-4">
+        @foreach (var d in new[] {
+                ("AadhaarFrontImage", "Aadhaar Front *", Model?.aadharfrontpath),
+                ("AadhaarBackImage",  "Aadhaar Back *",  Model?.aadharbackpath),
+                ("PanFrontImage",     "PAN Front *",     Model?.panfrontpath),
+                ("PanBackImage",      "PAN Back (Optional)", Model?.panbackpath)
+                })
+        {
+            <div class="image-upload-box" data-name="@d.Item1">
+                <img class="image-preview"
+                     src="@d.Item3"
+                     style="display:@(string.IsNullOrEmpty(d.Item3) ? "none" : "block")">
+
+                <!-- ✅ ID + NAME MUST MATCH MODEL -->
+                <input type="file"
+                       id="@d.Item1"
+                       name="@d.Item1"
+                       accept="image/*"
+                       style="display:none">
+
+                <button class="btn-primary"
+                        onclick="document.getElementById('@d.Item1').click()">
+                    Upload
+                </button>
+
+                <button class="btn-danger"
+                        onclick="deleteImage('@d.Item1')">
+                    Delete
+                </button>
+
+                <span style="color:#d4af37">@d.Item2</span>
+            </div>
+        }
+    </div>
+    <br>
+   
+    <div class="flex-header">
+        <h4>Credit Cards</h4>
+        <button class="btn-primary" onclick="openCardModal()">+ Add Card</button>
+    </div>
+
+    <table id="cardTable">
+        <thead>
+            <tr>
+                <th width="20%">Holder</th>
+                <th width="20%">Number</th>
+                <th width="10%">Expiry</th>
+                <th width="10%">Type</th>
+                <th width="10%">CVV</th>
+                <th width="10%">Status</th>
+                <th width="20%">Action</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+
+    <br>
+    <div class="flex-header">
+        <h4>Bank Details (Optional)</h4>
+        <button class="btn-primary" onclick="openBankModal()">+ Add Bank Details</button>
+    </div>
+    <table id="bankTable">
+        <thead>
+            <tr>
+                <th width="20%">Bank Name</th>
+                <th width="30%">Account Number</th>
+                <th width="20%">IFSC Code</th>
+                <th width="10%">Status</th>
+                <th width="20%">Action</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+    <br />
+    <button class="btn-primary" onclick="saveCustomer()">Save Customer</button>
+    <button class="btn-primary" onclick="openTransactionModal()">Add Transaction</button>
+</div>
+<div class="modal-overlay" id="transactionModal">
+    <div class="modal-box" style="width:700px">
+
+        <!-- Header -->
+        <div class="flex-header">
+            <h4>Add Transaction</h4>
+            <button class="btn-danger" onclick="closeTransactionModal()">X</button>
+        </div>
+        <div class="transaction-body">
+            <div class="grid-2" style="margin-top:15px">
+
+                <div class="field">
+                    <label>Platform</label>
+                    <select id="tPlatform" class="form-control"></select>
+                </div>
+
+                <div class="field">
+                    <label>Gateway</label>
+                    <select id="tGateway" class="form-control"></select>
+                </div>
+
+                <div class="field">
+                    <label>Platform Charge (%)</label>
+                    <input id="tChargePercent" class="form-control" readonly>
+                </div>
+
+                <div class="field">
+                    <label>Transaction Type</label>
+                    <select id="tTransactiontype" class="form-control"></select>
+                </div>
+
+                <div class="field">
+                    <label>Withdraw Card Details</label>
+                    <select id="tCard" class="form-control"></select>
+                </div>
+
+                <div class="field">
+                    <label>Card Holder</label>
+                    <input id="tCardHolder" class="form-control" readonly>
+                </div>
+
+                <div class="field">
+                    <label>Card Type</label>
+                    <input id="tCardType" class="form-control" readonly>
+                </div>
+                <div class="field">
+                    <label>CVV</label>
+                    <input id="tCardCvv" class="form-control" readonly>
+                </div>
+                <div class="field">
+                    <label>Expiry Date</label>
+                    <input id="tCardExpiry" class="form-control" readonly>
+                </div>
+                <div class="field">
+                    <label> Withdraw Bank Details </label>
+                    <select id="tWithdrawAccountSelect" class="form-control"></select>
+                </div>
+
+
+                <div class="field">
+                    <label>Bank Name</label>
+                    <input id="tWithdrawBankName" class="form-control" readonly>
+                </div>
+
+                <div class="field">
+                    <label>IFSC Code</label>
+                    <input id="tWithdrawIfsc" class="form-control" readonly>
+                </div>
+                <div class="field">
+                    <label>Transaction Amount</label>
+                    <input id="tAmount" class="form-control"
+                           oninput="this.value=this.value.replace(/[^0-9.]/g,''); calculateAmounts()">
+                </div>
+
+                <div class="field">
+                    <label>Bill Amount</label>
+                    <input id="tBillAmount" class="form-control"
+                           oninput="this.value=this.value.replace(/[^0-9.]/g,'');">
+                </div>
+                <div class="field">
+                    <label>Platform Charge Amount</label>
+                    <input id="tChargeAmount" class="form-control" readonly>
+                </div>
+                <div class="field">
+                    <label>Employee Charge (%)</label>
+                    <input id="tEmpPercent" class="form-control"
+                           oninput="this.value=this.value.replace(/[^0-9.]/g,''); calculateAmounts()">
+                </div>
+                <div class="field">
+                    <label>Profit Amount</label>
+                    <input id="tEmpChargeAmount" class="form-control" readonly>
+                </div>
+                <div class="field">
+                    <label>Pay Out</label>
+                    <input id="tpayout" class="form-control"
+                           oninput="this.value=this.value.replace(/[^0-9.]/g,''); calculateAmounts()">
+                </div>
+                <div class="field">
+                    <label>Final Amount</label>
+                    <input id="tFinalAmount" class="form-control" readonly>
+                </div>
+                <div class="field">
+                    <label>Wallet Amount</label>
+                    <input id="tremaing" class="form-control" readonly>
+                </div>
+
+                <div class="field">
+                    <label>To be Paid By Customer</label>
+                    <input id="tWalletAmount" class="form-control"
+                           oninput="this.value=this.value.replace(/[^0-9.]/g,''); calculateAmounts()">
+                </div>
+                <div class="field">
+                    <label> Transfer Account Number </label>
+                    <select id="tAccountSelect" class="form-control"></select>
+                </div>
+                <div class="field">
+                    <label>Bank Name</label>
+                    <input id="tBankName" class="form-control" readonly>
+                </div>
+                <div class="field">
+                    <label>IFSC Code</label>
+                    <input id="tIfsc" class="form-control" readonly>
+                </div>
+
+                <div class="field">
+                    <label>Bank Transfer Amount</label>
+                    <input id="tBankAmount" class="form-control"
+                           oninput="this.value=this.value.replace(/[^0-9.]/g,'');">
+                </div>
+                <div class="field">
+                    <label>Transfer Card Number  </label>
+                    <select id="tTransferCard" class="form-control"></select>
+                </div>
+
+                <div class="field">
+                    <label>Card Holder</label>
+                    <input id="tTransferCardHolder" class="form-control" readonly>
+                </div>
+
+                <div class="field">
+                    <label>Card Type</label>
+                    <input id="tTransferCardType" class="form-control" readonly>
+                </div>
+                <div class="field">
+                    <label>CVV</label>
+                    <input id="tTransferCardCvv" class="form-control" readonly>
+                </div>
+                <div class="field">
+                    <label>Expiry Date</label>
+                    <input id="tTransferCardExpiry" class="form-control" readonly>
+                </div>
+
+                <div class="field">
+                    <label>Card Transfer Amount</label>
+                    <input id="tcardAmount" class="form-control"
+                           oninput="this.value=this.value.replace(/[^0-9.]/g,'');">
+                </div>
+                <div class="field payment-field">
+                        <label>QR Pay</label>
+                        <input id="tQrPayAmount" class="form-control"
+                           oninput="allowNumber(this); calculateAmounts();">
+                    </div>
+
+                <div class="field payment-field">
+                        <label>Account Transfer</label>
+                        <input id="tAccTransAmount" class="form-control"
+                           oninput="allowNumber(this); calculateAmounts();">
+                    </div>
+
+                <div class="field payment-field">
+                        <label>UPI Pay</label>
+                        <input id="tUpiPayAmount" class="form-control"
+                           oninput="allowNumber(this); calculateAmounts();">
+                    </div>
+
+                <div class="field payment-field">
+                        <label>Others</label>
+                        <input id="tOtherPayAmount" class="form-control"
+                           oninput="allowNumber(this); calculateAmounts();">
+                </div>
+                <div class="field payment-field">
+                    <label>Difference</label>
+                    <input id="tDifferenceAmount" class="form-control"
+                           oninput="allowNumber(this)">
+                </div>
+            </div>
+            <div class="field">
+                <label>Remarks</label>
+                <input id="tRemarks" class="form-control" />
+            </div>
+         </div>
+        <!-- Body -->
+        
+        <!-- Footer -->
+        <div style="text-align:right;margin-top:15px">
+            <button class="btn-danger" onclick="clearTransaction()">Clear</button>
+            <button class="btn-danger" onclick="closeTransactionModal()">Close</button>
+            <button class="btn-primary" onclick="saveTransaction()">Save</button>
+        </div>
+
+    </div>
+</div>
+<div class="modal-overlay" id="bankModal">
+    <div class="modal-box">
+        <h4>Bank Details</h4>
+
+        <div class="grid-2">
+            <select id="bBank" class="form-control"></select>
+            <input id="bAccount" class="form-control" placeholder="Account Number *">
+            <input id="bIfsc" class="form-control" placeholder="IFSC Code *">
+            <select id="bActive" class="form-control">
+                <option value="">-- Status --</option>
+                <option value="true">Active</option>
+                <option value="false">InActive</option>
+            </select>
+        </div>
+
+        <div style="text-align:right;margin-top:15px">
+            <button class="btn-danger" onclick="closeBankModal()">Cancel</button>
+            <button class="btn-primary" onclick="saveBank()">Save</button>
+        </div>
+    </div>
+</div>
+
+
+<div class="modal-overlay" id="cardModal">
+    <div class="modal-box">
+        <h4>Credit Card</h4>
+        <div class="grid-2">
+            <input id="cHolder" class="form-control" placeholder="Card Holder *">
+            <input id="cNumber" class="form-control" maxlength="16" placeholder="Card Number *" oninput="this.value=this.value.replace(/[^0-9]/g,'')">
+            <input id="cExpiry" class="form-control" maxlength="5" placeholder="MM/YY *" oninput="formatExpiry(this)">
+            <input id="cCVV" class="form-control" maxlength="3" placeholder="CVV *" oninput="this.value=this.value.replace(/[^0-9]/g,'')">
+            <select id="cType" class="form-control"></select>
+            <select id="cActive" class="form-control">
+                <option value="">-- Status --</option>
+                <option value="true">Active</option>
+                <option value="false">InActive</option>
+            </select>
+        </div>
+
+        <div style="text-align:right;margin-top:15px">
+            <button class="btn-danger" onclick="closeCardModal()">Cancel</button>
+            <button class="btn-primary" onclick="saveCard()">Save</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    const customerId = @Model?.CustomerId ?? 0;
+    let cardTypes = [];
+    let cards = @Html.Raw(JsonSerializer.Serialize(Model?.CreditCards ?? new List<object>()));
+    cards = cards.map(c=>({
+        NameOnCard:c.NameOnCard??"",
+        CardNumber:c.CardNumber??"",
+        ExpiryDate:c.ExpiryDate??"",
+        CardCVV:c.CardCVV??"",
+        CardTypeId:c.CardTypeId??"",
+        CardTypeName:c.CardTypeName??"",
+        IsActive:c.IsActive===true,
+        IsExisting:true
+    }));
+    let editIndex = null;
+
+    // Load card types
+    fetch('/Employee/GetCardTypes').then(r=>r.json()).then(d=>{cardTypes=d; renderCards();});
+
+    // IMAGE PREVIEW
+    document.querySelectorAll('.image-upload-box input[type="file"]').forEach(input=>{
+        input.addEventListener('change', e=>{
+            const file = e.target.files[0];
+            if(file){
+                const img = input.closest('.image-upload-box').querySelector('.image-preview');
+                img.src = URL.createObjectURL(file);
+                img.style.display = 'block';
+            }
+        });
+    });
+
+    function deleteImage(id){
+        const input = document.getElementById(id);
+        input.value = "";
+        const img = input.closest('.image-upload-box').querySelector('.image-preview');
+        img.src = ""; img.style.display = "none";
+
+        deletedImages[id] = true;
+    }
+
+              let deletedImages = {
+            AadhaarFrontImage: false,
+            AadhaarBackImage: false,
+            PanFrontImage: false,
+            PanBackImage: false
+        };
+
+
+    // ---------------- CREDIT CARDS ----------------
+    function renderCards(){
+        const tbody=document.querySelector("#cardTable tbody");
+        tbody.innerHTML="";
+        if(cards.length===0){tbody.innerHTML='<tr><td colspan="7">No Credit Cards</td></tr>'; return;}
+        cards.forEach((c,i)=>{
+            let typeName = cardTypes.find(x=>x.id==c.CardTypeId)?.name || c.CardTypeName || '';
+            tbody.innerHTML+=`<tr>
+                <td>${c.NameOnCard}</td>
+                <td>${c.CardNumber}</td>
+                <td>${c.ExpiryDate}</td>
+                <td>${typeName}</td>
+                <td>${c.CardCVV}</td>
+                <td>${c.IsActive?"Active":"InActive"}</td>
+                <td>
+                    <button class="btn-primary" onclick="openCardModal(${i})">Edit</button>
+                    ${c.IsExisting ? '' : `<button class="btn-danger" onclick="removeCard(${i})">Remove</button>`}
+                </td>
+            </tr>`;
+        });
+    }
+
+    function openCardModal(index=null){
+        editIndex=index;
+        cType.innerHTML='<option value="">-- Select Card Type --</option>';
+        cardTypes.forEach(x=>cType.innerHTML+=`<option value="${x.id}">${x.name}</option>`);
+        if(index!==null){
+            const c=cards[index];
+            cHolder.value=c.NameOnCard; cNumber.value=c.CardNumber; cExpiry.value=c.ExpiryDate;
+            cCVV.value=c.CardCVV; cType.value=c.CardTypeId; cActive.value=c.IsActive?'true':'false';
+        }else{cHolder.value=cNumber.value=cExpiry.value=cCVV.value=cType.value=cActive.value='';}
+        cardModal.style.display='flex';
+    }
+    function closeCardModal(){cardModal.style.display='none'; editIndex=null;}
+        function saveCard() {
+        if (!cHolder.value || !cNumber.value || !cExpiry.value || !cCVV.value || !cType.value || !cActive.value) {
+            alert('All fields mandatory');
+            return;
+        }
+
+        const isEdit = editIndex !== null;
+
+        const card = {
+            NameOnCard: cHolder.value,
+            CardNumber: cNumber.value,
+            ExpiryDate: cExpiry.value,
+            CardCVV: cCVV.value,
+            CardTypeId: cType.value,
+            CardTypeName: cType.options[cType.selectedIndex].text,
+            IsActive: cActive.value === 'true',
+
+            // ✅ KEEP EXISTING FLAG WHEN EDITING
+            IsExisting: isEdit ? cards[editIndex].IsExisting : false
+        };
+
+        if (isEdit) {
+            cards[editIndex] = card;
+        } else {
+            cards.push(card);
+        }
+
+        renderCards();
+        closeCardModal();
+    }
+
+    function removeCard(i){cards.splice(i,1); renderCards();}
+    function formatExpiry(input){let v=input.value.replace(/[^0-9]/g,''); if(v.length>4)v=v.substring(0,4); if(v.length>=2){ let m=Math.min(12,Math.max(1,parseInt(v.substring(0,2)))); v=m.toString().padStart(2,'0')+v.substring(2);} input.value=v.length>2?v.substring(0,2)+'/'+v.substring(2):v;}
+
+        // OLD IMAGE PATHS FROM MODEL (MOVE THIS UP)
+            const oldImages = {
+            AadhaarFrontImage: "@Model?.aadharfrontpath",
+            AadhaarBackImage: "@Model?.aadharbackpath",
+            PanFrontImage: "@Model?.panfrontpath",
+            PanBackImage: "@Model?.panbackpath"
+        };
+
+        function hasNewFile(id) {
+        const el = document.getElementById(id);
+        return el && el.files && el.files.length > 0;
+    }
+    // ---------------- SAVE CUSTOMER ----------------
+    function saveCustomer(){
+        debugger
+        const firstName=document.getElementById("firstName").value,
+              lastName=document.getElementById("lastName").value,
+              aadhaar=document.getElementById("aadhaar").value,
+              phone=document.getElementById("phone").value,
+              pan=document.getElementById("pan").value;
+        if(!firstName||!lastName||!aadhaar||!pan || !phone){alert('All fields mandatory');return;}
+
+        const formData=new FormData();
+        formData.append("CustomerId",customerId);
+        formData.append("FirstName",firstName);
+        formData.append("LastName",lastName);
+        formData.append("PhoneNumber",phone);
+        formData.append("aadharnumber",aadhaar);
+        formData.append("pannumber",pan);
+
+
+              if (
+        (!hasNewFile("AadhaarFrontImage") && (!oldImages.AadhaarFrontImage || deletedImages.AadhaarFrontImage)) ||
+        (!hasNewFile("AadhaarBackImage")  && (!oldImages.AadhaarBackImage  || deletedImages.AadhaarBackImage)) ||
+        (!hasNewFile("PanFrontImage")     && (!oldImages.PanFrontImage     || deletedImages.PanFrontImage))
+    ) {
+        alert("❌ Aadhaar Front, Aadhaar Back & PAN Front images are mandatory");
+        return;
+    }
+
+
+
+
+    // IMAGE HANDLING (🔥 FIXED)
+        const imageFields = [
+        { id: "AadhaarFrontImage", path: "aadharfrontpath" },
+        { id: "AadhaarBackImage",  path: "aadharbackpath" },
+        { id: "PanFrontImage",     path: "panfrontpath" },
+        { id: "PanBackImage",      path: "panbackpath" }
+    ];
+
+    imageFields.forEach(f => {
+        const input = document.getElementById(f.id);
+
+        if (input && input.files.length > 0) {
+            // New upload
+            formData.append(f.id, input.files[0]);
+            formData.append(f.path, "");
+        }
+        else if (deletedImages[f.id]) {
+            // Deleted
+            formData.append(f.path, "");
+        }
+        else {
+            // Keep old
+            formData.append(f.path, oldImages[f.id] || "");
+        }
+    });
+
+
+
+        const kycDiv = document.getElementById("kycstatus");
+    let kycStatus = "";
+    if (kycDiv) {
+        kycStatus = kycDiv.innerText.replace("KYC:", "").trim();
+    }
+
+        // Append images
+        formData.append("KycStatus", kycStatus);
+        // Append credit cards
+        cards.forEach((c,i)=>{
+            formData.append(`CreditCards[${i}].NameOnCard`, c.NameOnCard);
+            formData.append(`CreditCards[${i}].CardNumber`, c.CardNumber);
+            formData.append(`CreditCards[${i}].ExpiryDate`, c.ExpiryDate);
+            formData.append(`CreditCards[${i}].CardCVV`, c.CardCVV);
+            formData.append(`CreditCards[${i}].CardTypeId`, c.CardTypeId);
+            formData.append(`CreditCards[${i}].IsActive`, c.IsActive);
+        });
+            // Append bank details
+    banksData.forEach((b, i) => {
+        formData.append(`BanksDetailsModel[${i}].BankId`, b.BankId);
+        formData.append(`BanksDetailsModel[${i}].BankName`, b.BankName);
+        formData.append(`BanksDetailsModel[${i}].AccountNumber`, b.AccountNumber);
+        formData.append(`BanksDetailsModel[${i}].IFSCCode`, b.IFSC);
+        formData.append(`BanksDetailsModel[${i}].IsActive`, b.IsActive);
+    });
+
+        fetch('/Employee/AddCustomer',{method:'POST',body:formData})
+        .then(r=>r.json())
+        .then(res=>{
+              // console.log(res);
+            const resultValue = res.updatedRowsCount ?? res.Result ?? res.RESULT ?? 0;
+
+        if (resultValue > 0) {
+        alert('✅ Customer updated successfully'); window.location.reload();}
+            else{alert('❌ '+(res.StatusMessage||'Something went wrong'));}
+        }).catch(err=>alert('Error saving customer'));
+    }
+</script>
+<script>
+    let platforms = [], gateways = [], cardsList = [], banks = [] , TransactionTypes = [];
+    let customerCards = [];
+    let customerBanks = [];
+
+        function openTransactionModal() {
+        
+
+        // Platforms
+        fetch('/Employee/GetPlatforms')
+            .then(r => r.json())
+            .then(d => {
+                tPlatform.innerHTML = '<option value="">-- Select Platform --</option>';
+                d.forEach(x => tPlatform.innerHTML += `<option value="${x.id}">${x.name}</option>`);
+            });
+
+        // Cards + Banks (SINGLE CALL)
+        fetch('/Employee/GetCustomerCards?customerId=' + customerId)
+            .then(r => r.json())
+            .then(res => {
+                customerCards = res.creditCards || [];
+                customerBanks = res.banks || [];
+
+                // Cards
+                tCard.innerHTML = '<option value="">-- Select Card --</option>';
+                customerCards.forEach(c => {
+                    tCard.innerHTML += `<option value="${c.id}">${c.cardNumber}</option>`;
+                });
+
+                tTransferCard.innerHTML = '<option value="">-- Select Card --</option>';
+                customerCards.forEach(c => {
+                    tTransferCard.innerHTML += `<option value="${c.id}">${c.cardNumber}</option>`;
+                });
+
+                // Account Numbers
+                tAccountSelect.innerHTML = '<option value="">-- Select Account --</option>';
+                customerBanks.forEach(b => {
+                    tAccountSelect.innerHTML += `
+                      <option value="${b.bankId}">
+                        ${b.accountNumber}
+                      </option>`;
+                });
+                tWithdrawAccountSelect.innerHTML = '<option value="">-- Select Account --</option>';
+                customerBanks.forEach(b => {
+                    tWithdrawAccountSelect.innerHTML += `
+                      <option value="${b.bankId}">
+                        ${b.accountNumber}
+                      </option>`;
+                });
+            });
+
+        // Transaction Types
+        fetch('/Employee/TranasactionTypes')
+            .then(r => r.json())
+            .then(d => {
+                tTransactiontype.innerHTML = '<option value="">-- Select Transaction Type --</option>';
+                d.forEach(x => tTransactiontype.innerHTML += `<option value="${x.id}">${x.name}</option>`);
+            });
+
+        document.getElementById("transactionModal").style.display = "flex";
+    }
+
+    function closeTransactionModal(){
+        document.getElementById("transactionModal").style.display="none";
+    }
+    
+    tPlatform.onchange = function(){
+        debugger
+        fetch('/Employee/GetGateways?platformId='+this.value).then(r=>r.json()).then(d=>{
+            gateways=d;
+            tGateway.innerHTML='<option value="">-- Select Gateway --</option>';
+                d.forEach(x =>tGateway.innerHTML +=`<option value="${x.id}" data-charge="${x.charge}">${x.name}</option>`);
+        });
+    };
+
+    tGateway.onchange = function(){
+        debugger
+        let opt=this.options[this.selectedIndex];
+        tChargePercent.value=opt.dataset.charge||0;
+        calculateAmounts();
+    };
+
+            tAccountSelect.onchange = function () {
+        const bankId = this.value;
+        if (!bankId) {
+            tBankName.value = "";
+            tIfsc.value = "";
+            return;
+        }
+
+        const bank = customerBanks.find(b => b.bankId == bankId);
+        if (!bank) return;
+
+        tBankName.value = bank.bankName;
+        tIfsc.value = bank.ifscCode;
+    };
+
+    tWithdrawAccountSelect.onchange = function () {
+        const bankId = this.value;
+        if (!bankId) {
+            tWithdrawBankName.value = "";
+            tWithdrawIfsc.value = "";
+            return;
+        }
+
+        const bank = customerBanks.find(b => b.bankId == bankId);
+        if (!bank) return;
+
+        tWithdrawBankName.value = bank.bankName;
+        tWithdrawIfsc.value = bank.ifscCode;
+    };
+         tCard.onchange = function () {
+            const cardId = this.value;
+            if (!cardId) {
+                tCardHolder.value = "";
+                tCardType.value = "";
+                tCardExpiry.value = "";
+                return;
+            }
+
+            const card = customerCards.find(c => c.id == cardId);
+            if (!card) return;
+
+            tCardHolder.value = card.nameoncard;
+            tCardType.value = card.cardtypename;
+            tCardExpiry.value = card.expirydate;
+            tCardCvv.value = card.cardcvv;
+        };
+
+         tTransferCard.onchange = function () {
+            const cardId = this.value;
+            if (!cardId) {
+                tTransferCardHolder.value = "";
+                tTransferCardType.value = "";
+                tTransferCardExpiry.value = "";
+                return;
+            }
+
+            const card = customerCards.find(c => c.id == cardId);
+            if (!card) return;
+
+            tTransferCardHolder.value = card.nameoncard;
+            tTransferCardType.value = card.cardtypename;
+            tTransferCardExpiry.value = card.expirydate;
+            tTransferCardCvv.value = card.cardcvv;
+        };
+
+                    function calculateAmounts() {
+
+        let txnAmount = parseFloat(tAmount.value || 0);
+        let billAmount = parseFloat(tBillAmount.value || 0);
+        let platformPercent = parseFloat(tChargePercent.value || 0);
+        let empPercent = parseFloat(tEmpPercent.value || 0);
+        let payout = parseFloat(tpayout.value || 0);
+            let txnType = parseInt(tTransactiontype.value || 0);
+            
+        // Charges
+        let platformCharge = txnAmount * (platformPercent / 100);
+        let employeeCharge = txnAmount * (empPercent / 100);
+
+        
+        // Remaining = Bill - Transaction
+        let remaining = billAmount - txnAmount;
+@*         if (remaining < 0) remaining = 0;
+ *@
+        // Profit
+        let profit = employeeCharge - platformCharge - payout;
+@*         if (profit < 0) profit = 0;
+ *@
+        let finalAmount = 0;
+
+        // PAYMENT
+        if (txnType === 2) {
+            finalAmount = txnAmount + employeeCharge;
+        }
+
+        // WITHDRAWAL
+        else if (txnType === 3) {
+            finalAmount = txnAmount - employeeCharge;
+@*             if (finalAmount < 0) finalAmount = 0;
+ *@        }
+
+
+         let walletamt = employeeCharge - remaining;
+
+                 let otherpay = parseInt(tOtherPayAmount.value || 0);
+                 let upipay = parseInt(tUpiPayAmount.value || 0);
+                     let qrpay = parseInt(tQrPayAmount.value || 0);
+                     let accntpay = parseInt(tAccTransAmount.value || 0);
+
+                              let differenceamt = (otherpay + upipay + qrpay + accntpay ) - walletamt;
+            // Assign values
+        tChargeAmount.value = platformCharge.toFixed(2);
+        tEmpChargeAmount.value = profit.toFixed(2);
+        tremaing.value = remaining.toFixed(2);
+        tFinalAmount.value = finalAmount.toFixed(2);
+        tWalletAmount.value = walletamt.toFixed(2);
+            tDifferenceAmount.value = differenceamt.toFixed(2);
+        }
+
+        function clearPaymentFields() {
+        tQrPayAmount.value = "";
+        tAccTransAmount.value = "";
+        tUpiPayAmount.value = "";
+        tOtherPayAmount.value = "";
+    }
+
+
+
+
+            function clearTransaction() {
+                tPlatform.value = "";
+                tGateway.value = "";
+                tTransactiontype.value = "";
+                tCard.value = "";
+                tAmount.value = "";
+                tEmpPercent.value = "";
+                tFinalAmount.value = "";
+                tChargeAmount.value = "";
+                tEmpChargeAmount.value = "";
+                tAccountSelect.value = "";
+
+                tCardHolder.value = "";
+                tCardType.value = "";
+                tCardExpiry.value = "";
+                tCardCvv.value = "";
+                tBankName.value = "";
+                tIfsc.value = "";
+            }
+
+
+
+        let bankMaster = [];
+    let banksData = @Html.Raw(JsonSerializer.Serialize(Model?.BanksDetailsModel ?? new List<object>()));
+
+    banksData = banksData.map(b => ({
+        BankId: b.BankId ?? "",
+        BankName: b.BankName ?? "",
+        AccountNumber: b.AccountNumber ?? "",
+        IFSC: b.IFSCCode ?? "",
+        IsActive: b.IsActive === true,
+        IsExisting: true
+    }));
+
+    let bankEditIndex = null;
+
+    // Load bank master
+    fetch('/Employee/GetBanks')
+        .then(r => r.json())
+        .then(d => {
+            bankMaster = d;
+            renderBanks();
+        });
+
+    function renderBanks() {
+        const tbody = document.querySelector("#bankTable tbody");
+        tbody.innerHTML = "";
+
+        if (banksData.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="5">No Bank Details</td></tr>';
+            return;
+        }
+
+        banksData.forEach((b, i) => {
+            tbody.innerHTML += `
+            <tr>
+                <td>${b.BankName}</td>
+                <td>${b.AccountNumber}</td>
+                <td>${b.IFSC}</td>
+                <td>${b.IsActive ? "Active" : "InActive"}</td>
+                <td>
+                    <button class="btn-primary" onclick="openBankModal(${i})">Edit</button>
+                    ${b.IsExisting ? "" : `<button class="btn-danger" onclick="removeBank(${i})">Remove</button>`}
+                </td>
+            </tr>`;
+        });
+    }
+
+    function openBankModal(index = null) {
+        bankEditIndex = index;
+
+        bBank.innerHTML = '<option value="">-- Select Bank --</option>';
+        bankMaster.forEach(x =>
+            bBank.innerHTML += `<option value="${x.id}">${x.name}</option>`
+        );
+
+        if (index !== null) {
+            const b = banksData[index];
+            bBank.value = b.BankId;
+            bAccount.value = b.AccountNumber;
+            bIfsc.value = b.IFSC;
+            bActive.value = b.IsActive ? 'true' : 'false';
+        } else {
+            bBank.value = bAccount.value = bIfsc.value = bActive.value = "";
+        }
+
+        bankModal.style.display = "flex";
+    }
+      
+      
+
+
+    function closeBankModal() {
+        bankModal.style.display = "none";
+        bankEditIndex = null;
+    }
+
+        function saveBank() {
+        if (!bBank.value || !bAccount.value || !bIfsc.value || !bActive.value) {
+            alert("All bank fields are mandatory");
+            return;
+        }
+
+        const isEdit = bankEditIndex !== null;
+
+        const bankObj = {
+            BankId: bBank.value,
+            BankName: bBank.options[bBank.selectedIndex].text,
+            AccountNumber: bAccount.value,
+            IFSC: bIfsc.value,
+            IsActive: bActive.value === "true",
+            IsExisting: isEdit ? banksData[bankEditIndex].IsExisting : false
+        };
+
+        if (isEdit)
+            banksData[bankEditIndex] = bankObj;
+        else
+            banksData.push(bankObj);
+
+        renderBanks();
+        closeBankModal();
+    }
+
+    function removeBank(i) {
+        banksData.splice(i, 1);
+        renderBanks();
+    }
+
+
+ function saveTransaction() {
+
+        if (!tPlatform.value || !tGateway.value || !tTransactiontype.value ||!tAmount.value || !tEmpPercent.value )
+        {
+            alert("⚠️ All fields are mandatory");
+            return;
+        }
+
+            if(parseInt(tTransactiontype.value) == 2){
+                if(!tCard.value && !tWithdrawAccountSelect.value)
+                {
+                        alert("⚠️ Payment Card/Bank Details are mandatory");
+                        return;
+                }
+                if(!tAccountSelect.value && !tTransferCard.value)
+                {
+                        alert("⚠️ Swiped Card/Bank Details are mandatory");
+                        return;
+                }
+            }
+            if(parseInt(tTransactiontype.value) == 3){
+                if(!tCard.value && !tWithdrawAccountSelect.value)
+                {
+                        alert("⚠️ Withdraw Card/Bank Details are mandatory");
+                        return;
+                }
+                if(!tAccountSelect.value && !tTransferCard.value)
+                {
+                        alert("⚠️ Swiped Card/Bank Details are mandatory");
+                        return;
+                }
+            }
+
+        
+
+        if (!confirm("Are you sure you want to save this transaction?")) return;
+        debugger
+
+            const data = {
+        CustomerId: customerId || 0,
+
+        PlatformId: parseInt(tPlatform.value) || 0,
+        GatewayId: parseInt(tGateway.value) || 0,
+        TransactionTypeId: parseInt(tTransactiontype.value) || 0,
+
+        WithdrawCardId: parseInt(tCard.value) || 0,
+        WithdrawBankId: parseInt(tWithdrawAccountSelect.value) || 0,
+
+        TransactionAmount: parseFloat(tAmount.value) || 0,
+        BillAmount: parseFloat(tBillAmount.value) || 0,
+        PlatformChargeAmount: parseFloat(tChargeAmount.value) || 0,
+
+        EmployeeChargePercent: parseFloat(tEmpPercent.value) || 0,
+        ProfitAmount: parseFloat(tEmpChargeAmount.value) || 0,
+        PayOut: parseFloat(tpayout.value) || 0,
+
+        FinalAmount: parseFloat(tFinalAmount.value) || 0,
+        WalletAmount: parseFloat(tremaing.value) || 0,
+        ToBePaidByCustomer: parseFloat(tWalletAmount.value) || 0,
+
+        CardTransferAmount: parseFloat(tcardAmount.value) || 0,
+        BankTransferAmount: parseFloat(tBankAmount.value) || 0,
+
+        TransferBankId: parseInt(tAccountSelect.value) || 0,
+        TransferCardId: parseInt(tTransferCard.value) || 0,
+
+        QrTransferAmt: parseFloat(tQrPayAmount.value) || 0,
+        AcntTransferAmt: parseFloat(tAccTransAmount.value) || 0,
+        UpiTransferAmt: parseFloat(tUpiPayAmount.value) || 0,
+
+        OthersTransferAmt: parseFloat(tOtherPayAmount.value) || 0,
+
+        DifferneceAmt: parseFloat(tDifferenceAmount.value) || 0,
+
+        Remarks: tRemarks.value || ""
+    };
+
+        fetch('/Employee/AddTransaction', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+        })
+        .then(r => r.json())
+        .then(res => {
+            if (res.result > 0 || res.Result > 0) {
+                alert('✅ Transaction saved successfully');
+                closeTransactionModal();
+                clearTransaction();
+                    location.reload();
+            } else {
+                alert('❌ Failed to save transaction');
+            }
+        })
+        .catch(err => {
+            console.error(err);
+            alert('❌ Error while saving transaction');
+        });
+    }
+
+
+
+
+</script>
+<script>
+        function allowNumber(el) {
+        el.value = el.value.replace(/[^0-9.]/g, '');
+    }
+
+    function resetBank() {
+        tAccountSelect.value = "";
+        tBankName.value = "";
+        tIfsc.value = "";
+  }
+
+    function resetCard() {
+        tTransferCard.value = "";
+        tTransferCardHolder.value = "";
+        tTransferCardType.value = "";
+        tTransferCardExpiry.value = "";
+        tTransferCardCvv.value = "";
+   }
+
+ tTransactiontype.onchange = function () {
+        const isPayment = parseInt(this.value) === 2;
+
+        const ids = [
+            "tQrPayAmount",
+            "tAccTransAmount",
+            "tUpiPayAmount",
+            "tOtherPayAmount",
+            "tWithdrawAccountSelect",
+            "tWithdrawIfsc",
+            "tWithdrawBankName",
+            "tremaing",
+            "tWalletAmount",
+            "tDifferenceAmount",
+            "tBillAmount"
+        ];
+
+            tCard.value = "";
+            tCardHolder.value = "";
+            tCardCvv.value = "";
+            tCardType.value = "";
+            tCardExpiry.value = "";
+            tWithdrawAccountSelect.value = "";
+            tWithdrawBankName.value = "";
+            tWithdrawIfsc.value = "";
+            tBillAmount.value = "";
+            tremaing.value = "";
+            tWalletAmount.value = "";
+            tAccountSelect.value = "";
+            tBankName.value = "";
+            tIfsc.value = "";
+            tcardAmount.value = "";
+            tTransferCard.value = "";
+            tTransferCardHolder.value = "";
+            tTransferCardType.value = "";
+            tTransferCardCvv.value = "";
+            tTransferCardExpiry.value = "";
+            tBankAmount.value = "";
+            tQrPayAmount.value = "";
+            tAccTransAmount.value = "";
+            tUpiPayAmount.value = "";
+            tOtherPayAmount.value = "";
+            tDifferenceAmount.value = "";
+
+        ids.forEach(id => {
+            const field = document.getElementById(id)?.closest(".field");
+            if (field) field.style.display = isPayment ? "block" : "none";
+        });
+
+        if(isPayment){
+                   tCard.closest(".field").querySelector("label").innerText = "Payment Card Details";
+                    tWithdrawAccountSelect.closest(".field").querySelector("label").innerText = "Payment Bank Details";
+                    tAccountSelect.closest(".field").querySelector("label").innerText = "Swiped Bank Details";
+                    tTransferCard.closest(".field").querySelector("label").innerText = "Swiped Card Details";
+
+        }
+        else {
+                 tCard.closest(".field").querySelector("label").innerText = "Withdraw Card Details";
+                 tWithdrawAccountSelect.closest(".field").querySelector("label").innerText = "Payment Bank Details";
+                tAccountSelect.closest(".field").querySelector("label").innerText = "Bank Details";
+                tTransferCard.closest(".field").querySelector("label").innerText = "Card Details";
+            }
+
+        calculateAmounts();
+    };
+
+    // Initial state
+    resetBank();
+    resetCard();
+
+   @*  chkBank.addEventListener("change", () => {
+        if (chkBank.checked) {
+            chkCard.checked = false;
+            tAccountSelect.disabled = false;
+            resetCard();
+        } else {
+            resetBank();
+        }
+    });
+
+    chkCard.addEventListener("change", () => {
+        if (chkCard.checked) {
+            chkBank.checked = false;
+            tTransferCard.disabled = false;
+            resetBank();
+        } else {
+            resetCard();
+        }
+    }); *@
+
+
+</script>

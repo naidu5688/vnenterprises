@@ -1,0 +1,675 @@
+﻿@{
+    Layout = "~/Views/Shared/_SharedLayout_Retailer.cshtml";
+}
+@{
+    var mobile = Context.Request.Query["mobile"];
+}
+
+<style>
+    body {
+        font-family: 'Segoe UI', sans-serif;
+        background: #17362e;
+    }
+
+    .page-container {
+        max-width: 1200px;
+        margin: auto;
+        padding: 25px;
+    }
+
+    h3, h4 {
+        color: #d4af37;
+        margin-bottom: 15px;
+    }
+
+    label {
+        color: #fff;
+        font-size: 13px;
+        margin-bottom: 4px;
+        display: block;
+    }
+
+    .form-control {
+        width: 100%;
+        height: 38px;
+        background: #1e4a37;
+        border: 1px solid #d4af37;
+        border-radius: 8px;
+        color: white;
+        padding: 0 10px;
+        font-size: 13px;
+    }
+
+    .grid-3 {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 18px;
+    }
+
+    .grid-4 {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 18px;
+    }
+
+    button {
+        border-radius: 8px;
+        padding: 7px 14px;
+        font-size: 13px;
+        border: none;
+        cursor: pointer;
+    }
+
+    .btn-primary {
+        background: #d4af37;
+        color: #17362e;
+        font-weight: 600;
+    }
+
+    .btn-danger {
+        background: #8d2525;
+        color: white;
+    }
+
+    .image-upload-box {
+        background: #1e4a37;
+        border-radius: 10px;
+        padding: 10px;
+        text-align: center;
+        height: 250px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        gap: 8px;
+    }
+
+    .image-preview {
+        max-height: 150px;
+        border-radius: 8px;
+        display: none;
+        cursor: zoom-in;
+    }
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 12px;
+    }
+
+    th, td {
+        border: 1px solid #d4af37;
+        padding: 8px;
+        text-align: center;
+        color: white;
+        font-size: 13px;
+    }
+
+    th {
+        color: #d4af37;
+    }
+
+    .modal-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(0,0,0,.75);
+        display: none;
+        align-items: center;
+        justify-content: center;
+        z-index: 9999;
+    }
+
+    .modal-box {
+        background: #17362e;
+        border: 1px solid #d4af37;
+        border-radius: 12px;
+        padding: 20px;
+        width: 550px;
+    }
+
+    .grid-2 {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 15px;
+    }
+
+    .flex-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    #firstName, #lastName, #pan, #bifsccode, #cHolder {
+        text-transform: uppercase;
+    }
+
+        #firstName::placeholder,
+        #lastName::placeholder {
+            text-transform: none; 
+        }
+</style>
+
+<div class="page-container">
+    <h3>Add Customer</h3>
+
+    <!-- BASIC DETAILS -->
+    <div class="grid-3">
+        <div>
+            <label>Phone *</label>
+            <input id="phone" class="form-control" maxlength="10" value="@mobile" readonly
+            oninput="this.value=this.value.replace(/[^0-9]/g,'')" placeholder="Enter Phone Number">
+        </div>
+        <div>
+            <label>First Name *</label>
+            <input id="firstName" class="form-control" placeholder="Enter First name" >
+        </div>
+        <div>
+            <label>Last Name *</label>
+            <input id="lastName" class="form-control" placeholder="Enter Last name">
+        </div>
+        
+        <div>
+            <label>Aadhaar *</label>
+            <input id="aadhaar" class="form-control" maxlength="16"
+                   oninput="this.value=this.value.replace(/[^0-9]/g,'')" placeholder="Enter Aadhar Number">
+        </div>
+        <div>
+            <label>PAN *</label>
+            <input id="pan" class="form-control" placeholder="Enter PAN Number">
+        </div>
+    </div>
+
+    <br>
+
+    <!-- DOCUMENTS -->
+    <h4>Documents</h4>
+    <div class="grid-4">
+        @foreach (var d in new[] {
+                ("aadhaarFront","Aadhaar Front *"),
+                ("aadhaarBack","Aadhaar Back *"),
+                ("panFront","PAN Front *"),
+                ("panBack","PAN Back (Optional)")
+                })
+        {
+            <div class="image-upload-box" data-name="@d.Item1">
+                <input type="file" hidden>
+                <img class="image-preview">
+                <button class="btn-primary">Upload</button>
+                <button class="btn-danger">Delete</button>
+                <span style="color:#d4af37">@d.Item2</span>
+            </div>
+        }
+    </div>
+
+    <br>
+
+    <!-- CREDIT CARDS -->
+    <div class="flex-header">
+        <h4>Credit Cards (Optional)</h4>
+        <button class="btn-primary" onclick="openCardModal()">+ Add Card</button>
+    </div>
+
+    <table id="cardTable">
+        <thead>
+            <tr>
+                <th width="20%">Holder</th>
+                <th width="20%">Number</th>
+                <th width="10%">Expiry</th>
+                <th width="10%">Type</th>
+                <th width="10%">CVV</th>
+                <th width="10%">Status</th>
+                <th width="20%">Action</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+
+    <br>
+    <div class="flex-header">
+        <h4>Bank Details (Optional)</h4>
+        <button class="btn-primary" onclick="openBankModal()">+ Add Bank Details</button>
+    </div>
+    <table id="bankTable">
+        <thead>
+            <tr>
+                <th width="20%">Bank Name</th>
+                <th width="30%">Account Number</th>
+                <th width="20%">IFSC Code</th>
+                <th width="10%">Status</th>
+                <th width="20%">Action</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+    <br />
+    <button class="btn-primary" onclick="submitCustomer()">Save Customer</button>
+</div>
+
+<!-- CARD MODAL -->
+<div class="modal-overlay" id="cardModal">
+    <div class="modal-box">
+        <h4>Credit Card</h4>
+
+        <div class="grid-2">
+
+            <div>
+                <label>Name On Card *</label>
+                <input id="cHolder" class="form-control" placeholder="Name On Card *">
+            </div>
+
+            <div>
+                <label>Card Number *</label>
+                <input id="cNumber" class="form-control" maxlength="16"
+                       placeholder="Card Number *"
+                       oninput="this.value=this.value.replace(/[^0-9]/g,'')">
+            </div>
+
+            <div>
+                <label>Expiry (MM/YY) *</label>
+                <input id="cExpiry" class="form-control" maxlength="5"
+                       placeholder="MM/YY *"
+                       oninput="formatExpiry(this)">
+            </div>
+
+            <div>
+                <label>CVV *</label>
+                <input id="cCVV" class="form-control" maxlength="3"
+                       placeholder="CVV *"
+                       oninput="this.value=this.value.replace(/[^0-9]/g,'')">
+            </div>
+
+            <div>
+                <label>Card Type *</label>
+                <select id="cType" class="form-control"></select>
+            </div>
+
+            <div>
+                <label>Status *</label>
+                <select id="cActive" class="form-control">
+                    <option value="">-- Select Status --</option>
+                    <option value="true">Active</option>
+                    <option value="false">Inactive</option>
+                </select>
+            </div>
+
+        </div>
+
+        <div style="text-align:right;margin-top:15px">
+            <button class="btn-danger" onclick="closeCardModal()">Cancel</button>
+            <button class="btn-primary" onclick="saveCard()">Save</button>
+        </div>
+    </div>
+</div>
+<div class="modal-overlay" id="BankModel">
+    <div class="modal-box">
+        <h4>Bank Details</h4>
+
+        <div class="grid-2">
+
+            <div>
+                <label>Bank Name *</label>
+                <select id="bName" class="form-control"></select>
+            </div>
+
+            <div>
+                <label>Account Number *</label>
+                <input id="bAccoutNumber" class="form-control" maxlength="20"
+                       placeholder="Account Number *"
+                       oninput="this.value=this.value.replace(/[^0-9]/g,'')">
+            </div>
+            <div>
+                <label>IFSC Code *</label>
+                <input id="bifsccode" class="form-control" maxlength="20"
+                       placeholder="IFSC Code *" >
+            </div>
+
+
+            <div>
+                <label>Status *</label>
+                <select id="bActive" class="form-control">
+                    <option value="">-- Select Status --</option>
+                    <option value="true">Active</option>
+                    <option value="false">Inactive</option>
+                </select>
+            </div>
+
+        </div>
+
+        <div style="text-align:right;margin-top:15px">
+            <button class="btn-danger" onclick="closeBankModal()">Cancel</button>
+            <button class="btn-primary" onclick="saveBank()">Save</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    /* ---------- IMAGE HANDLING ---------- */
+    const images = {}; // To store selected files
+
+    document.querySelectorAll('.image-upload-box').forEach(box => {
+        const uploadBtn = box.querySelector('.btn-primary');
+        const deleteBtn = box.querySelector('.btn-danger');
+        const input = box.querySelector('input[type="file"]');
+        const img = box.querySelector('img');
+        const key = box.dataset.name;
+
+        uploadBtn.onclick = () => input.click();
+
+        input.onchange = () => {
+            if (input.files.length === 0) return;
+            images[key] = input.files[0];
+            img.src = URL.createObjectURL(input.files[0]);
+            img.style.display = "block";
+        };
+
+        deleteBtn.onclick = () => {
+            delete images[key];
+            img.src = "";
+            img.style.display = "none";
+            input.value = "";
+        };
+    });
+    let cards = [] ;
+    let editIndex = null;
+
+    function openCardModal(index = null) {
+        editIndex = index;
+        loadCardTypes(index !== null ? cards[index].CardTypeId : null); // Always reload from DB
+        if (index !== null) {
+            // Load data for editing
+            const card = cards[index];
+            cHolder.value = card.NameOnCard;
+            cNumber.value = card.CardNumber;
+            cExpiry.value = card.ExpiryDate;
+            cCVV.value = card.CardCVV;
+            cType.value = card.CardTypeId;
+            cActive.value = card.IsActive ? "true" : "false";
+        } else {
+            // Reset fields
+            cHolder.value = "";
+            cNumber.value = "";
+            cExpiry.value = "";
+            cCVV.value = "";
+            cType.value = "";
+            cActive.value = "";
+        }
+        cardModal.style.display = "flex";
+    }
+
+    function closeCardModal() {
+        cardModal.style.display = "none";
+        editIndex = null;
+    }
+
+        function formatExpiry(input) {
+        // Allow only numbers
+        let value = input.value.replace(/[^0-9]/g, '');
+
+        // Limit to max 4 digits (MMYY)
+        if (value.length > 4) {
+            value = value.substring(0, 4);
+        }
+
+        // Validate month when 2 digits entered
+        if (value.length >= 2) {
+            let month = parseInt(value.substring(0, 2), 10);
+
+            // Month must be 01–12
+            if (month < 1) month = "01";
+            if (month > 12) month = "12";
+
+            value = month.toString().padStart(2, '0') + value.substring(2);
+        }
+
+        // Auto add slash after MM
+        if (value.length > 2) {
+            input.value = value.substring(0, 2) + '/' + value.substring(2);
+        } else {
+            input.value = value;
+        }
+    }
+
+
+
+
+        function saveCard() {
+        if (!cHolder.value && !cNumber.value && !cExpiry.value && !cCVV.value && !cType.value) {
+            closeCardModal();
+            return;
+        }
+
+        if (!cHolder.value || !cNumber.value || !cExpiry.value || !cCVV.value || !cType.value || !cActive.value) {
+            alert("All credit card fields are mandatory if adding a card");
+            return;
+        }
+
+        const card = {
+            NameOnCard: cHolder.value.toUpperCase(),
+            CardNumber: cNumber.value,
+            ExpiryDate: cExpiry.value,
+            CardCVV: parseInt(cCVV.value),
+            CardTypeId: parseInt(cType.value), // store id
+            CardTypeName: cType.options[cType.selectedIndex].text.toUpperCase(), // for table
+            IsActive: cActive.value === "true"
+        };
+
+        if (editIndex !== null) cards[editIndex] = card;
+        else cards.push(card);
+
+        renderCards();
+        closeCardModal();
+    }
+
+
+        function renderCards() {
+        const tbody = document.querySelector("#cardTable tbody");
+        tbody.innerHTML = "";
+        cards.forEach((c, i) => {
+            tbody.innerHTML += `
+            <tr>
+                <td>${c.NameOnCard}</td>
+                <td>${c.CardNumber}</td>
+                <td>${c.ExpiryDate}</td>
+                <td>${c.CardTypeName}</td> <!-- show name instead of id -->
+                <td>${c.CardCVV}</td>
+                <td>${c.IsActive ? "Active" : "Inactive"}</td>
+                <td>
+                    <button class="btn-primary" onclick="openCardModal(${i})">Edit</button>
+                    <button class="btn-danger" onclick="cards.splice(${i},1); renderCards();">Remove</button>
+                </td>
+            </tr>`;
+        });
+    }
+
+
+    function submitCustomer() {
+        // Validate mandatory fields
+        if (!firstName.value || !lastName.value || !phone.value || !aadhaar.value || !pan.value) {
+            alert("First Name, Last Name, Phone, Aadhaar, and PAN are mandatory");
+            return;
+        }
+
+        // Validate mandatory images
+        if (!images['aadhaarFront'] || !images['aadhaarBack'] || !images['panFront']) {
+            alert("Aadhaar Front, Aadhaar Back, and PAN Front images are mandatory");
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append("FirstName", firstName.value);
+        formData.append("LastName", lastName.value);
+        formData.append("PhoneNumber", phone.value);
+        formData.append("aadharnumber", aadhaar.value);
+        formData.append("pannumber", pan.value);
+        formData.append("KycStatus", "Pending");
+        
+        // Append images
+        formData.append("AadhaarFrontImage", images['aadhaarFront']);
+        formData.append("AadhaarBackImage", images['aadhaarBack']);
+        formData.append("PanFrontImage", images['panFront']);
+        if (images['panBack']) formData.append("PanBackImage", images['panBack']);
+
+        // Append credit cards (optional)
+        cards.forEach((c, i) => {
+            formData.append(`CreditCards[${i}].NameOnCard`, c.NameOnCard);
+            formData.append(`CreditCards[${i}].CardNumber`, c.CardNumber);
+            formData.append(`CreditCards[${i}].ExpiryDate`, c.ExpiryDate);
+            formData.append(`CreditCards[${i}].CardCVV`, c.CardCVV);
+            formData.append(`CreditCards[${i}].CardTypeId`, c.CardTypeId);
+            formData.append(`CreditCards[${i}].IsActive`, c.IsActive);
+        });
+        bankRows.forEach((b, i) => {
+            formData.append(`BanksDetailsModel[${i}].BankId`, b.BankId);
+            formData.append(`BanksDetailsModel[${i}].BankName`, b.BankName);
+            formData.append(`BanksDetailsModel[${i}].AccountNumber`, b.AccountNumber);
+            formData.append(`BanksDetailsModel[${i}].IFSCCode`, b.IFSCCode);
+            formData.append(`BanksDetailsModel[${i}].IsActive`, b.IsActive);
+        });
+        debugger
+        fetch('/Employee/AddCustomer', {
+            method: 'POST',
+            body: formData
+        })
+        .then(r => r.json())
+        .then(res => {
+        if (res.updatedRowsCount > 0) {
+            alert("✅ Customer saved successfully");
+            window.location.href = "/Retailer/Customers";
+        } else {
+            alert("❌ " + (res.message || "Something went wrong"));
+        }
+    })
+        .catch(err => alert("Error saving customer"));
+    }
+
+    let bankList = [];     // dropdown list from API
+    let bankRows = [];     // added banks
+    let editBankIndex = null;
+
+
+    /* OPEN MODAL */
+        function openBankModal(index = null) {
+
+        editBankIndex = index;
+
+        if (index !== null) {
+            const b = bankRows[index];
+
+            loadBanks(b.BankId); // ← pass selected bank
+            bAccoutNumber.value = b.AccountNumber;
+            bifsccode.value = b.IFSCCode;
+            bActive.value = b.IsActive ? "true" : "false";
+        }
+        else {
+            loadBanks();
+            bName.value = "";
+            bAccoutNumber.value = "";
+            bifsccode.value = "";
+            bActive.value = "";
+        }
+
+        BankModel.style.display = "flex";
+    }
+
+
+
+    /* CLOSE MODAL */
+    function closeBankModal() {
+        BankModel.style.display = "none";
+        editBankIndex = null;
+    }
+
+
+    /* LOAD BANK DROPDOWN */
+        function loadBanks(selectedId = null) {
+
+        fetch('/Employee/GetBanks')
+            .then(r => r.json())
+            .then(data => {
+
+                bankList = data;
+                bName.innerHTML = '<option value="">-- Select Bank --</option>';
+
+                data.forEach(x => {
+                    bName.innerHTML += `<option value="${x.id}">${x.name}</option>`;
+                });
+
+                if (selectedId !== null)
+                    bName.value = selectedId;
+            });
+    }
+
+        function loadCardTypes(selectedId = null) {
+
+        fetch('/Employee/GetCardTypes')
+            .then(r => r.json())
+            .then(d => {
+
+                cType.innerHTML = '<option value="">-- Select Card Type --</option>';
+
+                d.forEach(x => {
+                    cType.innerHTML += `<option value="${x.id}">${x.name}</option>`;
+                });
+
+                if (selectedId !== null)
+                    cType.value = selectedId;
+            });
+    }
+
+
+    /* SAVE BANK */
+    function saveBank() {
+
+        // if completely empty → ignore (optional section)
+        if (!bName.value && !bAccoutNumber.value && !bifsccode.value) {
+            closeBankModal();
+            return;
+        }
+
+        // partial → mandatory
+        if (!bName.value || !bAccoutNumber.value || !bifsccode.value || !bActive.value) {
+            alert("All bank fields are mandatory if adding bank details");
+            return;
+        }
+
+        const bank = {
+            BankId: parseInt(bName.value),
+            BankName: bName.options[bName.selectedIndex].text.toUpperCase(),
+            AccountNumber: bAccoutNumber.value,
+            IFSCCode: bifsccode.value.toUpperCase(),
+            IsActive: bActive.value === "true"
+        };
+
+        if (editBankIndex !== null)
+            bankRows[editBankIndex] = bank;
+        else
+            bankRows.push(bank);
+
+        renderBanks();
+        closeBankModal();
+    }
+
+    /* RENDER TABLE */
+    function renderBanks() {
+
+        const tbody = document.querySelector("#bankTable tbody"); // ← fixed id
+
+        tbody.innerHTML = "";
+
+        bankRows.forEach((b, i) => {
+
+            tbody.innerHTML += `
+            <tr>
+                <td>${b.BankName}</td>
+                <td>${b.AccountNumber}</td>
+                <td>${b.IFSCCode}</td>
+                <td>${b.IsActive ? "Active" : "Inactive"}</td>
+                <td>
+                    <button class="btn-primary" onclick="openBankModal(${i})">Edit</button>
+                    <button class="btn-danger" onclick="bankRows.splice(${i},1); renderBanks();">Remove</button>
+                </td>
+            </tr>`;
+        });
+    }
+
+</script>
+

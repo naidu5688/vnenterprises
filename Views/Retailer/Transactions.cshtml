@@ -1,0 +1,981 @@
+﻿@{
+    Layout = "~/Views/Shared/_SharedLayout_Retailer.cshtml";
+    var userId = ViewBag.UserId;
+}
+<head>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.20.2/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+</head>
+<style>
+    /* ================= SUMMARY ================= */
+    .summary-grid {
+        display: grid;
+        grid-template-columns: repeat(6, 1fr);
+        gap: 16px;
+        margin: 20px;
+    }
+
+    .summary-card {
+        background: linear-gradient(135deg, #065440, #0b6b55);
+        color: #fff;
+        padding: 20px;
+        border-radius: 14px;
+        text-align: center;
+        
+    }
+
+    /* ================= FILTER BAR ================= */
+    .filter-bar {
+        display: grid;
+        grid-template-columns: 2.5fr 1.2fr 1.2fr 1.5fr auto;
+        gap: 12px;
+        margin: 0 25px 20px;
+        padding: 16px;
+        background: #e9f2ef;
+        border-radius: 14px;
+        box-shadow: 0 6px 14px rgba(0,0,0,0.08);
+    }
+
+        .filter-bar input,
+        .filter-bar select {
+            height: 42px;
+            padding: 0 12px;
+            border-radius: 8px;
+            border: 1px solid #cbded8;
+        }
+
+    .btn-primary {
+        background: #d4af37;
+        color: #fff;
+        border: none;
+        border-radius: 10px;
+        padding: 10px 18px;
+        cursor: pointer;
+    }
+
+        .btn-primary:hover {
+            background: #5a4b19;
+        }
+
+    /* ================= TABLE ================= */
+    .table-wrapper {
+        margin: 0 25px;
+        border-radius: 14px;
+        overflow: hidden;
+        box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+    }
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    thead {
+        background: #0b6b55;
+    }
+
+    th {
+        padding: 14px;
+        color: #fff;
+        font-size: 13px;
+        text-align: center;
+    }
+
+    td {
+        padding: 14px;
+        text-align: center;
+        font-size: 14px;
+        border-bottom: 1px solid #edf2f0;
+    }
+
+     tbody {
+        background: #dff1eb;
+    } 
+
+    tbody tr:hover {
+        background: #dff1eb;
+    }
+
+    /* ================= PAGINATION ================= */
+    #pagination {
+        display: flex;
+        justify-content: center;
+        gap: 8px;
+        margin: 20px;
+    }
+
+        #pagination button {
+            padding: 8px 14px;
+            border-radius: 8px;
+            border: none;
+            background: #e0ece8;
+            cursor: pointer;
+        }
+
+        #pagination .active-page {
+            background: #3e806f;
+            color: #fff;
+        }
+
+    /* ================= MODAL ================= */
+    .modal-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(0,0,0,0.6);
+        display: none;
+        justify-content: center;
+        align-items: center;
+        z-index: 999;
+    }
+
+    /* modal container */
+    .modal-box {
+        background: #065440;
+        padding: 22px;
+        border-radius: 14px;
+        width: 50%;
+        /* IMPORTANT */
+        max-height: 90vh; /* fit to screen */
+        overflow-y: auto; /* enable scroll */
+    }
+
+        /* nice scrollbar (optional but recommended) */
+        .modal-box::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .modal-box::-webkit-scrollbar-thumb {
+            background: rgba(255,255,255,0.4);
+            border-radius: 10px;
+        }
+
+    /* detail grid */
+    .detail-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 12px;
+        margin-top: 15px;
+    }
+
+    /* detail box */
+    .detail-box label {
+        font-size: 15px;
+        margin-bottom: 4px;
+        display: block;
+        color: #e6f5f0;
+    }
+
+    .detail-box input {
+        width: 100%;
+        height: 38px;
+        padding: 0 10px;
+        border-radius: 8px;
+        border: 1px solid #cbded8;
+        background: #f4faf8;
+    }
+    /* modal header */
+    .modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        position: sticky;
+        top: 0;
+        padding-bottom: 10px;
+        z-index: 2;
+    }
+
+        .modal-header h4 {
+            color: white;
+            font-size: 20px;
+            margin: 0;
+        }
+
+    /* close icon */
+    .close-btn {
+        background: transparent;
+        border: none;
+        color: white;
+        font-size: 22px;
+        cursor: pointer;
+        padding: 0 6px;
+    }
+
+    /* footer */
+    .modal-footer {
+        text-align: right;
+        margin-top: 15px;
+        position: sticky;
+        bottom: 0;
+        padding-top: 10px;
+    }
+
+</style>
+
+<div class="page-container">
+
+    <!-- SUMMARY -->
+    <div class="summary-grid">
+        <div class="summary-card"><h3>Total Transactions</h3><h1 id="totalTransactions">0</h1></div>
+        <div class="summary-card"><h3>Today Transactions</h3><h1 id="todayTransactions">0</h1></div>
+        <div class="summary-card"><h3>Total Incentives</h3><h1 id="totalIncentives">₹0</h1></div>
+        <div class="summary-card"><h3>Today Incentives</h3><h1 id="todayIncentives">₹0</h1></div>
+        <div class="summary-card"><h3>Total Customers Added</h3><h1 id="totalCustomers">0</h1></div>
+        <div class="summary-card"><h3>Today Customers Added</h3><h1 id="todayCustomers">0</h1></div>
+    </div>
+
+    <!-- FILTERS -->
+    <div class="filter-bar">
+        <input type="text" id="searchText" placeholder="Search Transaction / Customer">
+        <input type="date" id="startDate">
+        <input type="date" id="endDate">
+        <select id="transactionType"></select>
+        <button class="btn-primary" onclick="loadTransactions(1)">Search</button>
+        
+    </div>
+    <div style="display:flex; justify-content: flex-end; gap:15px; margin-bottom:20px;">
+        <button class="btn-primary " style="margin-right: 30px !important;" onclick="exportTransaction()">Export CSV</button>
+    </div>
+    <!-- TABLE -->
+    <div class="table-wrapper">
+        <table>
+            <thead>
+                <tr>
+                    <th>Transaction Id</th>
+                    <th>Customer</th>
+                    <th>Payment Type</th>
+                    <th>Platform</th>
+                    <th>Amount</th>
+                    <th>Final Amount</th>
+                    <th>Date & Time</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody id="transactionBody"></tbody>
+        </table>
+    </div>
+
+    <div id="pagination"></div>
+</div>
+
+<!-- VIEW MODAL -->
+<div class="modal-overlay" id="viewModal">
+    <div class="modal-box">
+
+        <!-- HEADER -->
+        <div class="modal-header">
+            <h4>Transaction Details</h4>
+            <button class="close-btn" onclick="closeView()">✕</button>
+        </div>
+
+        <!-- BODY -->
+        <div class="detail-grid" id="transactionDetails"></div>
+
+        <!-- FOOTER -->
+        <div class="modal-footer">
+            <button class="btn-primary" onclick="closeView()">Close</button>
+        </div>
+
+    </div>
+</div>
+
+
+
+
+
+<script>
+    const userId = @userId;
+    let xlsxPromise = null;
+    const pageSize = 10;
+        document.addEventListener('keydown', e => {
+        if (e.key === "Escape") closeView();
+    });
+    function ensureXlsxLoaded() {
+        if (typeof XLSX !== 'undefined') return Promise.resolve();
+
+        if (!xlsxPromise) {
+            xlsxPromise = new Promise((resolve, reject) => {
+                const cdnList = [
+                    'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js',
+                    'https://unpkg.com/xlsx@0.18.5/dist/xlsx.full.min.js',
+                    'https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js'
+                ];
+
+                let currentCdn = 0;
+
+                function tryNextCdn() {
+                    if (currentCdn >= cdnList.length) {
+                        reject(new Error('All CDNs failed'));
+                        return;
+                    }
+
+                    const script = document.createElement('script');
+                    script.src = cdnList[currentCdn];
+                    script.onload = () => {
+                        if (typeof XLSX !== 'undefined') {
+                            resolve();
+                        } else {
+                            currentCdn++;
+                            tryNextCdn();
+                        }
+                    };
+                    script.onerror = () => {
+                        currentCdn++;
+                        tryNextCdn();
+                    };
+                    document.head.appendChild(script);
+                }
+
+                tryNextCdn();
+            });
+        }
+        return xlsxPromise;
+    }
+    /* SUMMARY */
+    function loadSummary() {
+        fetch('/Employee/GetUserTransaction?userId=' + userId)
+        .then(r => r.json())
+        .then(d => {
+            totalTransactions.innerText = d.totalTransactions;
+            todayTransactions.innerText = d.todayTransactions;
+            totalIncentives.innerText = '₹' + d.totalIncentives;
+            todayIncentives.innerText = '₹' + d.todayIncentives;
+            totalCustomers.innerText = d.totalCustomersAdded;
+            todayCustomers.innerText = d.todayCustomersAdded;
+        });
+    }
+
+    /* TRANSACTION TYPES */
+    fetch('/Employee/TranasactionTypes')
+    .then(r => r.json())
+    .then(d => {
+        transactionType.innerHTML = `<option value="">All Types</option>`;
+        d.forEach(x => transactionType.innerHTML +=
+            `<option value="${x.id}">${x.name}</option>`);
+    });
+
+    /* LOAD TRANSACTIONS */
+    function loadTransactions(pageNo) {
+
+    const data = {
+        TransactionId: 0,
+        TransactionType: transactionType.value || "",
+        SearchText: searchText.value || "",
+        StartDate: startDate.value ? startDate.value + " 00:00:00" : "",
+        EndDate: endDate.value ? endDate.value + " 23:59:59" : "",
+        PageNo: pageNo,
+        PageSize: pageSize,
+        UserId: userId
+    };
+
+    fetch('/Employee/GetTransactions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+    })
+    .then(r => r.json())
+    .then(res => {
+
+    transactionBody.innerHTML = '';
+
+    if (!res.data.length) {
+        transactionBody.innerHTML = `<tr><td colspan="7">No records found</td></tr>`;
+        pagination.innerHTML = '';
+        return;
+    }
+    debugger
+    res.data.forEach(t => {
+    transactionBody.innerHTML += `
+    <tr>
+    <td>${t.transactionId}</td>
+    <td>${t.customerName}</td>
+    <td>${t.incentiveName}</td>
+    <td>${t.platformName}</td>
+    <td>₹${t.transactionAmount}</td>
+    <td>₹${t.finalAmount}</td>
+    <td>${new Date(t.createdOn).toLocaleString()}</td>
+    <td><button class="btn-primary" onclick="viewTransaction(${t.transactionId})">View</button></td>
+    </tr>`;
+    });
+
+    renderPagination(res.totalCount, pageNo);
+    });
+    }
+
+    function renderPagination(total, current) {
+        const pages = Math.ceil(total / pageSize);
+        let html = '';
+        for (let i = 1; i <= pages; i++) {
+        html += `<button class="${i === current ? 'active-page' : ''}"
+        onclick="loadTransactions(${i})">${i}</button>`;
+    }
+    pagination.innerHTML = html;
+    }
+
+    function viewTransaction(id) {
+
+        fetch('/Employee/GetTransactionById?transactionid=' + id)
+            .then(r => r.json())
+            .then(d => {
+
+                if (!d) {
+                    alert("No data found");
+                    return;
+                }
+
+                const container = document.getElementById("transactionDetails");
+                let html = "";
+
+
+                if (d.incentiveId === 2) {
+
+                    html += `
+
+                    <div class="detail-box">
+                        <label>Transaction ID</label>
+                        <input value="${d.transactionId}" readonly>
+                    </div>
+
+                    <div class="detail-box">
+                        <label>Customer Name</label>
+                        <input value="${d.customerName}" readonly>
+                    </div>
+
+                    <div class="detail-box">
+                        <label>Platform</label>
+                        <input value="${d.platformName}" readonly>
+                    </div>
+
+                    <div class="detail-box">
+                        <label>Gateway</label>
+                        <input value="${d.gatewayName}" readonly>
+                    </div>
+                    <div class="detail-box">
+                        <label>Platform Charge</label>
+                        <input value="${d.gatewayCharge}%" readonly>
+                    </div>
+                    <div class="detail-box">
+                        <label>Transaction Type</label>
+                        <input value="${d.incentiveName}" readonly>
+                    </div>
+
+                    <div class="detail-box">
+                        <label>Payment Card Number</label>
+                        <input value="${d.withdrawCardNumber}" readonly>
+                    </div>
+
+                    <div class="detail-box">
+                        <label>Card Holder Name</label>
+                        <input value="${d.withdrawNameOnCard}" readonly>
+                    </div>
+
+                    <div class="detail-box">
+                        <label>Card Type</label>
+                        <input value="${d.withdrawCardType}" readonly>
+                    </div>
+
+                    <div class="detail-box">
+                        <label>Card CVV</label>
+                        <input value="${d.withdrawCardCVV}" readonly>
+                    </div>
+
+                    <div class="detail-box">
+                        <label>Card Expriy Date</label>
+                        <input value="${d.withdrawCardExpiryDate}" readonly>
+                    </div>
+
+                    <div class="detail-box">
+                        <label>Payment Bank Number</label>
+                        <input value="${d.withdrawBankNumber}" readonly>
+                    </div>
+
+                    <div class="detail-box">
+                        <label>Bank Name</label>
+                        <input value="${d.withdrawBankName}" readonly>
+                    </div>
+
+                    <div class="detail-box">
+                        <label>Bank IFSC</label>
+                        <input value="${d.withdrawBankIFSC}" readonly>
+                    </div>
+
+                    <div class="detail-box">
+                        <label>Transaction Amount</label>
+                        <input value="₹${d.transactionAmount}" readonly>
+                    </div>
+
+                    <div class="detail-box">
+                        <label>Bill Amount</label>
+                        <input value="₹${d.billAmount}" readonly>
+                    </div>
+
+                    <div class="detail-box">
+                        <label>Platform Charge Amount</label>
+                        <input value="₹${d.platformChargeAmount}" readonly>
+                    </div>
+
+                    <div class="detail-box">
+                        <label>Employee Charge</label>
+                        <input value="${d.employeeChargePercent}%" readonly>
+                    </div>
+
+                    <div class="detail-box">
+                        <label>Profit Amount</label>
+                        <input value="₹${d.profitAmount}" readonly>
+                    </div>
+                        <div class="detail-box">
+                            <label>PayOut</label>
+                            <input value="₹${d.payOut}" readonly>
+                        </div>
+
+                        <div class="detail-box">
+                            <label>Final Amount</label>
+                            <input value="₹${d.finalAmount}" readonly>
+                        </div>
+
+                        <div class="detail-box">
+                            <label>Wallet Amount</label>
+                            <input value="₹${d.walletAmount}" readonly>
+                        </div>
+
+                        <div class="detail-box">
+                            <label>To Be Paid By Customer</label>
+                            <input value="₹${d.tobePaidByCustomer}" readonly>
+                        </div>
+                         <div class="detail-box">
+                            <label>Swiped Bank Number</label>
+                            <input value="${d.swipedBankNumber}" readonly>
+                        </div>
+
+                        <div class="detail-box">
+                            <label>Bank Name</label>
+                            <input value="${d.swipedBankName}" readonly>
+                        </div>
+                        <div class="detail-box">
+                            <label>IFSC Code</label>
+                            <input value="${d.swipedBankIFSC}" readonly>
+                        </div>
+
+                        <div class="detail-box">
+                            <label>Bank Transfer Amount</label>
+                            <input value="₹${d.accountAmountTransfer}" readonly>
+                        </div>
+                        <div class="detail-box">
+                            <label>Swiped Card Number</label>
+                            <input value="${d.swipedCardNumber}" readonly>
+                        </div>
+                        <div class="detail-box">
+                            <label>Card Holder Name</label>
+                            <input value="${d.swipedNameOnCard}" readonly>
+                        </div>
+
+                        <div class="detail-box">
+                            <label>Card Type</label>
+                            <input value="${d.swipedCardType}" readonly>
+                        </div>
+
+                        <div class="detail-box">
+                            <label>Card CVV</label>
+                            <input value="${d.swipedCardCVV}" readonly>
+                        </div>
+                        <div class="detail-box">
+                            <label>Card Expiry Date</label>
+                            <input value="${d.swipedCardExpiryDate}" readonly>
+                        </div>
+                        <div class="detail-box">
+                            <label>Card Transfer Amount</label>
+                            <input value="₹${d.cardAmountTransfer}" readonly>
+                        </div>
+                        <div class="detail-box">
+                            <label>QR Pay</label>
+                            <input value="₹${d.qrPayAmountTransfer}" readonly>
+                        </div>
+                        <div class="detail-box">
+                            <label>Account Pay</label>
+                            <input value="₹${d.accountPayAmountTransfer}" readonly>
+                        </div>
+                        <div class="detail-box">
+                            <label>UPI Pay</label>
+                            <input value="₹${d.upiPayAmountTransfer}" readonly>
+                        </div>
+                        <div class="detail-box">
+                            <label>Others</label>
+                            <input value="₹${d.othersAmountTransfer}" readonly>
+                        </div>
+
+                        <div class="detail-box">
+                            <label>Difference</label>
+                            <input value="₹${d.difference}" readonly>
+                        </div>
+                        <div class="detail-box">
+                            <label>Remark</label>
+                            <input value="${d.remarks}" readonly>
+                        </div>
+                    `;
+                }        
+                if (d.incentiveId === 3) {
+
+                    html += `
+
+                    <div class="detail-box">
+                        <label>Transaction ID</label>
+                        <input value="${d.transactionId}" readonly>
+                    </div>
+
+                    <div class="detail-box">
+                        <label>Customer Name</label>
+                        <input value="${d.customerName}" readonly>
+                    </div>
+
+                    <div class="detail-box">
+                        <label>Platform</label>
+                        <input value="${d.platformName}" readonly>
+                    </div>
+
+                    <div class="detail-box">
+                        <label>Gateway</label>
+                        <input value="${d.gatewayName}" readonly>
+                    </div>
+                    <div class="detail-box">
+                        <label>Platform Charge</label>
+                        <input value="${d.gatewayCharge}%" readonly>
+                    </div>
+                    <div class="detail-box">
+                        <label>Transaction Type</label>
+                        <input value="${d.incentiveName}" readonly>
+                    </div>
+
+                    <div class="detail-box">
+                        <label>Withdraw Card Number</label>
+                        <input value="${d.withdrawCardNumber}" readonly>
+                    </div>
+
+                    <div class="detail-box">
+                        <label>Card Holder Name</label>
+                        <input value="${d.withdrawNameOnCard}" readonly>
+                    </div>
+
+                    <div class="detail-box">
+                        <label>Card Type</label>
+                        <input value="${d.withdrawCardType}" readonly>
+                    </div>
+
+                    <div class="detail-box">
+                        <label>Card CVV</label>
+                        <input value="${d.withdrawCardCVV}" readonly>
+                    </div>
+
+                    <div class="detail-box">
+                        <label>Card Expriy Date</label>
+                        <input value="${d.withdrawCardExpiryDate}" readonly>
+                    </div>
+
+                    <div class="detail-box">
+                        <label>Transaction Amount</label>
+                        <input value="₹${d.transactionAmount}" readonly>
+                    </div>
+
+                    <div class="detail-box">
+                        <label>Platform Charge Amount</label>
+                        <input value="₹${d.platformChargeAmount}" readonly>
+                    </div>
+
+                    <div class="detail-box">
+                        <label>Employee Charge</label>
+                        <input value="${d.employeeChargePercent}%" readonly>
+                    </div>
+
+                    <div class="detail-box">
+                        <label>Profit Amount</label>
+                        <input value="₹${d.profitAmount}" readonly>
+                    </div>
+                        <div class="detail-box">
+                            <label>PayOut</label>
+                            <input value="₹${d.payOut}" readonly>
+                        </div>
+
+                        <div class="detail-box">
+                            <label>Final Amount</label>
+                            <input value="₹${d.finalAmount}" readonly>
+                        </div>
+
+                         <div class="detail-box">
+                            <label>Bank Number</label>
+                            <input value="${d.swipedBankNumber}" readonly>
+                        </div>
+
+                        <div class="detail-box">
+                            <label>Bank Name</label>
+                            <input value="${d.swipedBankName}" readonly>
+                        </div>
+                        <div class="detail-box">
+                            <label>IFSC Code</label>
+                            <input value="${d.swipedBankIFSC}" readonly>
+                        </div>
+
+                        <div class="detail-box">
+                            <label>Bank Transfer Amount</label>
+                            <input value="₹${d.accountAmountTransfer}" readonly>
+                        </div>
+                        <div class="detail-box">
+                            <label>Card Number</label>
+                            <input value="${d.swipedCardNumber}" readonly>
+                        </div>
+                        <div class="detail-box">
+                            <label>Card Holder Name</label>
+                            <input value="${d.swipedNameOnCard}" readonly>
+                        </div>
+
+                        <div class="detail-box">
+                            <label>Card Type</label>
+                            <input value="${d.swipedCardType}" readonly>
+                        </div>
+
+                        <div class="detail-box">
+                            <label>Card CVV</label>
+                            <input value="${d.swipedCardCVV}" readonly>
+                        </div>
+                        <div class="detail-box">
+                            <label>Card Expiry Date</label>
+                            <input value="${d.swipedCardExpiryDate}" readonly>
+                        </div>
+                        <div class="detail-box">
+                            <label>Card Transfer Amount</label>
+                            <input value="₹${d.cardAmountTransfer}" readonly>
+                        </div>
+                        
+                        <div class="detail-box">
+                            <label>Difference</label>
+                            <input value="₹${d.difference}" readonly>
+                        </div>
+                        <div class="detail-box">
+                            <label>Remark</label>
+                            <input value="${d.remarks}" readonly>
+                        </div>
+                    `;
+                }
+
+                container.innerHTML = html;
+
+                document.getElementById("viewModal").style.display = "flex";
+            });
+    }
+
+    function closeView() {
+    viewModal.style.display = 'none';
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+    loadSummary();
+    loadTransactions(1);
+    });
+    function resetExport(btn, originalText, originalPageSize) {
+        pageSize = originalPageSize;
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+    }
+    let xlsxLoaded = false;
+
+    async function downloadExcel(data) {
+        console.log('📊 Total records:', data.length);
+
+        const getIncentiveId = (row) => Number(row?.IncentiveId || row?.incentiveId || 0);
+        const payments = data.filter(row => getIncentiveId(row) === 2);
+        const withdrawals = data.filter(row => getIncentiveId(row) === 3);
+
+        console.log('📊 Payments:', payments.length, 'Withdrawals:', withdrawals.length);
+
+        if (payments.length === 0 && withdrawals.length === 0) {
+            alert('No Payment or Withdrawal data found');
+            return;
+        }
+
+        try {
+            await ensureXlsxLoaded();
+
+            const wb = XLSX.utils.book_new();
+
+            // ===== PAYMENTS SHEET =====
+            if (payments.length > 0) {
+                const header = [
+                    'Transaction ID', 'Employee Name', 'Customer Name', 'Platform', 'Gateway', 'Platform Charge(%)',
+                    'Transaction Type', 'Withdrawal Card Number', 'Card Holder Name', 'Card Type',
+                    'Card CVV', 'Card Expiry Date', 'Payment Bank Number', 'Bank Name', 'Bank IFSC',
+                    'Transaction Amount', 'Bill Amount', 'Platform Charge Amount', 'Employee Charge(%)',
+                    'Profit Amount', 'PayOut', 'Final Amount', 'Wallet Amount', 'To Be Paid By Customer',
+                    'Swiped Bank Number', 'Swiped Bank Name', 'Swiped IFSC', 'Bank Transfer Amount',
+                    'Swiped Card Number', 'Swiped Card Holder', 'Swiped Card Type', 'Swiped Card CVV',
+                    'Swiped Card Expiry', 'Card Transfer Amount', 'QR Pay', 'Account Pay', 'UPI Pay',
+                    'Others', 'Difference', 'Remark', 'Created On'
+                ];
+
+                const rows = payments.map(row => [
+                    row?.TransactionId || row?.transactionId || '',
+                    row?.EmployeeName || row?.employeeName || '',
+                    row?.CustomerName || row?.customerName || '',
+                    row?.PlatformName || row?.platformName || '',
+                    row?.GatewayName || row?.gatewayName || '',
+                    Number(row?.gatewayCharge || 0).toFixed(2) + '%',
+                    row?.IncentiveName || row?.incentiveName || '',
+                    row?.withdrawCardNumber || row?.WithdrawalCardNumber || '',
+                    row?.withdrawNameOnCard || row?.WithdrawNameOnCard || '',
+                    row?.withdrawCardType || row?.WithdrawCardType || '',
+                    row?.withdrawCardCVV || row?.WithdrawCardCVV || '',
+                    row?.withdrawCardExpiryDate || row?.WithdrawCardExpiryDate || '',
+                    row?.withdrawBankNumber || row?.WithdrawBankNumber || '',
+                    row?.withdrawBankName || row?.WithdrawBankName || '',
+                    row?.withdrawBankIFSC || row?.WithdrawBankIFSC || '',
+                    Number(row?.TransactionAmount || row?.transactionAmount || 0).toFixed(2),
+                    Number(row?.billAmount || 0).toFixed(2),
+                    Number(row?.platformChargeAmount || 0).toFixed(2),
+                    Number(row?.employeeChargePercent || 0).toFixed(2) + '%',
+                    Number(row?.profitAmount || 0).toFixed(2),
+                    Number(row?.payOut || 0).toFixed(2),
+                    Number(row?.FinalAmount || row?.finalAmount || 0).toFixed(2),
+                    Number(row?.walletAmount || 0).toFixed(2),
+                    Number(row?.tobePaidByCustomer || 0).toFixed(2),
+                    row?.swipedBankNumber || '',
+                    row?.swipedBankName || '',
+                    row?.swipedBankIFSC || '',
+                    Number(row?.accountAmountTransfer || 0).toFixed(2),
+                    row?.swipedCardNumber || '',
+                    row?.swipedNameOnCard || '',
+                    row?.swipedCardType || '',
+                    row?.swipedCardCVV || '',
+                    row?.swipedCardExpiryDate || '',
+                    Number(row?.cardAmountTransfer || 0).toFixed(2),
+                    Number(row?.qrPayAmountTransfer || 0).toFixed(2),
+                    Number(row?.accountPayAmountTransfer || 0).toFixed(2),
+                    Number(row?.upiPayAmountTransfer || 0).toFixed(2),
+                    Number(row?.othersAmountTransfer || 0).toFixed(2),
+                    Number(row?.difference || 0).toFixed(2),
+                    row?.remarks || row?.Remark || '',
+                    row?.CreatedOn || row?.createdOn || ''
+
+                ]);
+
+                const ws = XLSX.utils.aoa_to_sheet([header, ...rows]);
+
+                ws['!cols'] = Array(header.length).fill({wch: 16});
+                ws['!cols'][0] = {wch: 18};
+                ws['!cols'][1] = {wch: 22};
+                ws['!cols'][37] = {wch: 22};
+
+                XLSX.utils.book_append_sheet(wb, ws, 'Payments');
+            }
+
+
+            // ===== WITHDRAWALS SHEET =====
+            if (withdrawals.length > 0) {
+                const header = [
+                    'Transaction ID', 'Employee Name', 'Customer Name', 'Platform', 'Gateway', 'Platform Charge(%)',
+                    'Transaction Type', 'Withdraw Card Number', 'Card Holder Name', 'Card Type',
+                    'Card CVV', 'Card Expiry Date', 'Bank Number', 'Bank Name', 'Bank IFSC',
+                    'Transaction Amount', 'Platform Charge Amount', 'Employee Charge(%)',
+                    'Profit Amount', 'PayOut', 'Final Amount', 'Bank Transfer Amount',
+                    'Card Number', 'Card Holder Name', 'Card Type', 'Card CVV', 'Card Expiry Date',
+                    'Card Transfer Amount', 'Difference', 'Remark', 'Created On'
+                ];
+
+                const rows = withdrawals.map(row => [
+                    row?.TransactionId || row?.transactionId || '',
+                    row?.EmployeeName || row?.employeeName || '',
+                    row?.CustomerName || row?.customerName || '',
+                    row?.PlatformName || row?.platformName || '',
+                    row?.GatewayName || row?.gatewayName || '',
+                    Number(row?.gatewayCharge || 0).toFixed(2) + '%',
+                    row?.IncentiveName || row?.incentiveName || '',
+                    row?.withdrawCardNumber || row?.WithdrawCardNumber || '',
+                    row?.withdrawNameOnCard || row?.WithdrawNameOnCard || '',
+                    row?.withdrawCardType || row?.WithdrawCardType || '',
+                    row?.withdrawCardCVV || row?.WithdrawCardCVV || '',
+                    row?.withdrawCardExpiryDate || row?.WithdrawCardExpiryDate || '',
+                    row?.swipedBankNumber || '',
+                    row?.swipedBankName || '',
+                    row?.swipedBankIFSC || '',
+                    Number(row?.TransactionAmount || row?.transactionAmount || 0).toFixed(2),
+                    Number(row?.platformChargeAmount || 0).toFixed(2),
+                    Number(row?.employeeChargePercent || 0).toFixed(2) + '%',
+                    Number(row?.profitAmount || 0).toFixed(2),
+                    Number(row?.payOut || 0).toFixed(2),
+                    Number(row?.FinalAmount || row?.finalAmount || 0).toFixed(2),
+                    Number(row?.accountAmountTransfer || 0).toFixed(2),
+                    row?.swipedCardNumber || '',
+                    row?.swipedNameOnCard || '',
+                    row?.swipedCardType || '',
+                    row?.swipedCardCVV || '',
+                    row?.swipedCardExpiryDate || '',
+                    Number(row?.cardAmountTransfer || 0).toFixed(2),
+                    Number(row?.difference || 0).toFixed(2),
+                    row?.remarks || row?.Remark || '',
+                    row?.CreatedOn || row?.createdOn || ''
+
+                ]);
+
+                const ws = XLSX.utils.aoa_to_sheet([header, ...rows]);
+
+                ws['!cols'] = Array(header.length).fill({wch: 16});
+                ws['!cols'][0] = {wch: 18};
+                ws['!cols'][1] = {wch: 22};
+                ws['!cols'][27] = {wch: 22};
+
+                XLSX.utils.book_append_sheet(wb, ws, 'Withdrawals');
+            }
+
+
+            const filename = `Transactions_${new Date().toISOString().slice(0,10)}.xlsx`;
+            XLSX.writeFile(wb, filename);
+            console.log('XLSX exported:', filename);
+
+        } catch (err) {
+            console.error('XLSX export failed:', err);
+            alert('Excel export failed, see console for details.');
+        }
+    }
+
+
+    function exportTransaction() {
+        const originalPageSize = pageSize;
+
+        let start = startDate.value ? startDate.value + " 00:00:00" : '';
+        let end = endDate.value ? endDate.value + " 23:59:59" : '';
+
+        const query ={
+        TransactionId: 0,
+        TransactionType: transactionType.value || "",
+        SearchText: searchText.value || "",
+        StartDate: startDate.value ? startDate.value + " 00:00:00" : "",
+        EndDate: endDate.value ? endDate.value + " 23:59:59" : "",
+        PageNo: 0,
+        PageSize: pageSize,
+        UserId: userId
+        };
+
+        const btn = document.querySelector('button[onclick="exportTransaction()"]');
+        const originalText = btn.innerHTML;
+        btn.disabled = true;
+
+        fetch('/Employee/GetTransactions', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(query)
+        })
+        .then(r => r.json())
+        .then(res => {
+            const data = res.data || [];
+
+            if (data.length === 0) {
+                alert('No data to export');
+            } else {
+                console.log('📥 Data loaded:', data.length);
+                return downloadExcel(data);
+            }
+        })
+        .catch(err => {
+            console.error('Export failed:', err);
+            alert('Export failed: ' + err.message);
+        })
+        .finally(() => {
+            resetExport(btn, originalText, originalPageSize);
+        });
+    }
+</script>

@@ -1,0 +1,132 @@
+﻿@{
+    Layout = "~/Views/Shared/_SharedLayout_Retailer.cshtml";
+}
+
+<style>
+    /* Center whole page content */
+    .page-center {
+        min-height: calc(100vh - 68px); /* minus header height */
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+    /* Search Card */
+    .search-container {
+        background: #307665;
+        padding: 35px 40px;
+        border-radius: 15px;
+        width: 400px;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+        text-align: center;
+    }
+
+        /* Heading */
+        .search-container h1 {
+            font-size: 22px;
+            margin-bottom: 20px;
+            color: #fff;
+            font-weight: 600;
+        }
+
+        /* Input + button row */
+        .search-container > div {
+            display: flex;
+            gap: 10px;
+        }
+
+    /* Input field */
+    .search-employee {
+        flex: 1;
+        height: 42px;
+        border-radius: 8px;
+        border: 1px solid #ccc;
+        padding: 10px;
+    }
+
+    /* Button */
+    .btn-custom-global {
+        height: 42px;
+        padding: 0 20px;
+        border-radius: 8px;
+        border: none;
+        background-color: #11332a;
+        color: white;
+        font-weight: 500;
+        cursor: pointer;
+    }
+
+        .btn-custom-global:hover {
+            background-color: #17362e;
+        }
+
+</style>
+<div class="page-center">
+    <div style="margin-top: -100px;">
+        <div class="search-container">
+            <h1>Customer Profile Login</h1>
+
+            <div>
+                <input type="text"
+                       class="form-control search-employee"
+                       placeholder="Mobile Number"
+                       id="searchText"
+                       maxlength="10"
+                       oninput="this.value=this.value.replace(/[^0-9]/g,'').slice(0,10)">
+
+
+                <button class="btn-custom-global" onclick="ShowAddCustomerDiv()" type="button">
+                    <i class="fa fa-search"></i> Search
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    function ShowAddCustomerDiv() {
+
+        const mobileInput = document.getElementById("searchText");
+        const mobile = mobileInput.value.trim();
+
+        if (!/^\d{10}$/.test(mobile)) {
+            alert("Please enter a valid 10 digit mobile number");
+            mobileInput.focus();
+            return;
+        }
+
+        const btn = document.querySelector(".btn-custom-global");
+        btn.disabled = true;
+        btn.innerHTML = "Searching...";
+
+        fetch(`/Employee/GetCustomerIdByMobile?mobile=${mobile}`)
+            .then(res => res.json())
+            .then(data => {
+
+                if (!data.success) {
+                    alert(data.message || "Something went wrong");
+                    return;
+                }
+
+                if (data.exists) {
+                    window.location.href = `/Retailer/CustomerDetails?CustomerId=${data.customerId}`;
+                } else {
+                    const confirmAdd = confirm(
+                        "Customer not found.\n\nDo you want to add a new customer with this mobile number?"
+                    );
+
+                    if (confirmAdd) {
+                        window.location.href = `/Retailer/AddCustomer?mobile=${mobile}`;
+                    }
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                alert("Unable to connect. Please try again.");
+            })
+            .finally(() => {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fa fa-search"></i> Search';
+            });
+    }
+</script>
+
