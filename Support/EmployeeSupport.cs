@@ -66,7 +66,31 @@ namespace vnenterprises.Support
                 return platlist;
             }
         }
-        
+        public List<Platforms> GetPlatformsByUserId(int UserId)
+        {
+            List<Platforms> platlist = new List<Platforms>();
+            using (SqlConnection con = new SqlConnection(_connectionString))
+            using (SqlCommand cmd = new SqlCommand("vn_GetPlatfotmGatewayByUserId", con))
+            {
+                cmd.CommandType = CommandType.StoredProcedure;
+                cmd.Parameters.AddWithValue("@PlatformId", 0);
+                cmd.Parameters.AddWithValue("@UserId", UserId);
+                cmd.Parameters.AddWithValue("@FlagType", 1);
+                con.Open();
+                using (SqlDataReader dr = cmd.ExecuteReader())
+                {
+                    while (dr.Read())
+                    {
+                        platlist.Add(new Platforms
+                        {
+                            Id = Convert.ToInt32(dr["Id"]),
+                            Name = dr["Name"].ToString()
+                        });
+                    }
+                }
+                return platlist;
+            }
+        }
         public List<BankModel> GetBankList()
         {
             List<BankModel> platlist = new List<BankModel>();
@@ -169,6 +193,32 @@ namespace vnenterprises.Support
                 cmd.CommandType = CommandType.StoredProcedure;
                 cmd.Parameters.AddWithValue("@PlatformId", PlatformId);
                 cmd.Parameters.AddWithValue("@FlagType", 3);
+                con.Open();
+                using (SqlDataReader dr = cmd.ExecuteReader())
+                {
+                    while (dr.Read())
+                    {
+                        platlist.Add(new Gateway
+                        {
+                            Id = Convert.ToInt32(dr["Id"]),
+                            Name = dr["Name"].ToString(),
+                            Charge = Convert.ToDecimal(dr["Charge"])
+                        });
+                    }
+                }
+                return platlist;
+            }
+        }
+        public List<Gateway> GetGatewaysByUserId(int PlatformId , int UserId)
+        {
+            List<Gateway> platlist = new List<Gateway>();
+            using (SqlConnection con = new SqlConnection(_connectionString))
+            using (SqlCommand cmd = new SqlCommand("vn_GetPlatfotmGatewayByUserId", con))
+            {
+                cmd.CommandType = CommandType.StoredProcedure;
+                cmd.Parameters.AddWithValue("@PlatformId", PlatformId);
+                cmd.Parameters.AddWithValue("@UserId", UserId);
+                cmd.Parameters.AddWithValue("@FlagType", 2);
                 con.Open();
                 using (SqlDataReader dr = cmd.ExecuteReader())
                 {

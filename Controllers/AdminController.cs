@@ -3,6 +3,8 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.CodeAnalysis;
+using Microsoft.Data.SqlClient;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using System.Threading.Tasks;
 using vnenterprises.Filters;
@@ -33,6 +35,13 @@ namespace vnenterprises.Controllers
         [HttpGet]
         [AuthorizeUser(1)]
         public IActionResult Customers()
+        {
+            UserId = Convert.ToInt32(Request.Cookies["UserId"]);
+            return View();
+        }
+        [HttpGet]
+        [AuthorizeUser(1)]
+        public IActionResult Settings()
         {
             UserId = Convert.ToInt32(Request.Cookies["UserId"]);
             return View();
@@ -104,6 +113,27 @@ namespace vnenterprises.Controllers
         {
             var result = _adminsupport.GetBranchList();
             return Json(result);
+        }
+
+        [HttpPost]
+        public IActionResult GetSettings([FromBody] Settings model)
+        {
+            var data = _adminsupport.GetSettings(model.Flag);
+            return Json(data);
+        }
+
+        [HttpPost]
+        public IActionResult SaveSettings([FromBody] Settings model)
+        {
+            _adminsupport.SaveSettings(model.Flag, model);
+            return Json(new { success = true });
+        }
+
+        [HttpPost]
+        public IActionResult DeleteSettings([FromBody] Settings model)
+        {
+            _adminsupport.DeleteSettings(model.Flag, model.Id);
+            return Json(new { success = true });
         }
         public IActionResult GetTransactionSummary()
         {

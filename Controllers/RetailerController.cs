@@ -129,6 +129,23 @@ namespace vnenterprises.Controllers
                 return RedirectToAction("Customers");
             return View(Model);
         }
+
+        [HttpGet]
+        public IActionResult GetPlatformsByUserId()
+        {
+            int UserId = Convert.ToInt32(Request.Cookies["UserId"]);
+            var result = _employeesupport.GetPlatformsByUserId(UserId);
+            return Json(result);
+        }
+        [HttpGet]
+        public IActionResult GetGatewaysByUserId(int platformId)
+        {
+            if (platformId <= 0)
+                return Json(new List<object>());
+            int UserId = Convert.ToInt32(Request.Cookies["UserId"]);
+            var result = _employeesupport.GetGatewaysByUserId(platformId , UserId);
+            return Json(result);
+        }
         public override void OnActionExecuting(ActionExecutingContext context)
         {
             base.OnActionExecuting(context);

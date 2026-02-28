@@ -785,6 +785,93 @@ namespace vnenterprises.Support
 
             return userroles;
         }
+        public void DeleteSettings(int flag, int id)
+        {
+            using (SqlConnection con = new SqlConnection(_connectionString))
+            using (SqlCommand cmd = new SqlCommand("usp_DeleteSettings", con)) // new SP for Delete
+            {
+                cmd.CommandType = CommandType.StoredProcedure;
+                cmd.Parameters.AddWithValue("@Flag", flag);
+                cmd.Parameters.AddWithValue("@Id", id);
+
+                con.Open();
+                cmd.ExecuteNonQuery();
+            }
+        }
+        public void SaveSettings(int flag, Settings model)
+        {
+            using (SqlConnection con = new SqlConnection(_connectionString))
+            using (SqlCommand cmd = new SqlCommand("usp_SaveSettings", con)) // new SP for Save/Update
+            {
+                cmd.CommandType = CommandType.StoredProcedure;
+                cmd.Parameters.AddWithValue("@Flag", flag);
+                cmd.Parameters.AddWithValue("@Id", model?.Id ?? (object)DBNull.Value);
+                cmd.Parameters.AddWithValue("@Name", model?.Name ?? (object)DBNull.Value);
+                cmd.Parameters.AddWithValue("@Amount", model?.Amount ?? (object)DBNull.Value);
+
+                con.Open();
+                cmd.ExecuteNonQuery();
+            }
+        }
+        public List<Settings> GetSettings(int flag)
+        {
+            var list = new List<Settings>();
+            using (SqlConnection con = new SqlConnection(_connectionString))
+            using (SqlCommand cmd = new SqlCommand("usp_fn_GetSettings", con)) // new SP for Get
+            {
+                cmd.CommandType = CommandType.StoredProcedure;
+                cmd.Parameters.AddWithValue("@Flag", flag);
+
+                con.Open();
+                using (SqlDataReader dr = cmd.ExecuteReader())
+                {
+                    while (dr.Read())
+                    {
+                        list.Add(new Settings
+                        {
+                            Id = Convert.ToInt32(dr["Id"]),
+                            Name = dr["Name"].ToString(),
+                            Amount = dr["Amount"] == DBNull.Value ? null : Convert.ToDecimal(dr["Amount"])
+                        });
+                    }
+                }
+            }
+            return list;
+        }
+        public List<Settings> ManageSettings(int flag, Settings model)
+        {
+            var list = new List<Settings>();
+
+            using (SqlConnection con = new SqlConnection(_connectionString))
+            {
+                using (SqlCommand cmd = new SqlCommand("usp_fn_GetSettings", con))
+                {
+                    cmd.CommandType = CommandType.StoredProcedure;
+
+                    cmd.Parameters.AddWithValue("@Flag", flag);
+                    cmd.Parameters.AddWithValue("@Id", model?.Id ?? (object)DBNull.Value);
+                    cmd.Parameters.AddWithValue("@Name", model?.Name ?? (object)DBNull.Value);
+                    cmd.Parameters.AddWithValue("@Amount", model?.Amount ?? (object)DBNull.Value);
+
+                    con.Open();
+
+                    using (SqlDataReader dr = cmd.ExecuteReader())
+                    {
+                        while (dr.Read())
+                        {
+                            list.Add(new Settings
+                            {
+                                Id = Convert.ToInt32(dr["Id"]),
+                                Name = dr["Name"].ToString(),
+                                Amount = dr["Amount"] == DBNull.Value ? null : Convert.ToDecimal(dr["Amount"])
+                            });
+                        }
+                    }
+                }
+            }
+
+            return list;
+        }
         public PlatformGatewayViewModel GetPlatformGatewayList()
         {
             var viewModel = new PlatformGatewayViewModel

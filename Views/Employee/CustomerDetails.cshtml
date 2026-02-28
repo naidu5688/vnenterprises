@@ -769,7 +769,7 @@
         
 
         // Platforms
-        fetch('/Employee/GetPlatforms')
+            fetch('/Retailer/GetPlatformsByUserId')
             .then(r => r.json())
             .then(d => {
                 tPlatform.innerHTML = '<option value="">-- Select Platform --</option>';
@@ -828,7 +828,7 @@
     
     tPlatform.onchange = function(){
         debugger
-        fetch('/Employee/GetGateways?platformId='+this.value).then(r=>r.json()).then(d=>{
+            fetch('/Retailer/GetGatewaysByUserId?platformId='+this.value).then(r=>r.json()).then(d=>{
             gateways=d;
             tGateway.innerHTML='<option value="">-- Select Gateway --</option>';
                 d.forEach(x =>tGateway.innerHTML +=`<option value="${x.id}" data-charge="${x.charge}">${x.name}</option>`);

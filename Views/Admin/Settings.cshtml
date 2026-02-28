@@ -1,10 +1,620 @@
 ﻿@{
     Layout = "~/Views/Shared/_SharedLayout_Admin.cshtml";
 }
-<style>
 
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+<style>
+    :root {
+        --forest: #17362e;
+        --emerald: #2e7d5d;
+        --mint: #e8f5f0;
+        --sage: #a8c5b8;
+        --danger: #c0392b;
+        --danger-light: #fdf0ef;
+        --amber: #d97706;
+        --amber-light: #fffbeb;
+        --text: #1a1a1a;
+        --muted: #6b7280;
+        --border: #e5e7eb;
+        --white: #ffffff;
+        --bg: #f0f4f2;
+        --radius: 10px;
+        --shadow: 0 2px 12px rgba(23,54,46,.08);
+        --shadow-md: 0 6px 24px rgba(23,54,46,.12);
+    }
+
+    * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+    }
+
+    body {
+        background: var(--bg);
+        font-family: 'DM Sans', sans-serif;
+        color: var(--text);
+    }
+
+    .wrapper {
+        padding: 32px 28px;
+        max-width: 1000px;
+    }
+
+    .page-header {
+        margin-bottom: 28px;
+    }
+
+        .page-header h2 {
+            font-size: 22px;
+            font-weight: 700;
+            color: var(--forest);
+            letter-spacing: -.3px;
+        }
+
+        .page-header p {
+            font-size: 13px;
+            color: var(--muted);
+            margin-top: 3px;
+        }
+
+    .tabs-container {
+        background: var(--white);
+        border-radius: var(--radius);
+        padding: 6px;
+        display: inline-flex;
+        gap: 4px;
+        box-shadow: var(--shadow);
+        margin-bottom: 20px;
+    }
+
+    .tab-btn {
+        cursor: pointer;
+        padding: 9px 18px;
+        font-weight: 600;
+        font-size: 13px;
+        border: none;
+        background: transparent;
+        border-radius: 7px;
+        color: var(--muted);
+        transition: all .2s ease;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+        .tab-btn:hover {
+            color: var(--forest);
+            background: var(--mint);
+        }
+
+        .tab-btn.active {
+            background: var(--forest);
+            color: var(--white);
+            box-shadow: 0 2px 8px rgba(23,54,46,.25);
+        }
+
+    .card {
+        background: var(--white);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow);
+        overflow: hidden;
+    }
+
+    .card-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 18px 22px;
+        border-bottom: 1px solid var(--border);
+    }
+
+    .card-title {
+        font-size: 15px;
+        font-weight: 700;
+        color: var(--forest);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .record-count {
+        background: var(--mint);
+        color: var(--emerald);
+        font-size: 11px;
+        font-weight: 700;
+        padding: 2px 8px;
+        border-radius: 20px;
+        font-family: 'DM Mono', monospace;
+    }
+
+    .btn-add {
+        background: var(--emerald);
+        color: white;
+        padding: 8px 16px;
+        border: none;
+        border-radius: 7px;
+        font-size: 13px;
+        font-weight: 600;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        transition: all .2s;
+    }
+
+        .btn-add:hover {
+            background: var(--forest);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(46,125,93,.3);
+        }
+
+    #dataArea {
+        padding: 0;
+    }
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    thead tr {
+        background: var(--forest);
+    }
+
+    th {
+        padding: 11px 18px;
+        text-align: left;
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: .8px;
+        text-transform: uppercase;
+        color: var(--sage);
+        font-family: 'DM Mono', monospace;
+    }
+
+    tbody tr {
+        border-bottom: 1px solid var(--border);
+        transition: background .15s;
+    }
+
+        tbody tr:last-child {
+            border-bottom: none;
+        }
+
+        tbody tr:hover {
+            background: #fafcfb;
+        }
+
+    td {
+        padding: 13px 18px;
+        font-size: 14px;
+        color: var(--text);
+        vertical-align: middle;
+    }
+
+        td.actions {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+    .edit-input {
+        border: 1.5px solid var(--border);
+        border-radius: 6px;
+        padding: 5px 10px;
+        font-size: 13px;
+        font-family: 'DM Sans', sans-serif;
+        color: var(--text);
+        outline: none;
+        transition: border-color .2s;
+        width: 100%;
+        max-width: 180px;
+    }
+
+        .edit-input:focus {
+            border-color: var(--emerald);
+            box-shadow: 0 0 0 3px rgba(46,125,93,.1);
+        }
+
+    .btn {
+        padding: 6px 12px;
+        border: none;
+        border-radius: 6px;
+        font-size: 12px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all .2s;
+        font-family: 'DM Sans', sans-serif;
+        white-space: nowrap;
+    }
+
+    .btn-edit {
+        background: var(--amber-light);
+        color: var(--amber);
+    }
+
+        .btn-edit:hover {
+            background: #fef3c7;
+            transform: translateY(-1px);
+        }
+
+    .btn-save {
+        background: var(--mint);
+        color: var(--emerald);
+    }
+
+        .btn-save:hover {
+            background: #d1ede4;
+            transform: translateY(-1px);
+        }
+
+    .btn-cancel-edit {
+        background: #f3f4f6;
+        color: var(--muted);
+    }
+
+        .btn-cancel-edit:hover {
+            background: #e5e7eb;
+        }
+
+    .btn-delete {
+        background: var(--danger-light);
+        color: var(--danger);
+    }
+
+        .btn-delete:hover {
+            background: #fde8e8;
+            transform: translateY(-1px);
+        }
+
+    .empty-state {
+        padding: 52px 20px;
+        text-align: center;
+        color: var(--muted);
+    }
+
+        .empty-state .icon {
+            font-size: 38px;
+            margin-bottom: 10px;
+        }
+
+        .empty-state p {
+            font-size: 14px;
+        }
+
+    .loading {
+        padding: 40px;
+        text-align: center;
+        color: var(--muted);
+        font-size: 13px;
+    }
+
+    .spinner {
+        display: inline-block;
+        width: 20px;
+        height: 20px;
+        border: 2px solid var(--border);
+        border-top-color: var(--emerald);
+        border-radius: 50%;
+        animation: spin .7s linear infinite;
+        margin-bottom: 8px;
+    }
+
+    .modal {
+        position: fixed;
+        inset: 0;
+        background: rgba(0,0,0,.55);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 1000;
+        backdrop-filter: blur(4px);
+    }
+
+    .modal-box {
+        background: #fff;
+        padding: 28px;
+        border-radius: 14px;
+        width: 400px;
+        box-shadow: 0 15px 40px rgba(0,0,0,.2);
+    }
+
+        .modal-box h4 {
+            font-size: 17px;
+            font-weight: 700;
+            color: var(--forest);
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+    .form-group {
+        margin-bottom: 16px;
+    }
+
+        .form-group label {
+            display: block;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--muted);
+            margin-bottom: 6px;
+            text-transform: uppercase;
+            letter-spacing: .5px;
+        }
+
+    .form-control {
+        width: 100%;
+        border: 1.5px solid var(--border);
+        border-radius: 8px;
+        padding: 9px 12px;
+        font-size: 14px;
+        font-family: 'DM Sans', sans-serif;
+        color: var(--text);
+        outline: none;
+        transition: border-color .2s, box-shadow .2s;
+    }
+
+        .form-control:focus {
+            border-color: var(--emerald);
+            box-shadow: 0 0 0 3px rgba(46,125,93,.12);
+        }
+
+    .modal-actions {
+        display: flex;
+        gap: 10px;
+        margin-top: 20px;
+    }
+
+        .modal-actions .btn-add {
+            flex: 1;
+            justify-content: center;
+            padding: 10px;
+        }
+
+        .modal-actions .btn-cancel {
+            padding: 10px 18px;
+            background: #f3f4f6;
+            color: var(--muted);
+            border: none;
+            border-radius: 7px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            font-family: 'DM Sans', sans-serif;
+            transition: background .2s;
+        }
+
+            .modal-actions .btn-cancel:hover {
+                background: #e5e7eb;
+            }
+
+    .hidden {
+        display: none !important;
+    }
+
+    .toast {
+        position: fixed;
+        bottom: 24px;
+        right: 24px;
+        background: var(--forest);
+        color: white;
+        padding: 12px 20px;
+        border-radius: 8px;
+        font-size: 13px;
+        font-weight: 500;
+        box-shadow: var(--shadow-md);
+        z-index: 2000;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+        .toast.success {
+            background: var(--emerald);
+        }
+
+        .toast.error {
+            background: var(--danger);
+        }
 </style>
 
-<div>
+<div class="wrapper">
+    <div class="page-header">
+        <h2>⚙️ System Settings</h2>
+        <p>Manage incentives, branches, card types, and banks</p>
+    </div>
 
+    <div class="tabs-container">
+        <button class="tab-btn active" onclick="switchTab(event,1)"><span class="tab-icon">🎁</span> Incentive</button>
+        <button class="tab-btn" onclick="switchTab(event,2)"><span class="tab-icon">🏢</span> Branch</button>
+        <button class="tab-btn" onclick="switchTab(event,3)"><span class="tab-icon">💳</span> Card Type</button>
+        <button class="tab-btn" onclick="switchTab(event,4)"><span class="tab-icon">🏦</span> Bank</button>
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            <div class="card-title">
+                <span id="tabLabel">Incentive</span>
+                <span class="record-count" id="recordCount">0</span>
+            </div>
+            <button class="btn-add" id="addBtn" onclick="openAdd()">＋ Add New</button>
+        </div>
+        <div id="dataArea">
+            <div class="loading"><div class="spinner"></div><br>Loading...</div>
+        </div>
+    </div>
 </div>
+
+<!-- Add Modal -->
+<div id="modal" class="modal hidden">
+    <div class="modal-box">
+        <h4 id="modalTitle">➕ Add New Entry</h4>
+        <div class="form-group">
+            <label>Name</label>
+            <input type="text" id="name" class="form-control" placeholder="Enter name..." />
+        </div>
+        <div class="form-group" id="amountGroup" style="display:none">
+            <label>Amount</label>
+            <input type="number" id="amount" class="form-control" placeholder="0.00" />
+        </div>
+        <div class="modal-actions">
+            <button class="btn-add" onclick="save()">✓ Save</button>
+            <button class="btn-cancel" onclick="closeModal()">Cancel</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    let currentFlag = 1;
+    const tabLabels = {1:'Incentive',2:'Branch',3:'Card Type',4:'Bank'};
+    let editingId = null;
+
+    document.addEventListener("DOMContentLoaded",()=>{
+                    document.getElementById("addBtn").style.display = (currentFlag === 1) ? "none" : "flex";
+
+        load(currentFlag);
+    });
+
+    function switchTab(e, flag){
+        document.querySelectorAll(".tab-btn").forEach(b=>b.classList.remove("active"));
+        e.currentTarget.classList.add("active");
+        currentFlag = flag;
+        document.getElementById("tabLabel").textContent = tabLabels[flag];
+        document.getElementById("addBtn").style.display = "flex";
+            document.getElementById("addBtn").style.display = (flag === 1) ? "none" : "flex";
+
+        load(flag);
+    }
+
+    function load(flag){
+        document.getElementById("dataArea").innerHTML='<div class="loading"><div class="spinner"></div><br>Loading...</div>';
+
+        fetch('/Admin/GetSettings',{
+            method:'POST',
+            headers:{'Content-Type':'application/json'},
+            body: JSON.stringify({ Flag: flag })
+        })
+        .then(res=>res.json())
+        .then(data=>{
+            document.getElementById("recordCount").textContent=data.length;
+            if(data.length===0){
+                document.getElementById("dataArea").innerHTML=`<div class="empty-state"><div class="icon">📭</div><p>No records found.</p></div>`;
+                return;
+            }
+
+            let html="<table><thead><tr><th>#</th><th>Name</th>";
+            if(flag==1) html+="<th>Amount</th>";
+            html+="<th>Actions</th></tr></thead><tbody>";
+
+            data.forEach((x,i)=>{
+                html+=`<tr id="row-${x.id}"><td style="color:var(--muted);font-family:'DM Mono',monospace;font-size:12px;">${String(i+1).padStart(2,'0')}</td>`;
+                if(flag==1){
+                    html+=`<td>${escHtml(x.name)}</td>`;
+                    html+=`<td id="amt-cell-${x.id}"><span class="view-amt">${x.amount??'0'}</span><input class="edit-input hidden view-amt-edit" type="number" value="${x.amount??''}" style="max-width:110px;" /></td>`;
+                } else {
+                    html+=`<td id="name-cell-${x.id}"><span class="view-name">${escHtml(x.name)}</span><input class="edit-input hidden view-name-edit" value="${escHtml(x.name)}"/></td>`;
+                }
+
+                html+=`<td class="actions" id="actions-${x.id}">`;
+                html+=`<button class="btn btn-edit" onclick="startEdit(${x.id},${flag})">✏️ Edit</button>`;
+                html+=`<button class="btn btn-save hidden" onclick="saveEdit(${x.id},${flag})">💾 Save</button>`;
+                html+=`<button class="btn btn-cancel-edit hidden" onclick="cancelEdit()">✕</button>`;
+                if(flag!=1) html+=`<button class="btn btn-delete" onclick="del(${x.id})">🗑 Delete</button>`;
+                html+=`</td></tr>`;
+            });
+
+            html+="</tbody></table>";
+            document.getElementById("dataArea").innerHTML=html;
+        })
+        .catch(()=>showToast("Failed to load data","error"));
+    }
+
+    function startEdit(id, flag){
+        editingId = id;
+        if(flag==1){
+            const amtCell=document.getElementById(`amt-cell-${id}`);
+            amtCell.querySelector('.view-amt').classList.add('hidden');
+            amtCell.querySelector('.view-amt-edit').classList.remove('hidden');
+        } else {
+            const nameCell=document.getElementById(`name-cell-${id}`);
+            nameCell.querySelector('.view-name').classList.add('hidden');
+            nameCell.querySelector('.view-name-edit').classList.remove('hidden');
+        }
+        const actions=document.getElementById(`actions-${id}`);
+        actions.querySelector('.btn-edit').classList.add('hidden');
+        actions.querySelector('.btn-save').classList.remove('hidden');
+        actions.querySelector('.btn-cancel-edit').classList.remove('hidden');
+    }
+
+    function cancelEdit(){ load(currentFlag); editingId=null; }
+
+    function saveEdit(id, flag){
+        const payload={ Flag: flag, Id: id };
+        if(flag==1){
+            const amtInput=document.querySelector(`#amt-cell-${id} .view-amt-edit`);
+            payload.Amount=parseFloat(amtInput.value)||0;
+        } else {
+            const nameInput=document.querySelector(`#name-cell-${id} .view-name-edit`);
+            const name=nameInput.value.trim();
+            if(!name){ showToast("Name cannot be empty","error"); return; }
+            payload.Name=name;
+        }
+
+        fetch('/Admin/SaveSettings',{
+            method:'POST',
+            headers:{'Content-Type':'application/json'},
+            body: JSON.stringify(payload)
+        }).then(()=>{ showToast("Updated successfully","success"); load(flag); })
+          .catch(()=>showToast("Update failed","error"));
+    }
+
+    function openAdd(){
+        editingId = null;
+        document.getElementById("name").value='';
+        document.getElementById("amount").value='';
+        document.getElementById("amountGroup").style.display=(currentFlag==1)?'block':'none';
+        document.getElementById("modalTitle").textContent=`➕ Add New ${tabLabels[currentFlag]}`;
+        document.getElementById("modal").classList.remove("hidden");
+        setTimeout(()=>document.getElementById("name").focus(),100);
+        document.body.style.overflow="hidden";
+    }
+
+    function closeModal(){ document.getElementById("modal").classList.add("hidden"); document.body.style.overflow="auto"; }
+
+    function save(){
+        const name=document.getElementById("name").value.trim();
+        if(!name && currentFlag!=1){ showToast("Please enter a name","error"); return; }
+
+        const payload={ Flag: currentFlag, Name: name };
+        if(currentFlag==1) payload.Amount=parseFloat(document.getElementById("amount").value)||0;
+        if(editingId) payload.Id = editingId;
+
+        fetch('/Admin/SaveSettings',{
+            method:'POST',
+            headers:{'Content-Type':'application/json'},
+            body: JSON.stringify(payload)
+        }).then(()=>{ closeModal(); showToast(`${tabLabels[currentFlag]} saved successfully`,"success"); load(currentFlag); })
+          .catch(()=>showToast("Save failed","error"));
+    }
+
+    function del(id){
+        if(!confirm("Are you sure you want to delete this record?")) return;
+        fetch('/Admin/DeleteSettings',{
+            method:'POST',
+            headers:{'Content-Type':'application/json'},
+            body: JSON.stringify({ Flag: currentFlag, Id: id })
+        }).then(()=>{ showToast("Deleted successfully","success"); load(currentFlag); })
+          .catch(()=>showToast("Delete failed","error"));
+    }
+
+    function escHtml(str){ return str.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
+
+    function showToast(msg,type='success'){
+        const t=document.createElement('div');
+        t.className=`toast ${type}`; t.textContent=msg;
+        document.body.appendChild(t);
+        setTimeout(()=>{ t.style.opacity=0; setTimeout(()=>t.remove(),300); },3000);
+    }
+</script>
