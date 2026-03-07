@@ -467,7 +467,10 @@
                         <label>Card Holder Name</label>
                         <input value="${d.withdrawNameOnCard}" readonly>
                     </div>
-
+                    <div class="detail-box">
+                            <label>Card Bank Name</label>
+                            <input value="${d.withdrawCardBankName}" readonly>
+                    </div>
                     <div class="detail-box">
                         <label>Card Type</label>
                         <input value="${d.withdrawCardType}" readonly>
@@ -484,10 +487,13 @@
                     </div>
 
                     <div class="detail-box">
+                        <label>Payment Bank Holder Name</label>
+                        <input value="${d.withdrawBankHolderName}" readonly>
+                    </div>
+                    <div class="detail-box">
                         <label>Payment Bank Number</label>
                         <input value="${d.withdrawBankNumber}" readonly>
                     </div>
-
                     <div class="detail-box">
                         <label>Bank Name</label>
                         <input value="${d.withdrawBankName}" readonly>
@@ -541,6 +547,10 @@
                             <label>To Be Paid By Customer</label>
                             <input value="₹${d.tobePaidByCustomer}" readonly>
                         </div>
+                        <div class="detail-box">
+                            <label>Swiped Holder Name</label>
+                            <input value="${d.swipedBankHolderName}" readonly>
+                        </div>
                          <div class="detail-box">
                             <label>Swiped Bank Number</label>
                             <input value="${d.swipedBankNumber}" readonly>
@@ -562,6 +572,10 @@
                         <div class="detail-box">
                             <label>Swiped Card Number</label>
                             <input value="${d.swipedCardNumber}" readonly>
+                        </div>
+                         <div class="detail-box">
+                            <label>Swiped Bank Name</label>
+                            <input value="${d.swipedCardBankName}" readonly>
                         </div>
                         <div class="detail-box">
                             <label>Card Holder Name</label>
@@ -653,7 +667,10 @@
                         <label>Card Holder Name</label>
                         <input value="${d.withdrawNameOnCard}" readonly>
                     </div>
-
+                    <div class="detail-box">
+                            <label>Card Bank Name</label>
+                            <input value="${d.withdrawCardBankName}" readonly>
+                    </div>
                     <div class="detail-box">
                         <label>Card Type</label>
                         <input value="${d.withdrawCardType}" readonly>
@@ -697,7 +714,10 @@
                             <label>Final Amount</label>
                             <input value="₹${d.finalAmount}" readonly>
                         </div>
-
+                        <div class="detail-box">
+    <label>Swiped Holder Name</label>
+    <input value="${d.swipedBankHolderName}" readonly>
+</div>
                          <div class="detail-box">
                             <label>Bank Number</label>
                             <input value="${d.swipedBankNumber}" readonly>
@@ -719,6 +739,10 @@
                         <div class="detail-box">
                             <label>Card Number</label>
                             <input value="${d.swipedCardNumber}" readonly>
+                        </div>
+                         <div class="detail-box">
+                            <label>Swiped Bank Name</label>
+                            <input value="${d.swipedCardBankName}" readonly>
                         </div>
                         <div class="detail-box">
                             <label>Card Holder Name</label>
@@ -798,12 +822,12 @@
             if (payments.length > 0) {
                 const header = [
                     'Transaction ID', 'Employee Name', 'Customer Name', 'Platform', 'Gateway', 'Platform Charge(%)',
-                    'Transaction Type', 'Withdrawal Card Number', 'Card Holder Name', 'Card Type',
-                    'Card CVV', 'Card Expiry Date', 'Payment Bank Number', 'Bank Name', 'Bank IFSC',
+                    'Transaction Type', 'Withdrawal Card Number', 'Withdraw Card Bank Name' , 'Card Holder Name', 'Card Type',
+                        'Card CVV', 'Card Expiry Date','Payment Bank Holder Number', 'Payment Bank Number', 'Bank Name', 'Bank IFSC',
                     'Transaction Amount', 'Bill Amount', 'Platform Charge Amount', 'Employee Charge(%)',
                     'Profit Amount', 'PayOut', 'Final Amount', 'Wallet Amount', 'To Be Paid By Customer',
-                    'Swiped Bank Number', 'Swiped Bank Name', 'Swiped IFSC', 'Bank Transfer Amount',
-                    'Swiped Card Number', 'Swiped Card Holder', 'Swiped Card Type', 'Swiped Card CVV',
+                        'Swiped Bank Holder Name', 'Swiped Bank Number', 'Swiped Bank Name', 'Swiped IFSC', 'Bank Transfer Amount',
+                        'Swiped Card Number', 'Swiped Card Holder','Swiped Card Bank Name', 'Swiped Card Type', 'Swiped Card CVV',
                     'Swiped Card Expiry', 'Card Transfer Amount', 'QR Pay', 'Account Pay', 'UPI Pay',
                     'Others', 'Difference', 'Remark', 'Created On'
                 ];
@@ -816,12 +840,14 @@
                     row?.GatewayName || row?.gatewayName || '',
                     Number(row?.gatewayCharge || 0).toFixed(2) + '%',
                     row?.IncentiveName || row?.incentiveName || '',
-                    row?.withdrawCardNumber || row?.WithdrawalCardNumber || '',
+                        row?.withdrawCardNumber || row?.WithdrawalCardNumber || '',
+                                row?.WithdrawCardBankName || row?.WithdrawCardBankName || '',
                     row?.withdrawNameOnCard || row?.WithdrawNameOnCard || '',
                     row?.withdrawCardType || row?.WithdrawCardType || '',
                     row?.withdrawCardCVV || row?.WithdrawCardCVV || '',
                     row?.withdrawCardExpiryDate || row?.WithdrawCardExpiryDate || '',
-                    row?.withdrawBankNumber || row?.WithdrawBankNumber || '',
+                                    row?.WithdrawBankHolderName || row?.WithdrawBankHolderName || '',
+                            row?.withdrawBankNumber || row?.WithdrawBankNumber || '',
                     row?.withdrawBankName || row?.WithdrawBankName || '',
                     row?.withdrawBankIFSC || row?.WithdrawBankIFSC || '',
                     Number(row?.TransactionAmount || row?.transactionAmount || 0).toFixed(2),
@@ -833,12 +859,14 @@
                     Number(row?.FinalAmount || row?.finalAmount || 0).toFixed(2),
                     Number(row?.walletAmount || 0).toFixed(2),
                     Number(row?.tobePaidByCustomer || 0).toFixed(2),
-                    row?.swipedBankNumber || '',
+                            row?.SwipedBankHolderName || '',
+                        row?.swipedBankNumber || '',
                     row?.swipedBankName || '',
                     row?.swipedBankIFSC || '',
                     Number(row?.accountAmountTransfer || 0).toFixed(2),
                     row?.swipedCardNumber || '',
-                    row?.swipedNameOnCard || '',
+                        row?.swipedNameOnCard || '',
+                            row?.SwipedCardBankName || '',
                     row?.swipedCardType || '',
                     row?.swipedCardCVV || '',
                     row?.swipedCardExpiryDate || '',
@@ -868,11 +896,11 @@
             if (withdrawals.length > 0) {
                 const header = [
                     'Transaction ID', 'Employee Name', 'Customer Name', 'Platform', 'Gateway', 'Platform Charge(%)',
-                    'Transaction Type', 'Withdraw Card Number', 'Card Holder Name', 'Card Type',
-                    'Card CVV', 'Card Expiry Date', 'Bank Number', 'Bank Name', 'Bank IFSC',
+                        'Transaction Type', 'Withdraw Card Number',  'Withdraw Card Bank Name' , 'Card Holder Name', 'Card Type',
+                    'Card CVV', 'Card Expiry Date', 
                     'Transaction Amount', 'Platform Charge Amount', 'Employee Charge(%)',
-                    'Profit Amount', 'PayOut', 'Final Amount', 'Bank Transfer Amount',
-                    'Card Number', 'Card Holder Name', 'Card Type', 'Card CVV', 'Card Expiry Date',
+                        'Profit Amount', 'PayOut', 'Final Amount', 'Holder Name', 'Bank Number', 'Bank Name', 'Bank IFSC', 'Bank Transfer Amount',
+                        'Card Number', 'Card Holder Name', 'Card Bank Name', 'Card Type', 'Card CVV', 'Card Expiry Date',
                     'Card Transfer Amount', 'Difference', 'Remark', 'Created On'
                 ];
 
@@ -884,23 +912,26 @@
                     row?.GatewayName || row?.gatewayName || '',
                     Number(row?.gatewayCharge || 0).toFixed(2) + '%',
                     row?.IncentiveName || row?.incentiveName || '',
-                    row?.withdrawCardNumber || row?.WithdrawCardNumber || '',
+                        row?.withdrawCardNumber || row?.WithdrawCardNumber || '',
+                                row?.WithdrawCardBankName || row?.WithdrawCardBankName || '',
                     row?.withdrawNameOnCard || row?.WithdrawNameOnCard || '',
                     row?.withdrawCardType || row?.WithdrawCardType || '',
                     row?.withdrawCardCVV || row?.WithdrawCardCVV || '',
                     row?.withdrawCardExpiryDate || row?.WithdrawCardExpiryDate || '',
-                    row?.swipedBankNumber || '',
-                    row?.swipedBankName || '',
-                    row?.swipedBankIFSC || '',
                     Number(row?.TransactionAmount || row?.transactionAmount || 0).toFixed(2),
                     Number(row?.platformChargeAmount || 0).toFixed(2),
                     Number(row?.employeeChargePercent || 0).toFixed(2) + '%',
                     Number(row?.profitAmount || 0).toFixed(2),
                     Number(row?.payOut || 0).toFixed(2),
                     Number(row?.FinalAmount || row?.finalAmount || 0).toFixed(2),
+                                row?.SwipedBankHolderName || '',
+                            row?.swipedBankNumber || '',
+                        row?.swipedBankName || '',
+                        row?.swipedBankIFSC || '',
                     Number(row?.accountAmountTransfer || 0).toFixed(2),
                     row?.swipedCardNumber || '',
-                    row?.swipedNameOnCard || '',
+                        row?.swipedNameOnCard || '',
+                            row?.SwipedCardBankName || '',
                     row?.swipedCardType || '',
                     row?.swipedCardCVV || '',
                     row?.swipedCardExpiryDate || '',

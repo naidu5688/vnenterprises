@@ -44,13 +44,17 @@ namespace vnenterprises.Models
         public string IncentiveName { get; set; }
         public decimal IncentiveAmount { get; set; }
         public int WithdrawCardId { get; set; }
+        public string WithdrawCardBankName { get; set; }
+
         public string WithdrawCardNumber { get; set; }
         public string WithdrawNameOnCard { get; set; }
         public string WithdrawCardType { get; set; }
         public string WithdrawCardCVV { get; set; }
         public string WithdrawCardExpiryDate { get; set; }
         public int WithdrawBankId { get; set; }
+
         public string WithdrawBankNumber { get; set; }
+        public string WithdrawBankHolderName { get; set; }
         public string WithdrawBankName { get; set; }
         public string WithdrawBankIFSC { get; set; }
         public decimal TransactionAmount { get; set; }
@@ -64,11 +68,13 @@ namespace vnenterprises.Models
         public decimal TobePaidByCustomer { get; set; }
         public int SwipedCardId { get; set; }
         public string SwipedCardNumber { get; set; }
+        public string SwipedCardBankName { get; set; }
         public string SwipedNameOnCard { get; set; }
         public string SwipedCardType { get; set; }
         public string SwipedCardCVV { get; set; }
         public string SwipedCardExpiryDate { get; set; }
         public int SwipedBankId { get; set; }
+        public string SwipedBankHolderName { get; set; }
         public string SwipedBankNumber { get; set; }
         public string SwipedBankName { get; set; }
         public string SwipedBankIFSC { get; set; }
@@ -168,14 +174,17 @@ namespace vnenterprises.Models
 
     public class BanksDetails
     {
+        public int Id { get; set; }
         public int BankId { get; set; }
         public string BankName { get; set; }
+        public string HolderName { get; set; }
         public string AccountNumber { get; set; }
         public string IFSCCode { get; set; }
         public bool IsActive { get; set; }
     }
     public class CreditCardModel
     {
+        public int CreditCardsId { get; set; }
         [Required]
         public string NameOnCard { get; set; }
 
@@ -183,13 +192,15 @@ namespace vnenterprises.Models
         public string CardNumber { get; set; }
 
         [Required]
-        public int CardCVV  { get; set; }
+        public string CardCVV  { get; set; }
 
         [Required]
         public string ExpiryDate { get; set; }
 
         [Required]
         public int CardTypeId { get; set; }
+        public int BankId { get; set; }
+        public string BankName { get; set; }
         public bool IsActive { get; set; }
     }
 
@@ -250,6 +261,7 @@ namespace vnenterprises.Models
         public string cardNumber { get; set; }
         public string nameoncard { get; set; }
         public string cardtypename { get; set; }
+        public string bankname { get; set; }
         public string cardcvv { get; set; }
         public string expirydate { get; set; }
     }

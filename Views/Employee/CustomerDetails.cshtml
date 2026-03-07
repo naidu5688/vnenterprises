@@ -112,6 +112,7 @@
         flex-direction: column;
         justify-content: center;
         gap: 8px;
+        max-width: 240px;
     }
 
     .image-preview {
@@ -254,11 +255,12 @@
     <table id="cardTable">
         <thead>
             <tr>
-                <th width="20%">Holder</th>
+                <th width="15%">Holder</th>
                 <th width="20%">Number</th>
-                <th width="10%">Expiry</th>
+                <th width="5%">Expiry</th>
                 <th width="10%">Type</th>
-                <th width="10%">CVV</th>
+                <th width="5%">CVV</th>
+                <th width="10%">Bank</th>
                 <th width="10%">Status</th>
                 <th width="20%">Action</th>
             </tr>
@@ -274,9 +276,11 @@
     <table id="bankTable">
         <thead>
             <tr>
-                <th width="20%">Bank Name</th>
-                <th width="30%">Account Number</th>
-                <th width="20%">IFSC Code</th>
+                
+                <th width="15%">Holder Name</th>
+                <th width="15%">Bank Name</th>
+                <th width="25%">Account Number</th>
+                <th width="15%">IFSC Code</th>
                 <th width="10%">Status</th>
                 <th width="20%">Action</th>
             </tr>
@@ -288,7 +292,7 @@
     <button class="btn-primary" onclick="openTransactionModal()">Add Transaction</button>
 </div>
 <div class="modal-overlay" id="transactionModal">
-    <div class="modal-box" style="width:700px">
+    <div class="modal-box" style="width:1000px">
 
         <!-- Header -->
         <div class="flex-header">
@@ -296,7 +300,7 @@
             <button class="btn-danger" onclick="closeTransactionModal()">X</button>
         </div>
         <div class="transaction-body">
-            <div class="grid-2" style="margin-top:15px">
+            <div class="grid-4" style="margin-top:15px">
 
                 <div class="field">
                     <label>Platform</label>
@@ -327,7 +331,10 @@
                     <label>Card Holder</label>
                     <input id="tCardHolder" class="form-control" readonly>
                 </div>
-
+                <div class="field">
+                    <label>Bank Name</label>
+                    <input id="tCardBank" class="form-control" readonly>
+                </div>
                 <div class="field">
                     <label>Card Type</label>
                     <input id="tCardType" class="form-control" readonly>
@@ -344,7 +351,10 @@
                     <label> Withdraw Bank Details </label>
                     <select id="tWithdrawAccountSelect" class="form-control"></select>
                 </div>
-
+                <div class="field">
+                    <label>Bank Holder Name</label>
+                    <input id="tWithdrawHolderName" class="form-control" readonly>
+                </div>
 
                 <div class="field">
                     <label>Bank Name</label>
@@ -364,7 +374,7 @@
                 <div class="field">
                     <label>Bill Amount</label>
                     <input id="tBillAmount" class="form-control"
-                           oninput="this.value=this.value.replace(/[^0-9.]/g,'');">
+                           oninput="this.value=this.value.replace(/[^0-9.]/g,'');  calculateAmounts()">
                 </div>
                 <div class="field">
                     <label>Platform Charge Amount</label>
@@ -403,6 +413,10 @@
                     <select id="tAccountSelect" class="form-control"></select>
                 </div>
                 <div class="field">
+                    <label>Bank Holder Name</label>
+                    <input id="tBankHolderName" class="form-control" readonly>
+                </div>
+                <div class="field">
                     <label>Bank Name</label>
                     <input id="tBankName" class="form-control" readonly>
                 </div>
@@ -425,7 +439,10 @@
                     <label>Card Holder</label>
                     <input id="tTransferCardHolder" class="form-control" readonly>
                 </div>
-
+                <div class="field">
+                    <label>Bank Name</label>
+                    <input id="tTransferBankName" class="form-control" readonly>
+                </div>
                 <div class="field">
                     <label>Card Type</label>
                     <input id="tTransferCardType" class="form-control" readonly>
@@ -494,8 +511,9 @@
         <h4>Bank Details</h4>
 
         <div class="grid-2">
+            <input id="bHolder" class="form-control" placeholder="Holder Name *">
             <select id="bBank" class="form-control"></select>
-            <input id="bAccount" class="form-control" placeholder="Account Number *">
+            <input id="bAccount" class="form-control" placeholder="Account Number *" oninput="allowNumber(this)">
             <input id="bIfsc" class="form-control" placeholder="IFSC Code *">
             <select id="bActive" class="form-control">
                 <option value="">-- Status --</option>
@@ -511,7 +529,16 @@
     </div>
 </div>
 
+<div id="imageViewer" class="modal-overlay" style="display:none;">
+    <div style="position:relative; max-width:90%; max-height:90%;">
+        <button onclick="closeImageViewer()"
+                style="position:absolute;top:-40px;right:0;background:red;color:white;border:none;padding:6px 12px;border-radius:6px;">
+            Close
+        </button>
 
+        <img id="viewerImg" style="max-width:100%; max-height:80vh; border-radius:10px;">
+    </div>
+</div>
 <div class="modal-overlay" id="cardModal">
     <div class="modal-box">
         <h4>Credit Card</h4>
@@ -520,6 +547,7 @@
             <input id="cNumber" class="form-control" maxlength="16" placeholder="Card Number *" oninput="this.value=this.value.replace(/[^0-9]/g,'')">
             <input id="cExpiry" class="form-control" maxlength="5" placeholder="MM/YY *" oninput="formatExpiry(this)">
             <input id="cCVV" class="form-control" maxlength="3" placeholder="CVV *" oninput="this.value=this.value.replace(/[^0-9]/g,'')">
+            <select id="cBank" class="form-control" placeholder="Bank Name *"></select>
             <select id="cType" class="form-control"></select>
             <select id="cActive" class="form-control">
                 <option value="">-- Status --</option>
@@ -536,16 +564,45 @@
 </div>
 
 <script>
+
+        // IMAGE PREVIEW + ZOOM
+    document.querySelectorAll('.image-upload-box input[type="file"]').forEach(input=>{
+        input.addEventListener('change', e=>{
+            const file = e.target.files[0];
+            if(file){
+                const img = input.closest('.image-upload-box').querySelector('.image-preview');
+                img.src = URL.createObjectURL(file);
+                img.style.display = 'block';
+            }
+        });
+    });
+
+    // CLICK IMAGE → BIG PREVIEW
+    document.querySelectorAll('.image-preview').forEach(img=>{
+        img.addEventListener('click', function(){
+            if(!this.src) return;
+            document.getElementById('viewerImg').src = this.src;
+            document.getElementById('imageViewer').style.display = 'flex';
+        });
+    });
+
+    function closeImageViewer(){
+        document.getElementById('imageViewer').style.display = 'none';
+    }
     const customerId = @Model?.CustomerId ?? 0;
     let cardTypes = [];
     let cards = @Html.Raw(JsonSerializer.Serialize(Model?.CreditCards ?? new List<object>()));
+debugger
     cards = cards.map(c=>({
+        CreditCardsId:c.CreditCardsId ?? 0,
         NameOnCard:c.NameOnCard??"",
         CardNumber:c.CardNumber??"",
         ExpiryDate:c.ExpiryDate??"",
         CardCVV:c.CardCVV??"",
         CardTypeId:c.CardTypeId??"",
         CardTypeName:c.CardTypeName??"",
+        BankId:c.BankId??"",
+        BankName:c.BankName??"",
         IsActive:c.IsActive===true,
         IsExisting:true
     }));
@@ -584,18 +641,28 @@
 
 
     // ---------------- CREDIT CARDS ----------------
-    function renderCards(){
+        function renderCards(){
         const tbody=document.querySelector("#cardTable tbody");
         tbody.innerHTML="";
-        if(cards.length===0){tbody.innerHTML='<tr><td colspan="7">No Credit Cards</td></tr>'; return;}
+
+        if(cards.length===0){
+            tbody.innerHTML='<tr><td colspan="8">No Credit Cards</td></tr>';
+            return;
+        }
+        debugger
         cards.forEach((c,i)=>{
+
             let typeName = cardTypes.find(x=>x.id==c.CardTypeId)?.name || c.CardTypeName || '';
-            tbody.innerHTML+=`<tr>
+            let bankName = bankMaster.find(x=>x.id==c.BankId)?.name || c.BankName || '';
+
+            tbody.innerHTML+=`
+            <tr>
                 <td>${c.NameOnCard}</td>
                 <td>${c.CardNumber}</td>
                 <td>${c.ExpiryDate}</td>
                 <td>${typeName}</td>
                 <td>${c.CardCVV}</td>
+                <td>${bankName}</td>
                 <td>${c.IsActive?"Active":"InActive"}</td>
                 <td>
                     <button class="btn-primary" onclick="openCardModal(${i})">Edit</button>
@@ -609,16 +676,21 @@
         editIndex=index;
         cType.innerHTML='<option value="">-- Select Card Type --</option>';
         cardTypes.forEach(x=>cType.innerHTML+=`<option value="${x.id}">${x.name}</option>`);
+        cBank.innerHTML = '<option value="">-- Select Bank --</option>';
+        bankMaster.forEach(x => cBank.innerHTML += `<option value="${x.id}">${x.name}</option>`);
         if(index!==null){
             const c=cards[index];
             cHolder.value=c.NameOnCard; cNumber.value=c.CardNumber; cExpiry.value=c.ExpiryDate;
-            cCVV.value=c.CardCVV; cType.value=c.CardTypeId; cActive.value=c.IsActive?'true':'false';
+            cCVV.value=c.CardCVV; cType.value=c.CardTypeId; cBank.value=c.BankId; cActive.value=c.IsActive?'true':'false';
         }else{cHolder.value=cNumber.value=cExpiry.value=cCVV.value=cType.value=cActive.value='';}
         cardModal.style.display='flex';
     }
     function closeCardModal(){cardModal.style.display='none'; editIndex=null;}
-        function saveCard() {
-        if (!cHolder.value || !cNumber.value || !cExpiry.value || !cCVV.value || !cType.value || !cActive.value) {
+            function saveCard() {
+
+        if (!cHolder.value || !cNumber.value || !cExpiry.value ||
+            !cCVV.value || !cType.value || !cActive.value || !cBank.value) {
+
             alert('All fields mandatory');
             return;
         }
@@ -626,23 +698,27 @@
         const isEdit = editIndex !== null;
 
         const card = {
+                CreditCardsId: isEdit ? cards[editIndex].CreditCardsId : 0,
             NameOnCard: cHolder.value,
             CardNumber: cNumber.value,
             ExpiryDate: cExpiry.value,
             CardCVV: cCVV.value,
+
             CardTypeId: cType.value,
             CardTypeName: cType.options[cType.selectedIndex].text,
+
+            BankId: cBank.value,
+            BankName: cBank.options[cBank.selectedIndex].text,
+
             IsActive: cActive.value === 'true',
 
-            // ✅ KEEP EXISTING FLAG WHEN EDITING
             IsExisting: isEdit ? cards[editIndex].IsExisting : false
         };
 
-        if (isEdit) {
+        if (isEdit)
             cards[editIndex] = card;
-        } else {
+        else
             cards.push(card);
-        }
 
         renderCards();
         closeCardModal();
@@ -732,17 +808,21 @@
         formData.append("KycStatus", kycStatus);
         // Append credit cards
         cards.forEach((c,i)=>{
+                formData.append(`CreditCards[${i}].CreditCardsId`, c.CreditCardsId || 0);
             formData.append(`CreditCards[${i}].NameOnCard`, c.NameOnCard);
             formData.append(`CreditCards[${i}].CardNumber`, c.CardNumber);
             formData.append(`CreditCards[${i}].ExpiryDate`, c.ExpiryDate);
             formData.append(`CreditCards[${i}].CardCVV`, c.CardCVV);
             formData.append(`CreditCards[${i}].CardTypeId`, c.CardTypeId);
+            formData.append(`CreditCards[${i}].BankId`, c.BankId);
             formData.append(`CreditCards[${i}].IsActive`, c.IsActive);
         });
             // Append bank details
     banksData.forEach((b, i) => {
+                formData.append(`BanksDetailsModel[${i}].Id`, b.Id || 0);
         formData.append(`BanksDetailsModel[${i}].BankId`, b.BankId);
-        formData.append(`BanksDetailsModel[${i}].BankName`, b.BankName);
+            formData.append(`BanksDetailsModel[${i}].BankName`, b.BankName);
+                formData.append(`BanksDetailsModel[${i}].HolderName`, b.HolderName);
         formData.append(`BanksDetailsModel[${i}].AccountNumber`, b.AccountNumber);
         formData.append(`BanksDetailsModel[${i}].IFSCCode`, b.IFSC);
         formData.append(`BanksDetailsModel[${i}].IsActive`, b.IsActive);
@@ -773,7 +853,7 @@
             .then(r => r.json())
             .then(d => {
                 tPlatform.innerHTML = '<option value="">-- Select Platform --</option>';
-                d.forEach(x => tPlatform.innerHTML += `<option value="${x.id}">${x.name}</option>`);
+                    d.forEach(x => tPlatform.innerHTML += `<option value="${x.id}" data-charge="${x.charge}">${x.name}</option>`);
             });
 
         // Cards + Banks (SINGLE CALL)
@@ -782,7 +862,7 @@
             .then(res => {
                 customerCards = res.creditCards || [];
                 customerBanks = res.banks || [];
-
+                debugger
                 // Cards
                 tCard.innerHTML = '<option value="">-- Select Card --</option>';
                 customerCards.forEach(c => {
@@ -828,11 +908,15 @@
     
     tPlatform.onchange = function(){
         debugger
-            fetch('/Retailer/GetGatewaysByUserId?platformId='+this.value).then(r=>r.json()).then(d=>{
+                 let selectedOption = this.options[this.selectedIndex];
+    let charge = selectedOption.getAttribute("data-charge") || 0;
+
+            fetch('/Retailer/GetGatewaysByUserId?platformId='+tPlatform.value).then(r=>r.json()).then(d=>{
             gateways=d;
             tGateway.innerHTML='<option value="">-- Select Gateway --</option>';
                 d.forEach(x =>tGateway.innerHTML +=`<option value="${x.id}" data-charge="${x.charge}">${x.name}</option>`);
         });
+
     };
 
     tGateway.onchange = function(){
@@ -846,6 +930,7 @@
         const bankId = this.value;
         if (!bankId) {
             tBankName.value = "";
+                tBankHolderName.value = "";
             tIfsc.value = "";
             return;
         }
@@ -854,6 +939,7 @@
         if (!bank) return;
 
         tBankName.value = bank.bankName;
+        tBankHolderName.value = bank.holderName;
         tIfsc.value = bank.ifscCode;
     };
 
@@ -861,6 +947,7 @@
         const bankId = this.value;
         if (!bankId) {
             tWithdrawBankName.value = "";
+            tWithdrawHolderName.value = "";
             tWithdrawIfsc.value = "";
             return;
         }
@@ -869,12 +956,14 @@
         if (!bank) return;
 
         tWithdrawBankName.value = bank.bankName;
+            tWithdrawHolderName.value = bank.holderName;
         tWithdrawIfsc.value = bank.ifscCode;
     };
          tCard.onchange = function () {
             const cardId = this.value;
             if (!cardId) {
                 tCardHolder.value = "";
+                    tCardBank.value = "";
                 tCardType.value = "";
                 tCardExpiry.value = "";
                 return;
@@ -882,7 +971,7 @@
 
             const card = customerCards.find(c => c.id == cardId);
             if (!card) return;
-
+                tCardBank.value = card.bankname;
             tCardHolder.value = card.nameoncard;
             tCardType.value = card.cardtypename;
             tCardExpiry.value = card.expirydate;
@@ -894,6 +983,7 @@
             if (!cardId) {
                 tTransferCardHolder.value = "";
                 tTransferCardType.value = "";
+                tTransferBankName.value = "";
                 tTransferCardExpiry.value = "";
                 return;
             }
@@ -902,6 +992,7 @@
             if (!card) return;
 
             tTransferCardHolder.value = card.nameoncard;
+                tTransferBankName.value = card.bankname;
             tTransferCardType.value = card.cardtypename;
             tTransferCardExpiry.value = card.expirydate;
             tTransferCardCvv.value = card.cardcvv;
@@ -983,10 +1074,12 @@
                 tAccountSelect.value = "";
 
                 tCardHolder.value = "";
+                    tCardBank.value = "";
                 tCardType.value = "";
                 tCardExpiry.value = "";
                 tCardCvv.value = "";
                 tBankName.value = "";
+                tBankHolderName.value = "";
                 tIfsc.value = "";
             }
 
@@ -996,8 +1089,10 @@
     let banksData = @Html.Raw(JsonSerializer.Serialize(Model?.BanksDetailsModel ?? new List<object>()));
 
     banksData = banksData.map(b => ({
+            Id: b.Id ?? 0,
         BankId: b.BankId ?? "",
-        BankName: b.BankName ?? "",
+            BankName: b.BankName ?? "",
+                HolderName: b.HolderName ?? "",
         AccountNumber: b.AccountNumber ?? "",
         IFSC: b.IFSCCode ?? "",
         IsActive: b.IsActive === true,
@@ -1019,14 +1114,15 @@
         tbody.innerHTML = "";
 
         if (banksData.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="5">No Bank Details</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="6">No Bank Details</td></tr>';
             return;
         }
 
         banksData.forEach((b, i) => {
             tbody.innerHTML += `
             <tr>
-                <td>${b.BankName}</td>
+                    <td>${b.HolderName}</td>
+                    <td>${b.BankName}</td>
                 <td>${b.AccountNumber}</td>
                 <td>${b.IFSC}</td>
                 <td>${b.IsActive ? "Active" : "InActive"}</td>
@@ -1049,11 +1145,12 @@
         if (index !== null) {
             const b = banksData[index];
             bBank.value = b.BankId;
-            bAccount.value = b.AccountNumber;
+                bAccount.value = b.AccountNumber;
+                    bHolder.value = b.HolderName;
             bIfsc.value = b.IFSC;
             bActive.value = b.IsActive ? 'true' : 'false';
         } else {
-            bBank.value = bAccount.value = bIfsc.value = bActive.value = "";
+                bBank.value = bAccount.value = bIfsc.value = bActive.value = bHolder.value = "";
         }
 
         bankModal.style.display = "flex";
@@ -1068,7 +1165,7 @@
     }
 
         function saveBank() {
-        if (!bBank.value || !bAccount.value || !bIfsc.value || !bActive.value) {
+            if (!bBank.value || !bAccount.value || !bIfsc.value || !bActive.value || !bHolder.value) {
             alert("All bank fields are mandatory");
             return;
         }
@@ -1076,9 +1173,11 @@
         const isEdit = bankEditIndex !== null;
 
         const bankObj = {
+                Id: isEdit ? banksData[bankEditIndex].Id : 0,
             BankId: bBank.value,
             BankName: bBank.options[bBank.selectedIndex].text,
-            AccountNumber: bAccount.value,
+                AccountNumber: bAccount.value,
+                    HolderName: bHolder.value,
             IFSC: bIfsc.value,
             IsActive: bActive.value === "true",
             IsExisting: isEdit ? banksData[bankEditIndex].IsExisting : false
@@ -1210,6 +1309,7 @@
     function resetBank() {
         tAccountSelect.value = "";
         tBankName.value = "";
+           tBankHolderName.value = "";
         tIfsc.value = "";
   }
 
@@ -1217,6 +1317,7 @@
         tTransferCard.value = "";
         tTransferCardHolder.value = "";
         tTransferCardType.value = "";
+           tTransferBankName.value = "";
         tTransferCardExpiry.value = "";
         tTransferCardCvv.value = "";
    }
@@ -1232,6 +1333,7 @@
             "tWithdrawAccountSelect",
             "tWithdrawIfsc",
             "tWithdrawBankName",
+               "tWithdrawHolderName",
             "tremaing",
             "tWalletAmount",
             "tDifferenceAmount",
@@ -1240,22 +1342,26 @@
 
             tCard.value = "";
             tCardHolder.value = "";
+               tCardBank.value = "";
             tCardCvv.value = "";
             tCardType.value = "";
             tCardExpiry.value = "";
             tWithdrawAccountSelect.value = "";
             tWithdrawBankName.value = "";
+               tWithdrawHolderName.value = "";
             tWithdrawIfsc.value = "";
             tBillAmount.value = "";
             tremaing.value = "";
             tWalletAmount.value = "";
             tAccountSelect.value = "";
             tBankName.value = "";
+            tBankHolderName.value = "";
             tIfsc.value = "";
             tcardAmount.value = "";
             tTransferCard.value = "";
             tTransferCardHolder.value = "";
             tTransferCardType.value = "";
+            tTransferBankName.value = "";
             tTransferCardCvv.value = "";
             tTransferCardExpiry.value = "";
             tBankAmount.value = "";

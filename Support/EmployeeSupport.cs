@@ -84,7 +84,8 @@ namespace vnenterprises.Support
                         platlist.Add(new Platforms
                         {
                             Id = Convert.ToInt32(dr["Id"]),
-                            Name = dr["Name"].ToString()
+                            Name = dr["Name"].ToString(),
+                            Charge = Convert.ToDecimal(dr["Charge"])
                         });
                     }
                 }
@@ -135,6 +136,7 @@ namespace vnenterprises.Support
                             Id = Convert.ToInt32(dr["CreditCardsId"]),
                             cardNumber = dr["CardNumber"].ToString(),
                             nameoncard = dr["NameOnCard"].ToString(),
+                            bankname = dr["BankName"].ToString(),
                             cardtypename = dr["CardTypeName"].ToString(),
                             expirydate = dr["ExpiryDate"].ToString(),
                             cardcvv = dr["CardCVV"].ToString()
@@ -151,6 +153,7 @@ namespace vnenterprises.Support
                             {
                                 BankId = Convert.ToInt32(dr["BankId"]),
                                 BankName = dr["BankName"].ToString(),
+                                HolderName = dr["HolderName"].ToString(),
                                 AccountNumber = dr["AccountNumber"].ToString(),
                                 IFSCCode = dr["IFSCCode"].ToString(),
                             });
@@ -276,10 +279,14 @@ namespace vnenterprises.Support
                         {
                             result.CreditCards.Add(new CreditCardModel
                             {
+                                CreditCardsId = dr["CreditCardsId"] != DBNull.Value ? Convert.ToInt32(dr["CreditCardsId"]) : 0,
                                 NameOnCard = dr["NameOnCard"]?.ToString() ?? "",
                                 CardNumber = dr["CardNumber"]?.ToString() ?? "",
                                 CardTypeId = dr["CardTypeId"] != DBNull.Value ? Convert.ToInt32(dr["CardTypeId"]) : 0,
-                                CardCVV = dr["CardCVV"] != DBNull.Value ? Convert.ToInt32(dr["CardCVV"]) : 0,
+                                BankId = dr["BankId"] != DBNull.Value ? Convert.ToInt32(dr["BankId"]) : 0,
+                                CardCVV = dr["CardCVV"] != DBNull.Value ? Convert.ToString(dr["CardCVV"]) : "",
+                                BankName = dr["BankName"] != DBNull.Value ? Convert.ToString(dr["BankName"]) : "",
+                               
                                 ExpiryDate = dr["ExpiryDate"]?.ToString() ?? "",
                                 IsActive = dr["IsActive"] != DBNull.Value && Convert.ToBoolean(dr["IsActive"])
                             });
@@ -291,8 +298,10 @@ namespace vnenterprises.Support
                         {
                             result.BanksDetailsModel.Add(new BanksDetails
                             {
+                                Id = dr["Id"] != DBNull.Value ? Convert.ToInt32(dr["Id"]) : 0,
                                 BankId = dr["BankId"] != DBNull.Value ? Convert.ToInt32(dr["BankId"]) : 0,
                                 BankName = dr["BankName"]?.ToString() ?? "",
+                                HolderName = dr["HolderName"]?.ToString() ?? "",
                                 AccountNumber = dr["AccountNumber"]?.ToString() ?? "",
                                 IFSCCode = dr["IFSCCode"]?.ToString() ?? "",
                                 IsActive = dr["IsActive"] != DBNull.Value && Convert.ToBoolean(dr["IsActive"])
@@ -308,22 +317,26 @@ namespace vnenterprises.Support
         {
             DataTable dt = new DataTable();
 
+            dt.Columns.Add("CreditCardsId", typeof(int));
             dt.Columns.Add("CardTypeId", typeof(int));
             dt.Columns.Add("NameOnCard", typeof(string));
             dt.Columns.Add("CardNumber", typeof(string));
             dt.Columns.Add("ExprityDate", typeof(string));
-            dt.Columns.Add("CardCVV", typeof(int));
+            dt.Columns.Add("CardCVV", typeof(string));
+            dt.Columns.Add("BankId", typeof(int));
             dt.Columns.Add("IsActive", typeof(bool));
             if(list != null && list.Count > 0)
             {
                 foreach (var item in list)
                 {
                     dt.Rows.Add(
+                        item.CreditCardsId,     // int
                         item.CardTypeId,     // int
                         item.NameOnCard,     // string
                         item.CardNumber,     // string
                         item.ExpiryDate,     // string
                         item.CardCVV,        // int
+                        item.BankId,        // int
                         item.IsActive        // bool
                     );
                 }
@@ -336,8 +349,10 @@ namespace vnenterprises.Support
         {
             DataTable dt = new DataTable();
 
+            dt.Columns.Add("Id", typeof(int));
             dt.Columns.Add("BankId", typeof(int));
             dt.Columns.Add("BankName", typeof(string));
+            dt.Columns.Add("HolderName", typeof(string));
             dt.Columns.Add("AccountNumber", typeof(string));
             dt.Columns.Add("IFSCCode", typeof(string));
             dt.Columns.Add("IsActive", typeof(bool));
@@ -346,8 +361,10 @@ namespace vnenterprises.Support
                 foreach (var item in list)
                 {
                     dt.Rows.Add(
+                        item.Id,     // int
                         item.BankId,     // int
                         item.BankName,     // string
+                        item.HolderName,     // string
                         item.AccountNumber,     // int
                         item.IFSCCode,        // string
                         item.IsActive        // bool
@@ -398,6 +415,7 @@ namespace vnenterprises.Support
                         IncentiveAmount = Convert.ToDecimal(dr["IncentiveAmount"]),
 
                         WithdrawCardId = Convert.ToInt32(dr["WithdrawCardId"]),
+                        WithdrawCardBankName = dr["WithdrawCardBankName"].ToString(),
                         WithdrawCardNumber = dr["WithdrawCardNumber"].ToString(),
                         WithdrawNameOnCard = dr["WithdrawNameOnCard"].ToString(),
                         WithdrawCardType = dr["WithdrawCardType"].ToString(),
@@ -405,6 +423,7 @@ namespace vnenterprises.Support
                         WithdrawCardExpiryDate = dr["WithdrawCardExpiryDate"].ToString(),
 
                         WithdrawBankId = Convert.ToInt32(dr["WithdrawBankId"]),
+                        WithdrawBankHolderName = dr["WithdrawBankHolderName"].ToString(),
                         WithdrawBankNumber = dr["WithdrawBankNumber"].ToString(),
                         WithdrawBankName = dr["WithdrawBankName"].ToString(),
                         WithdrawBankIFSC = dr["WithdrawBankIFSC"].ToString(),
@@ -421,12 +440,14 @@ namespace vnenterprises.Support
 
                         SwipedCardId = Convert.ToInt32(dr["SwipedCardId"]),
                         SwipedCardNumber = dr["SwipedCardNumber"].ToString(),
+                        SwipedCardBankName = dr["SwipedCardBankName"].ToString(),
                         SwipedNameOnCard = dr["SwipedNameOnCard"].ToString(),
                         SwipedCardType = dr["SwipedCardType"].ToString(),
                         SwipedCardCVV = dr["SwipedCardCVV"].ToString(),
                         SwipedCardExpiryDate = dr["SwipedCardExpiryDate"].ToString(),
 
                         SwipedBankId = Convert.ToInt32(dr["SwipedBankId"]),
+                        SwipedBankHolderName = dr["SwipedBankHolderName"].ToString(),
                         SwipedBankNumber = dr["SwipedBankNumber"].ToString(),
                         SwipedBankName = dr["SwipedBankName"].ToString(),
                         SwipedBankIFSC = dr["SwipedBankIFSC"].ToString(),
