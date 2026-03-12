@@ -923,5 +923,61 @@ namespace vnenterprises.Support
 
             return viewModel;
         }
+
+        public EmployeeReportResult GetEmployeeReport(string StartDate, string EndDate, int UserId, int PageNo, int PageSize)
+        {
+            var result = new EmployeeReportResult();
+            var list = new List<EmployeeReports>();
+
+            using (SqlConnection con = new SqlConnection(_connectionString))
+            using (SqlCommand cmd = new SqlCommand("vn_GetEmployeeReports", con))
+            {
+                cmd.CommandType = CommandType.StoredProcedure;
+
+                cmd.Parameters.AddWithValue("@StartDate", StartDate);
+                cmd.Parameters.AddWithValue("@EndDate", EndDate);
+                cmd.Parameters.AddWithValue("@UserId", UserId);
+                cmd.Parameters.AddWithValue("@PageNo", PageNo);
+                cmd.Parameters.AddWithValue("@PageSize", PageSize);
+
+                con.Open();
+
+                using (SqlDataReader dr = cmd.ExecuteReader())
+                {
+                    // ===== FIRST RESULT SET (TotalCount) =====
+                    if (dr.Read())
+                    {
+                        result.TotalCount = dr["TotalCount"] == DBNull.Value ? 0 : Convert.ToInt32(dr["TotalCount"]);
+                    }
+
+                    // ===== MOVE TO SECOND RESULT SET =====
+                    dr.NextResult();
+
+                    // ===== DATA =====
+                    while (dr.Read())
+                    {
+                        list.Add(new EmployeeReports
+                        {
+                            EmployeeId = dr["EmployeeId"]?.ToString(),
+                            PhoneNumber = dr["PhoneNumber"]?.ToString(),
+                            EmployeeName = dr["EmployeeName"]?.ToString(),
+                            TotalIncentives = dr["TotalIncentives"]?.ToString(),
+                            TotalCustomersAdded = dr["TotalCustomersAdded"]?.ToString(),
+                            IncentivesByCustomers = dr["IncentivesByCustomers"]?.ToString(),
+                            TotalTransaction = dr["TotalTransaction"]?.ToString(),
+                            IncentivesByTransactions = dr["IncentivesByTransactions"]?.ToString(),
+                            TotalPaymnetTransaction = dr["TotalPaymnetTransaction"]?.ToString(),
+                            IncentivesByPayTransaction = dr["IncentivesByPayTransaction"]?.ToString(),
+                            TotalWithdrawTransaction = dr["TotalWithdrawTransaction"]?.ToString(),
+                            IncentivesByWithdTransaction = dr["IncentivesByWithdTransaction"]?.ToString()
+                        });
+                    }
+                }
+            }
+
+            result.Data = list;
+
+            return result;
+        }
     }
 }

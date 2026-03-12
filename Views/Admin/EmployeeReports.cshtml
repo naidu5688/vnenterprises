@@ -1,0 +1,442 @@
+﻿@{
+    Layout = "~/Views/Shared/_SharedLayout_Admin.cshtml";
+}
+
+<head>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+</head>
+
+<style>
+
+    body {
+        background: #17362e;
+        font-family: 'Segoe UI',sans-serif;
+        color: white;
+    }
+
+    .page-container {
+        max-width: 100%;
+        margin: auto;
+        padding: 25px;
+    }
+
+    h2 {
+        color: #d4af37;
+        margin-bottom: 20px;
+    }
+
+    /* FILTER BAR */
+
+    .filter-bar {
+        display: grid;
+        grid-template-columns: repeat(5,1fr);
+        gap: 20px;
+        margin-bottom: 20px;
+        align-items: center;
+    }
+
+    .form-control {
+        background: #1e4a37;
+        border: 1px solid #d4af37;
+        border-radius: 8px;
+        color: white;
+        padding: 8px 10px;
+        font-size: 14px;
+    }
+
+    .btn-primary {
+        background: #d4af37;
+        color: #17362e;
+        border: none;
+        border-radius: 8px;
+        padding: 10px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: 0.2s;
+    }
+
+        .btn-primary:hover {
+            background: #f1c40f;
+        }
+
+    /* DATE INPUT */
+
+    input[type="date"] {
+        background-color: #1e4a37;
+        border: 1px solid #d4af37;
+        border-radius: 8px;
+        color: white;
+        padding: 8px 10px;
+        font-size: 14px;
+        height: 35px;
+        cursor: pointer;
+    }
+
+        input[type="date"]::-webkit-calendar-picker-indicator {
+            filter: invert(1);
+            cursor: pointer;
+        }
+
+    /* TABLE */
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 10px;
+        border-radius: 8px;
+        overflow: hidden;
+    }
+
+    thead {
+        background: #0b6b55;
+    }
+
+    th, td {
+        padding: 14px;
+        text-align: center;
+        font-size: 14px;
+    }
+
+    tbody {
+        background: #dff1eb;
+        color: black;
+    }
+
+        tbody tr:hover {
+            background: #cde6dd;
+        }
+
+    /* PAGINATION */
+
+    #pagination button {
+        background: #d4af37;
+        border: none;
+        padding: 6px 14px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-weight: 600;
+    }
+
+        #pagination button:hover {
+            background: #f1c40f;
+        }
+
+        #pagination button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+</style>
+
+
+<div class="page-container">
+    <div class="report-header">
+        <h1>Employee Performance Report</h1>
+        <p>View total customers added and transactions per employee.</p>
+    </div>
+    <div class="filter-bar">
+
+        <input type="date" id="startDate">
+        <input type="date" id="endDate">
+
+        <select id="pageSizeSelect" class="form-control">
+            <option value="10">10</option>
+            <option value="25">25</option>
+            <option value="40">40</option>
+            <option value="50">50</option>
+        </select>
+
+        <button class="btn-primary" onclick="runReport()">Run Report</button>
+
+        <button class="btn-primary" onclick="exportReport()">Export Excel</button>
+
+    </div>
+
+
+    <table>
+
+        <thead>
+            <tr>
+                <th>PhoneNumber</th>
+                <th>Employee Name</th>
+                <th>Total Incentives</th>
+                <th>Total Customers Added</th>
+                <th>IncentivesBy Customers</th>
+                <th>Transactions</th>
+                <th>Transaction Incentives</th>
+                <th>Paymnet Transactions</th>
+                <th>Paymnet Incentives</th>
+                <th>Withdraw Transactions</th>
+                <th>Withdraw Incentives</th>
+            </tr>
+        </thead>
+
+        <tbody id="empBody">
+            <tr>
+                <td colspan="11">Loading...</td>
+            </tr>
+        </tbody>
+
+    </table>
+
+    <div id="pagination" style="display:flex;justify-content:center;gap:6px;margin:20px 0;"></div>
+
+</div>
+
+
+
+<script>
+
+    let currentPage = 1;
+    let pageSize = 10;
+    let totalRecords = 0;
+
+    const empBody = document.getElementById("empBody");
+    const paginationDiv = document.getElementById("pagination");
+
+    const pageSizeSelect = document.getElementById("pageSizeSelect");
+
+    const startDate = document.getElementById("startDate");
+    const endDate = document.getElementById("endDate");
+
+        document.addEventListener("DOMContentLoaded", () => {
+
+        // ===== SET DEFAULT LAST 30 DAYS =====
+        const today = new Date();
+        const past30 = new Date();
+        past30.setDate(today.getDate() - 30);
+
+        function formatDate(d) {
+            const year = d.getFullYear();
+            const month = String(d.getMonth() + 1).padStart(2, '0');
+            const day = String(d.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        }
+
+        startDate.value = formatDate(past30);
+        endDate.value = formatDate(today);
+
+        // ===== PAGE SIZE CHANGE =====
+        pageSizeSelect.addEventListener("change", () => {
+            pageSize = parseInt(pageSizeSelect.value);
+            currentPage = 1;
+            loadTransaction();
+        });
+
+        // ===== AUTO RUN REPORT =====
+        runReport();
+
+    });
+
+
+    function runReport(){
+
+    currentPage=1;
+    loadTransaction();
+
+    }
+
+
+    function goToPage(p){
+
+    if(p<1) return;
+
+    currentPage=p;
+
+    loadTransaction();
+
+    }
+
+
+    /* LOAD DATA */
+
+    function loadTransaction(){
+
+    let start = startDate.value ? startDate.value + " 00:00:00" : "";
+    let end = endDate.value ? endDate.value + " 23:59:59" : "";
+
+    const query={
+    StartDate:start,
+    EndDate:end,
+    PageNo:currentPage,
+    PageSize:pageSize
+    };
+
+    fetch('/Admin/GetEmployeeReport',{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify(query)
+    })
+    .then(r=>r.json())
+    .then(res=>{
+
+    totalRecords=res.totalCount || 0;
+
+    empBody.innerHTML="";
+
+    if(!res.data || res.data.length===0){
+
+    empBody.innerHTML=`<tr><td colspan="11">No records found</td></tr>`;
+    paginationDiv.innerHTML="";
+    return;
+
+    }
+
+    res.data.forEach(e=>{
+
+    empBody.innerHTML+=`
+    <tr>
+    <td>${e.phoneNumber}</td>
+    <td>${e.employeeName}</td>
+    <td>${e.totalIncentives}</td>
+    <td>${e.totalCustomersAdded}</td>
+    <td>${e.incentivesByCustomers}</td>
+    <td>${e.totalTransaction}</td>
+    <td>${e.incentivesByTransactions}</td>
+    <td>${e.totalPaymnetTransaction}</td>
+    <td>${e.incentivesByPayTransaction}</td>
+    <td>${e.totalWithdrawTransaction}</td>
+    <td>${e.incentivesByWithdTransaction}</td>
+    </tr>`;
+
+    });
+
+    renderPagination();
+
+    });
+
+    }
+
+
+    /* PAGINATION */
+
+    function renderPagination(){
+
+    const totalPages=Math.ceil(totalRecords/pageSize);
+
+    paginationDiv.innerHTML="";
+
+    if(totalPages<=1) return;
+
+    const prev=document.createElement("button");
+
+    prev.innerText="Prev";
+    prev.disabled=currentPage===1;
+    prev.onclick=()=>goToPage(currentPage-1);
+
+    paginationDiv.appendChild(prev);
+
+
+    let start=Math.max(1,currentPage-1);
+    let end=Math.min(totalPages,start+2);
+
+    start=Math.max(1,end-2);
+
+    for(let i=start;i<=end;i++){
+
+    const btn=document.createElement("button");
+
+    btn.innerText=i;
+
+    btn.disabled=i===currentPage;
+
+    btn.onclick=()=>goToPage(i);
+
+    paginationDiv.appendChild(btn);
+
+    }
+
+
+    const next=document.createElement("button");
+
+    next.innerText="Next";
+    next.disabled=currentPage===totalPages;
+    next.onclick=()=>goToPage(currentPage+1);
+
+    paginationDiv.appendChild(next);
+
+    }
+
+
+    /* EXPORT EXCEL */
+
+    function exportReport(){
+
+    let start = startDate.value ? startDate.value + " 00:00:00" : "";
+    let end = endDate.value ? endDate.value + " 23:59:59" : "";
+
+    const query={
+    StartDate:start,
+    EndDate:end,
+    PageNo:1,
+    PageSize:50000
+    };
+
+    fetch('/Admin/GetEmployeeReport',{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify(query)
+    })
+    .then(r=>r.json())
+    .then(res=>{
+
+    const data=res.data || [];
+
+    if(data.length===0){
+
+    alert("No data to export");
+
+    return;
+
+    }
+
+    downloadExcel(data);
+
+    });
+
+    }
+
+
+    function downloadExcel(data){
+
+    const header=[
+    "PhoneNumber",
+    "Employee Name",
+    "Total Incentives",
+    "Total Customers Added",
+    "IncentivesBy Customers",
+    "Transactions",
+    "Transaction Incentives",
+    "Paymnet Transactions",
+    "Paymnet Incentives",
+    "Withdraw Transactions",
+    "Withdraw Incentives"
+    ];
+
+    const rows=data.map(x=>[
+       x.phoneNumber,
+       x.employeeName,
+        x.totalIncentives,
+        x.totalCustomersAdded,
+        x.incentivesByCustomers,
+        x.totalTransaction,
+        x.incentivesByTransactions,
+        x.totalPaymnetTransaction,
+        x.incentivesByPayTransaction,
+        x.totalWithdrawTransaction,
+        x.incentivesByWithdTransaction
+    ]);
+
+    const ws=XLSX.utils.aoa_to_sheet([header,...rows]);
+
+    const wb=XLSX.utils.book_new();
+
+    XLSX.utils.book_append_sheet(wb,ws,"Employees");
+
+    const fileName=`Employee_Report_${new Date().toISOString().slice(0,10)}.xlsx`;
+
+    XLSX.writeFile(wb,fileName);
+
+    }
+
+</script>

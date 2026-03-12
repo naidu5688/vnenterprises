@@ -165,4 +165,31 @@
         public bool IsActive { get; set; }
         public int Flag { get; set; }
     }
+    public class EmployeeReportQuery
+    {
+        public string StartDate { get; set; }
+        public string EndDate { get; set; }
+        public int PageSize { get; set; }
+        public int PageNo { get; set; }
+    }
+    public class EmployeeReports
+    {
+        public string EmployeeId { get; set; }
+        public string PhoneNumber { get; set; }
+        public string EmployeeName { get; set; }
+        public string TotalIncentives { get; set; }
+        public string TotalCustomersAdded { get; set; }
+        public string IncentivesByCustomers { get; set; }
+        public string TotalTransaction { get; set; }
+        public string IncentivesByTransactions { get; set; }
+        public string TotalPaymnetTransaction { get; set; }
+        public string IncentivesByPayTransaction { get; set; }
+        public string TotalWithdrawTransaction { get; set; }
+        public string IncentivesByWithdTransaction { get; set; }
+    }
+    public class EmployeeReportResult
+    {
+        public int TotalCount { get; set; }
+        public List<EmployeeReports> Data { get; set; }
+    }
 }

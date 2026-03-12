@@ -966,5 +966,128 @@ namespace vnenterprises.Support
 
             return model;
         }
+
+        public void StartWork(int userId)
+        {
+            TimeZoneInfo ist = TimeZoneInfo.FindSystemTimeZoneById("India Standard Time");
+            DateTime loginTime = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, ist);
+
+            using (SqlConnection con = new SqlConnection(_connectionString))
+            {
+                string query = @"
+IF NOT EXISTS(
+    SELECT 1 FROM tblEmployeeLogHours
+    WHERE UserId=@UserId
+    AND CAST(LoginTime AS DATE)=CAST(@LoginTime AS DATE)
+)
+BEGIN
+    INSERT INTO tblEmployeeLogHours(UserId,LoginTime,CreatedOn)
+    VALUES(@UserId,@LoginTime,@LoginTime)
+END";
+
+                SqlCommand cmd = new SqlCommand(query, con);
+                cmd.Parameters.AddWithValue("@UserId", userId);
+                cmd.Parameters.AddWithValue("@LoginTime", loginTime);
+
+                con.Open();
+                cmd.ExecuteNonQuery();
+            }
+        }
+
+        public void EndWork(int userId)
+        {
+            TimeZoneInfo ist = TimeZoneInfo.FindSystemTimeZoneById("India Standard Time");
+            DateTime logoutTime = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, ist);
+
+            using (SqlConnection con = new SqlConnection(_connectionString))
+            {
+                string query = @"
+UPDATE tblEmployeeLogHours
+SET 
+LogoutTime=@LogoutTime,
+TotalHours = DATEDIFF(MINUTE,LoginTime,@LogoutTime)/60.0
+WHERE UserId=@UserId
+AND CAST(LoginTime AS DATE)=CAST(@LogoutTime AS DATE)
+AND LogoutTime IS NULL";
+
+                SqlCommand cmd = new SqlCommand(query, con);
+                cmd.Parameters.AddWithValue("@UserId", userId);
+                cmd.Parameters.AddWithValue("@LogoutTime", logoutTime);
+
+                con.Open();
+                cmd.ExecuteNonQuery();
+            }
+        }
+
+        public Dictionary<string, string> GetTodayLog(int userId)
+        {
+            var result = new Dictionary<string, string>();
+
+            TimeZoneInfo ist = TimeZoneInfo.FindSystemTimeZoneById("India Standard Time");
+            DateTime todayIST = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, ist);
+
+            using (SqlConnection con = new SqlConnection(_connectionString))
+            {
+                string query = @"
+SELECT TOP 1 LoginTime,LogoutTime
+FROM tblEmployeeLogHours
+WHERE UserId=@UserId
+AND CAST(LoginTime AS DATE)=CAST(@Today AS DATE)";
+
+                SqlCommand cmd = new SqlCommand(query, con);
+                cmd.Parameters.AddWithValue("@UserId", userId);
+                cmd.Parameters.AddWithValue("@Today", todayIST);
+
+                con.Open();
+                SqlDataReader dr = cmd.ExecuteReader();
+
+                if (dr.Read())
+                {
+                    result["loginTime"] = dr["LoginTime"]?.ToString();
+                    result["logoutTime"] = dr["LogoutTime"]?.ToString();
+                }
+            }
+
+            return result;
+        }
+
+        // GET HISTORY
+        public List<object> GetLogHours(int userId)
+        {
+            var list = new List<object>();
+
+            using (SqlConnection con = new SqlConnection(_connectionString))
+            {
+                string query = @"
+    SELECT 
+    CAST(LoginTime AS DATE) Date,
+    LoginTime,
+    LogoutTime,
+    TotalHours
+    FROM tblEmployeeLogHours
+    WHERE UserId=@UserId
+    ORDER BY LoginTime DESC";
+
+                SqlCommand cmd = new SqlCommand(query, con);
+                cmd.Parameters.AddWithValue("@UserId", userId);
+
+                con.Open();
+                SqlDataReader dr = cmd.ExecuteReader();
+
+                while (dr.Read())
+                {
+                    list.Add(new
+                    {
+                        date = Convert.ToDateTime(dr["Date"]).ToString("dd MMM yyyy"),
+                        loginTime = Convert.ToDateTime(dr["LoginTime"]).ToString("hh:mm tt"),
+                        logoutTime = dr["LogoutTime"] == DBNull.Value ? null :
+                            Convert.ToDateTime(dr["LogoutTime"]).ToString("hh:mm tt"),
+                        totalHours = dr["TotalHours"]?.ToString()
+                    });
+                }
+            }
+
+            return list;
+        }
     }
     }

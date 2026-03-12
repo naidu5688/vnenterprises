@@ -62,7 +62,47 @@ namespace vnenterprises.Controllers
             var result = _employeesupport.GetTransactions(model);
             return Json(result.data.FirstOrDefault());
         }
+        public IActionResult LogHours()
+        {
+            return View();
+        }
 
+        [HttpPost]
+        public IActionResult StartWork()
+        {
+            int userId = Convert.ToInt32(Request.Cookies["UserId"]);
+            _employeesupport.StartWork(userId);
+
+            return Json(true);
+        }
+
+
+        [HttpPost]
+        public IActionResult EndWork()
+        {
+            int userId = Convert.ToInt32(Request.Cookies["UserId"]);
+            _employeesupport.EndWork(userId);
+
+            return Json(true);
+        }
+
+
+        public IActionResult GetTodayLog()
+        {
+            int userId = Convert.ToInt32(Request.Cookies["UserId"]);
+            var data = _employeesupport.GetTodayLog(userId);
+
+            return Json(data);
+        }
+
+
+        public IActionResult GetLogHours()
+        {
+            int userId = Convert.ToInt32(Request.Cookies["UserId"]);
+            var data = _employeesupport.GetLogHours(userId);
+
+            return Json(new { data });
+        }
         [HttpPost]
         public IActionResult GetTransactions([FromBody] TransactionviewModel model)
         {

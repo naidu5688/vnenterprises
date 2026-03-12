@@ -1,0 +1,249 @@
+﻿@{
+    Layout = "~/Views/Shared/_SharedLayout_Employee.cshtml";
+}
+
+<style>
+
+    body {
+        background: #17362e;
+        color: white;
+        font-family: Segoe UI;
+    }
+
+    .container {
+        max-width: 1000px;
+        margin: auto;
+        padding: 30px;
+    }
+
+    .card {
+        background: #1e4a37;
+        padding: 25px;
+        border-radius: 10px;
+        margin-bottom: 25px;
+    }
+
+    button {
+        padding: 12px 20px;
+        border: none;
+        border-radius: 6px;
+        font-weight: 600;
+        cursor: pointer;
+    }
+
+    .loginBtn {
+        background: #27ae60;
+        color: white;
+    }
+
+    .logoutBtn {
+        background: #e74c3c;
+        color: white;
+    }
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    th, td {
+        padding: 10px;
+        text-align: center;
+    }
+
+    thead {
+        background: #0b6b55;
+    }
+
+    tbody {
+        background: #dff1eb;
+        color: black;
+    }
+
+</style>
+
+
+<div class="container">
+
+    <div class="card">
+
+        <h3>Today's Work</h3>
+
+        <button id="btnLogin" class="loginBtn" onclick="startWork()">Start Work</button>
+
+        <button id="btnLogout" class="logoutBtn" onclick="endWork()">End Work</button>
+
+        <br><br>
+
+        Login Time : <span id="loginTime">--</span><br>
+        Logout Time : <span id="logoutTime">--</span><br>
+
+        <b>Working Time : </b>
+        <span id="workingTimer">00:00:00</span>
+
+    </div>
+
+
+    <div class="card">
+
+        <h3>Previous Logs</h3>
+
+        <table>
+
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Login</th>
+                    <th>Logout</th>
+                    <th>Total Hours</th>
+                </tr>
+            </thead>
+
+            <tbody id="logTable">
+                <tr><td colspan="4">Loading...</td></tr>
+            </tbody>
+
+        </table>
+
+    </div>
+
+</div>
+
+
+<script>
+
+    let timerInterval;
+    let loginDate;
+
+    document.addEventListener("DOMContentLoaded",function(){
+
+    loadTodayStatus();
+    loadLogs();
+
+    });
+
+
+    function startWork(){
+
+    fetch('/Employee/StartWork',{method:'POST'})
+    .then(()=>{
+
+    loadTodayStatus();
+
+    });
+
+    }
+
+
+    function endWork(){
+
+    fetch('/Employee/EndWork',{method:'POST'})
+    .then(()=>{
+
+    loadTodayStatus();
+    loadLogs();
+
+    });
+
+    }
+
+
+    function startTimer(loginTime){
+
+    loginDate = new Date(loginTime);
+
+    timerInterval=setInterval(function(){
+
+    let now=new Date();
+
+    let diff=now-loginDate;
+
+    let h=Math.floor(diff/3600000);
+    let m=Math.floor((diff%3600000)/60000);
+    let s=Math.floor((diff%60000)/1000);
+
+    document.getElementById("workingTimer").innerText=
+    String(h).padStart(2,'0')+":"+
+    String(m).padStart(2,'0')+":"+
+    String(s).padStart(2,'0');
+
+    },1000);
+
+    }
+
+
+        function loadTodayStatus(){
+
+    fetch('/Employee/GetTodayLog')
+    .then(r=>r.json())
+    .then(res=>{
+
+    if(!res) return;
+
+    document.getElementById("loginTime").innerText = res.loginTime ?? "--";
+    document.getElementById("logoutTime").innerText = res.logoutTime ?? "--";
+
+    if(res.loginTime && !res.logoutTime)
+    {
+        // still working → start live timer
+        startTimer(res.loginTime);
+    }
+
+    if(res.loginTime && res.logoutTime)
+    {
+        // work completed → show final total time
+        clearInterval(timerInterval);
+
+        let total = calculateTotalTime(res.loginTime,res.logoutTime);
+
+        document.getElementById("workingTimer").innerText = total;
+    }
+
+    });
+    }
+
+
+    function loadLogs(){
+
+    fetch('/Employee/GetLogHours')
+    .then(r=>r.json())
+    .then(res=>{
+
+    const body=document.getElementById("logTable");
+
+    body.innerHTML="";
+
+    res.data.forEach(x=>{
+
+    body.innerHTML+=`
+
+    <tr>
+    <td>${x.date}</td>
+    <td>${x.loginTime}</td>
+    <td>${x.logoutTime ?? "-"}</td>
+    <td>${x.totalHours ?? "-"}</td>
+    </tr>
+
+    `;
+
+    });
+
+    });
+
+    }
+        function calculateTotalTime(loginTime, logoutTime) {
+
+        let login = new Date(loginTime);
+        let logout = new Date(logoutTime);
+
+        let diff = logout - login;
+
+        let h = Math.floor(diff / 3600000);
+        let m = Math.floor((diff % 3600000) / 60000);
+        let s = Math.floor((diff % 60000) / 1000);
+
+        return String(h).padStart(2,'0') + ":" +
+               String(m).padStart(2,'0') + ":" +
+               String(s).padStart(2,'0');
+    }
+</script>
