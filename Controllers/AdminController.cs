@@ -41,6 +41,13 @@ namespace vnenterprises.Controllers
         }
         [HttpGet]
         [AuthorizeUser(1)]
+        public IActionResult Reports()
+        {
+            UserId = Convert.ToInt32(Request.Cookies["UserId"]);
+            return View();
+        }
+        [HttpGet]
+        [AuthorizeUser(1)]
         public IActionResult Settings()
         {
             UserId = Convert.ToInt32(Request.Cookies["UserId"]);
@@ -51,6 +58,22 @@ namespace vnenterprises.Controllers
         public IActionResult Employee()
         {
             return View();
+        }
+        [HttpGet]
+        [AuthorizeUser(1)]
+        public IActionResult EmployeeReports()
+        {
+            return View();
+        }
+        [HttpPost]
+        public IActionResult GetEmployeeReport([FromBody] EmployeeReportQuery query)
+        {
+            var result = _adminsupport.GetEmployeeReport(query.StartDate, query.EndDate , 0 , query.PageNo , query.PageSize);
+            return Json(new
+            {
+                data = result.Data,
+                totalCount = result.TotalCount
+            });
         }
         [HttpGet]
         [AuthorizeUser(1)]

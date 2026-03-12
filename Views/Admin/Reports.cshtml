@@ -1,3 +1,266 @@
 ﻿@{
     Layout = "~/Views/Shared/_SharedLayout_Admin.cshtml";
 }
+
+
+<style>
+    @@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=Syne:wght@700;800&display=swap');
+
+    .reports-hub {
+        min-height: 80vh;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 60px 24px;
+        background: #17362e;
+        font-family: 'DM Sans', sans-serif;
+    }
+
+    .reports-hub__header {
+        text-align: center;
+        margin-bottom: 56px;
+    }
+
+    .reports-hub__eyebrow {
+        font-size: 11px;
+        font-weight: 600;
+        letter-spacing: 0.2em;
+        text-transform: uppercase;
+        color: #9e9e8e;
+        margin-bottom: 12px;
+    }
+
+    .reports-hub__title {
+        font-family: 'Syne', sans-serif;
+        font-size: clamp(2rem, 5vw, 3.2rem);
+        font-weight: 800;
+        color: #fff;
+        line-height: 1.1;
+        letter-spacing: -0.03em;
+        margin: 0;
+    }
+
+        .reports-hub__title span {
+            color: #fff;
+        }
+
+    .reports-hub__subtitle {
+        margin-top: 14px;
+        font-size: 15px;
+        color: #7a7a6a;
+        font-weight: 300;
+    }
+
+    .reports-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+        gap: 20px;
+        width: 100%;
+        max-width: 900px;
+    }
+
+    .report-card {
+        position: relative;
+        background: #ffffff;
+        border: 1px solid #e8e7e0;
+        border-radius: 20px;
+        padding: 36px 32px 32px;
+        text-decoration: none;
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+        overflow: hidden;
+        transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+        cursor: pointer;
+    }
+
+        .report-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: var(--accent);
+            transform: scaleX(0);
+            transform-origin: left;
+            transition: transform 0.3s ease;
+        }
+
+        .report-card:hover {
+            transform: translateY(-6px);
+            box-shadow: 0 20px 48px rgba(0,0,0,0.10);
+            border-color: transparent;
+            text-decoration: none;
+        }
+
+            .report-card:hover::before {
+                transform: scaleX(1);
+            }
+
+    .report-card--employee {
+        --accent: #4a7c6f;
+        --icon-bg: #edf4f2;
+        --icon-color: #4a7c6f;
+    }
+
+    .report-card--hours {
+        --accent: #c8a96e;
+        --icon-bg: #fdf6ea;
+        --icon-color: #b8922a;
+    }
+
+    .report-card--payment {
+        --accent: #5b6fa6;
+        --icon-bg: #eef0f8;
+        --icon-color: #5b6fa6;
+    }
+
+    .report-card__icon {
+        width: 52px;
+        height: 52px;
+        border-radius: 14px;
+        background: var(--icon-bg);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: transform 0.25s ease;
+    }
+
+    .report-card:hover .report-card__icon {
+        transform: scale(1.1) rotate(-4deg);
+    }
+
+    .report-card__icon svg {
+        width: 24px;
+        height: 24px;
+        stroke: var(--icon-color);
+        fill: none;
+        stroke-width: 1.8;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+    }
+
+    .report-card__label {
+        font-size: 11px;
+        font-weight: 600;
+        letter-spacing: 0.15em;
+        text-transform: uppercase;
+        color: var(--icon-color);
+        opacity: 0.8;
+    }
+
+    .report-card__title {
+        font-family: 'Syne', sans-serif;
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: #1a1a14;
+        line-height: 1.2;
+        margin: 0;
+    }
+
+    .report-card__desc {
+        font-size: 13.5px;
+        color: #888877;
+        line-height: 1.6;
+        font-weight: 300;
+        flex: 1;
+    }
+
+    .report-card__arrow {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--icon-color);
+        margin-top: 4px;
+        transition: gap 0.2s ease;
+    }
+
+    .report-card:hover .report-card__arrow {
+        gap: 10px;
+    }
+
+    .report-card__arrow svg {
+        width: 16px;
+        height: 16px;
+        stroke: currentColor;
+        fill: none;
+        stroke-width: 2;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+    }
+
+    /* Stagger animation on load */
+    .report-card {
+        opacity: 0;
+        transform: translateY(24px);
+        animation: cardReveal 0.5s ease forwards;
+    }
+
+        .report-card:nth-child(1) {
+            animation-delay: 0.1s;
+        }
+
+        .report-card:nth-child(2) {
+            animation-delay: 0.22s;
+        }
+
+        .report-card:nth-child(3) {
+            animation-delay: 0.34s;
+        }
+
+    @@keyframes cardReveal {
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+</style>
+
+<div class="reports-hub">
+    @* <div class="reports-hub__header">
+    </div> *@
+
+    <div class="reports-grid">
+
+        <!-- Employee Reports -->
+        <a href="@Url.Action("EmployeeReports", "Admin")" class="report-card report-card--employee">
+            <div class="report-card__icon">
+                <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M23 21v-2a4 4 0 0 0-3-3.87" /><path d="M16 3.13a4 4 0 0 1 0 7.75" /></svg>
+            </div>
+            <h2 class="report-card__title">Employee Reports</h2>
+            <div class="report-card__arrow">
+                View Report
+                <svg viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12" /><polyline points="12 5 19 12 12 19" /></svg>
+            </div>
+        </a>
+
+        <!-- Log Hours Reports -->
+        <a href="@Url.Action("Admin", "LogHoursReports")" class="report-card report-card--hours">
+            <div class="report-card__icon">
+                <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" /></svg>
+            </div>
+            <h2 class="report-card__title">Log Hours Reports</h2>
+            <div class="report-card__arrow">
+                View Report
+                <svg viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12" /><polyline points="12 5 19 12 12 19" /></svg>
+            </div>
+        </a>
+
+        <!-- Payment Gateway Reports -->
+        <a href="@Url.Action("Admin", "PaymentReports")" class="report-card report-card--payment">
+            <div class="report-card__icon">
+                <svg viewBox="0 0 24 24"><rect x="1" y="4" width="22" height="16" rx="2" ry="2" /><line x1="1" y1="10" x2="23" y2="10" /></svg>
+            </div>
+            <h2 class="report-card__title">Payment Gateway Reports</h2>
+            <div class="report-card__arrow">
+                View Report
+                <svg viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12" /><polyline points="12 5 19 12 12 19" /></svg>
+            </div>
+        </a>
+
+    </div>
+</div>
