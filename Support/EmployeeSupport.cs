@@ -321,7 +321,7 @@ namespace vnenterprises.Support
             List<GetEmployeeModelList> result = new();
             
             using SqlConnection con = new SqlConnection(_connectionString);
-            using SqlCommand cmd = new SqlCommand("usp_fn_GetUserDetails", con);
+            using SqlCommand cmd = new SqlCommand("usp_fn_GetRetailerUserDetails", con);
 
             cmd.CommandType = CommandType.StoredProcedure;
             cmd.Parameters.AddWithValue("@BranchIds", model.BranchIds);

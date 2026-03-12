@@ -403,16 +403,8 @@
         <!-- KYC DROPDOWN -->
         <div class="kyc-wrapper">
             <div id="kycstatus"
-                 class="kyc-badge @(kycStatus.ToLower() == "pending" ? "kyc-pending" : kycStatus.ToLower() == "approved" ? "kyc-approved" : "kyc-rejected")"
-                 onclick="toggleKycMenu()">
+                 class="kyc-badge @(kycStatus.ToLower() == "pending" ? "kyc-pending" : kycStatus.ToLower() == "approved" ? "kyc-approved" : "kyc-rejected")">
                 KYC: <span id="kycText">@kycStatus</span>
-                <i class="fa-solid fa-chevron-down"></i>
-            </div>
-
-            <div id="kycMenu" class="kyc-menu">
-                <div onclick="selectKycStatus('Pending')" class="pending">Pending</div>
-                <div onclick="selectKycStatus('Approved')" class="approved">Approved</div>
-                <div onclick="selectKycStatus('Rejected')" class="rejected">Rejected</div>
             </div>
         </div>
 
