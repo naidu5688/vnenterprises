@@ -319,8 +319,8 @@
                 res.data.forEach(e => {
                     let url = "#";
 
-                    if (e.userRoleId == 4) {
-                        url = `/Retailer/GetEmployees?branchIds=${branch}&roleIds=${role}&kyc=${kyc}&search=${search}&page=${currentPage}&pageSize=${pageSize}`;
+                    if (e.userRoleId == 3) {
+                        url = `/Retailer/EditEmployee?userId=${e.userId}`;
                     }
                     tbody.innerHTML += `
                     <tr>
