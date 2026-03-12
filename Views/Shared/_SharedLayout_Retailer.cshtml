@@ -1,4 +1,5 @@
-﻿<head>
+﻿<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<head>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <style>
@@ -132,6 +133,9 @@
         <div class="sidebar">
             <button onclick="location.href='@Url.Action("Customers", "Retailer")'">
                 <i class="fas fa-user-friends"></i> Customer
+            </button>
+            <button onclick="location.href='@Url.Action("Employee", "Retailer")'">
+                <i class="fas fa-users"></i> Employee
             </button>
             <button onclick="location.href='@Url.Action("Transactions", "Retailer")'">
                 <i class="fas fa-exchange-alt"></i> Transactions

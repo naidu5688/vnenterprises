@@ -1,0 +1,415 @@
+﻿@{
+    Layout = "~/Views/Shared/_SharedLayout_Retailer.cshtml";
+}
+
+<style>
+    body {
+        background: #17362e;
+        font-family: 'Segoe UI', sans-serif;
+        color: white;
+    }
+
+    .page-container {
+        max-width: 100%;
+        margin: auto;
+        padding: 25px;
+    }
+
+    h2 {
+        color: #d4af37;
+        margin-bottom: 20px;
+    }
+
+    /* ===== SUMMARY BOXES ===== */
+    .summary-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 15px; /* reduced gap */
+        margin-bottom: 25px;
+    }
+
+    .summary-box {
+        padding: 12px; /* reduced padding */
+        border-radius: 12px;
+        text-align: center;
+        font-weight: 600;
+        box-shadow: 0 4px 8px rgba(0,0,0,.3);
+    }
+
+    .approved {
+        background: linear-gradient(135deg, #1f8f4e, #27ae60);
+    }
+
+    .pending {
+        background: linear-gradient(135deg, #b7950b, #f1c40f);
+        color: black;
+    }
+
+    .rejected {
+        background: linear-gradient(135deg, #922b21, #e74c3c);
+    }
+
+    .total {
+        background: linear-gradient(135deg, #2c3e50, #34495e);
+    }
+
+    .summary-box h3 {
+        margin: 0;
+        font-size: 24px;
+    }
+
+    .summary-box span {
+        font-size: 12px;
+        opacity: .9;
+    }
+
+    /* ===== FILTERS ===== */
+    .filter-bar {
+        display: grid;
+        grid-template-columns: repeat(7, 1fr); /* branch, role, KYC, page size, search, button */
+        gap: 10px;
+        margin-bottom: 20px;
+        align-items: center;
+    }
+
+    .form-control {
+        background: #1e4a37;
+        border: 1px solid #d4af37;
+        border-radius: 8px;
+        color: white;
+        padding: 8px 10px;
+        font-size: 14px;
+    }
+
+    .btn-primary {
+        background: #d4af37;
+        color: #17362e;
+        border: none;
+        border-radius: 8px;
+        padding: 10px;
+        font-weight: 600;
+        cursor: pointer;
+    }
+
+    /* ===== TABLE ===== */
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 10px;
+    }
+
+    th, td {
+        padding: 10px;
+        text-align: center;
+        font-size: 14px;
+    }
+
+    th {
+        color: #d4af37;
+    }
+
+    tbody {
+        background-color: white;
+        color: black;
+    }
+
+    .table-wrapper {
+        margin: 0 25px;
+        border-radius: 14px;
+        overflow: hidden;
+        box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+    }
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    thead {
+        background: #0b6b55;
+    }
+
+    th {
+        padding: 14px;
+        color: #fff;
+        font-size: 13px;
+        text-align: center;
+    }
+
+    td {
+        padding: 14px;
+        text-align: center;
+        font-size: 14px;
+        border-bottom: 1px solid #edf2f0;
+    }
+
+    tbody {
+        background: #dff1eb;
+    }
+
+        tbody tr:hover {
+            background: #dff1eb;
+        }
+
+    #fSearch {
+        grid-column: span 2; /* spans 2 columns instead of 1 */
+    }
+    /* ===== KYC BADGES ===== */
+    .kyc-badge {
+        padding: 4px 8px;
+        border-radius: 12px;
+        font-weight: 600;
+        font-size: 12px;
+        display: inline-block;
+    }
+
+    .table-wrapper {
+        margin: 0 25px;
+        border-radius: 18px; /* increased only */
+        overflow: hidden;
+        box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+    }
+
+
+    .kyc-approved {
+        background: #27ae60;
+    }
+
+    .kyc-pending {
+        background: #f1c40f;
+        color: black;
+    }
+
+    .kyc-rejected {
+        background: #e74c3c;
+    }
+
+    .btn-edit {
+        background: #2980b9;
+        border: none;
+        color: white;
+        padding: 6px 12px;
+        border-radius: 6px;
+        cursor: pointer;
+    }
+
+    #prev-button {
+        background: white !important;
+    }
+</style>
+
+<div class="page-container">
+    <div style="display:flex; justify-content: flex-end; gap:15px; margin-bottom:20px;">
+
+        <button class="btn-primary" onclick="window.location.href='/Retailer/AddEmployee'">
+            Add Employee
+        </button>
+    </div>
+
+    <!-- ===== FILTERS ===== -->
+    <div class="filter-bar">
+
+        <select id="fKyc" class="form-control">
+            <option value="">All KYC Status</option>
+            <option value="Approved">Approved</option>
+            <option value="Pending">Pending</option>
+            <option value="Rejected">Rejected</option>
+        </select>
+
+        <select id="pageSizeSelect" class="form-control">
+            <option value="10" selected>10</option>
+            <option value="25">25</option>
+            <option value="40">40</option>
+            <option value="50">50</option>
+        </select>
+
+        <input id="fSearch" class="form-control" placeholder="Search Phone Number or Name..">
+
+        <button class="btn-primary" onclick="searchEmployees()">Search</button>
+    </div>
+
+    <!-- ===== PAGINATION ===== -->
+    <!-- ===== TABLE ===== -->
+    <table>
+        <thead>
+            <tr>
+                <th>Employee ID</th>
+                <th>Name</th>
+                <th>Phone</th>
+                <th>Aadhaar</th>
+
+                <th>KYC Status</th>
+                <th>Created On</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody id="empBody">
+            <tr><td colspan="9">Loading...</td></tr>
+        </tbody>
+    </table>
+    <br />
+    <div id="pagination"
+         style="display:flex; justify-content:center; align-items:center; gap:6px; margin:15px 0; color: #0b6b55">
+    </div>
+</div>
+
+<script>
+    let currentPage = 1;
+    let pageSize = 10;
+    let totalRecords = 0;
+
+    const fKyc = document.getElementById("fKyc");
+    const fSearch = document.getElementById("fSearch");
+    const pageSizeSelect = document.getElementById("pageSizeSelect");
+    const paginationDiv = document.getElementById("pagination");
+
+    pageSizeSelect.onchange = function () {
+        pageSize = parseInt(this.value);
+        currentPage = 1;
+        loadEmployees();
+    };
+
+    function searchEmployees() {
+        currentPage = 1;
+        loadEmployees();
+    }
+
+    function goToPage(p) {
+        if (p < 1) return;
+        currentPage = p;
+        loadEmployees();
+    }
+
+    function buildFilterParams() {
+        const branch = "";
+        const role = "";
+        const kyc = fKyc.value || "Approved,Pending,Rejected";
+        const search = fSearch.value || "";
+
+        return { branch, role, kyc, search };
+    }
+    fKyc.onchange = function () {
+        currentPage = 1;
+        loadEmployees();
+    };
+    pageSizeSelect.onchange = function () {
+        currentPage = 1;
+        loadEmployees();
+    };
+    // ================= EMPLOYEE LIST (PAGED) =================
+    function loadEmployees() {
+        const { branch, role, kyc, search } = buildFilterParams();
+        debugger
+        fetch(`/Retailer/GetEmployees?branchIds=${branch}&roleIds=${role}&kyc=${kyc}&search=${search}&page=${currentPage}&pageSize=${pageSize}`)
+            .then(r => r.json())
+            .then(res => {
+
+                const tbody = document.getElementById("empBody");
+                tbody.innerHTML = "";
+
+                totalRecords = res.totalCount || 0;
+
+                if (!res.data || res.data.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="9">No employees found</td></tr>`;
+                    paginationDiv.innerHTML = "";
+                    // still refresh summary
+                    return;
+                }
+
+                res.data.forEach(e => {
+                    let url = "#";
+
+                    if (e.userRoleId == 4) {
+                        url = `/Retailer/GetEmployees?branchIds=${branch}&roleIds=${role}&kyc=${kyc}&search=${search}&page=${currentPage}&pageSize=${pageSize}`;
+                    }
+                    tbody.innerHTML += `
+                    <tr>
+                        <td>${e.userId}</td>
+                        <td>${e.employeeName}</td>
+                        <td>${e.mobileNumber}</td>
+                        <td>${e.aadharNumber}</td>
+
+                        <td>
+                            <span class="kyc-badge kyc-${e.kycStatus.toLowerCase()}">
+                                ${e.kycStatus}
+                            </span>
+                        </td>
+                        <td>${e.createdOn || '-'}</td>
+                        <td>
+                            <button class="btn-edit"
+                                onclick="window.location.href='${url}'">
+                                Edit
+                            </button>
+                        </td>
+                    </tr>`;
+                });
+
+                renderPagination();
+                //loadKycCounts();
+            });
+    }
+
+    // ================= KYC COUNTS (SEPARATE) =================
+    function loadKycCounts() {
+        // const { branch, role, kyc, search } = buildFilterParams();
+        debugger
+        fetch(`/Admin/GetKycCounts`)
+            .then(r => r.json())
+            .then(res => {
+                debugger
+                cntApproved.innerText = res.approved || 0;
+                cntPending.innerText = res.pending || 0;
+                cntRejected.innerText = res.rejected || 0;
+                cntTotal.innerText = res.totalCount || 0;
+            });
+    }
+
+    function renderPagination() {
+        const totalPages = Math.ceil(totalRecords / pageSize);
+        paginationDiv.innerHTML = "";
+
+        if (totalPages <= 1) return;
+
+        // ===== PREV BUTTON =====
+        const prevBtn = document.createElement("button");
+        prevBtn.innerText = "Prev";
+        prevBtn.className = "btn-primary";
+        prevBtn.disabled = currentPage === 1;
+        prevBtn.onclick = () => goToPage(currentPage - 1);
+        paginationDiv.appendChild(prevBtn);
+
+        // ===== PAGE RANGE LOGIC (MAX 3) =====
+        let startPage = Math.max(1, currentPage - 1);
+        let endPage = startPage + 2;
+
+        if (endPage > totalPages) {
+            endPage = totalPages;
+            startPage = Math.max(1, endPage - 2);
+        }
+
+        // ===== PAGE NUMBERS =====
+        for (let i = startPage; i <= endPage; i++) {
+            const btn = document.createElement("button");
+            btn.innerText = i;
+            btn.className = "btn-primary";
+            btn.style.padding = "6px 12px";
+            btn.disabled = i === currentPage;
+            btn.style.opacity = i === currentPage ? "0.6" : "1";
+            btn.onclick = () => goToPage(i);
+            paginationDiv.appendChild(btn);
+        }
+
+        // ===== NEXT BUTTON =====
+        const nextBtn = document.createElement("button");
+        nextBtn.innerText = "Next";
+        nextBtn.className = "btn-primary";
+        nextBtn.disabled = currentPage === totalPages;
+        nextBtn.onclick = () => goToPage(currentPage + 1);
+        paginationDiv.appendChild(nextBtn);
+    }
+        document.addEventListener("DOMContentLoaded", function () {
+            loadEmployees();
+        });
+
+</script>
+

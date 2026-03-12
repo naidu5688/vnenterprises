@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
+using Microsoft.CodeAnalysis;
 using vnenterprises.Filters;
 using vnenterprises.Models;
 using vnenterprises.Support;
@@ -46,6 +47,68 @@ namespace vnenterprises.Controllers
 
         [HttpGet]
         public IActionResult AddCustomer()
+        {
+            return View();
+        }
+        [HttpGet]
+        public IActionResult AddEmployee()
+        {
+            UserId = Convert.ToInt32(Request.Cookies["UserId"]);
+            PlatformGatewayViewModel platformss = new PlatformGatewayViewModel
+            {
+                Platforms = _employeesupport.GetPlatformsByUserId(UserId),
+                Gateways = _employeesupport.GetGatewaysByUserId(0, UserId, 3)
+            };
+
+            EmployeeModel model = new EmployeeModel
+            {
+                PlatformGatewayModel = platformss,
+                branchmodel = new List<Branches>()
+            };
+            return View(model);
+        }
+        [HttpPost]
+        public async Task<IActionResult> AddEmployee([FromForm] EmployeeModel modelobj)
+        {
+            modelobj.Password = ConvertToBase64(modelobj.Password);
+            //modelobj.MPIN = ConvertToBase64(modelobj.MPIN);
+            UserId = Convert.ToInt32(Request.Cookies["UserId"]);
+            if (modelobj.AadhaarFrontImage != null && modelobj.AadhaarFrontImage.Length > 0)
+            {
+                var uploadResult = await _s3support.UploadFileToS3Bucket(modelobj.AadhaarFrontImage);
+                modelobj.aadharfrontpath = uploadResult.FileCompletePath;
+            }
+            if (modelobj.AadhaarBackImage != null && modelobj.AadhaarBackImage.Length > 0)
+            {
+                var uploadResult = await _s3support.UploadFileToS3Bucket(modelobj.AadhaarBackImage);
+                modelobj.aadharbackpath = uploadResult.FileCompletePath;
+            }
+            if (modelobj.PanFrontImage != null && modelobj.PanFrontImage.Length > 0)
+            {
+                var uploadResult = await _s3support.UploadFileToS3Bucket(modelobj.PanFrontImage);
+                modelobj.panfrontpath = uploadResult.FileCompletePath;
+            }
+            if (modelobj.PanBackImage != null && modelobj.PanBackImage.Length > 0)
+            {
+                var uploadResult = await _s3support.UploadFileToS3Bucket(modelobj.PanBackImage);
+                modelobj.panbackpath = uploadResult.FileCompletePath;
+            }
+            var response = _employeesupport.UpdateorInsertEmployee(modelobj, UserId);
+
+            return Json(new
+            {
+                success = response.result == 1,  // adjust if needed
+                message = response.StatusMessage
+            });
+
+        }
+        public string ConvertToBase64(string plainPassword)
+        {
+            var plainTextBytes = System.Text.Encoding.UTF8.GetBytes(plainPassword);
+            return Convert.ToBase64String(plainTextBytes);
+        }
+        [HttpGet]
+        public IActionResult Employee()
         {
             return View();
         }
@@ -145,6 +208,26 @@ namespace vnenterprises.Controllers
             int UserId = Convert.ToInt32(Request.Cookies["UserId"]);
             var result = _employeesupport.GetGatewaysByUserId(platformId , UserId);
             return Json(result);
+        }
+        [HttpGet]
+        public IActionResult GetEmployees(string kyc, string search, int page, int pageSize)
+        {
+            var getEmployeeModel = new GetEmployeeModel
+            {
+                BranchIds = "",
+                RoleIds = "",
+                UserId = Convert.ToInt32(Request.Cookies["UserId"]),
+                Kyc = kyc,
+                SearchText = search ?? "",
+                page = page,
+                pageSize = pageSize
+            };
+            var result = _employeesupport.getEmployeeDetail(getEmployeeModel);
+            return Json(new
+            {
+                data = result.data,
+                totalCount = result.totalCount
+            });
         }
         public override void OnActionExecuting(ActionExecutingContext context)
         {

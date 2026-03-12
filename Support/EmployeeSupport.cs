@@ -1,4 +1,5 @@
 ﻿using Azure;
+using Azure.Core;
 using Microsoft.Data.SqlClient;
 using System;
 using System.Collections.Generic;
@@ -212,7 +213,7 @@ namespace vnenterprises.Support
                 return platlist;
             }
         }
-        public List<Gateway> GetGatewaysByUserId(int PlatformId , int UserId)
+        public List<Gateway> GetGatewaysByUserId(int PlatformId , int UserId, int flagtype = 2)
         {
             List<Gateway> platlist = new List<Gateway>();
             using (SqlConnection con = new SqlConnection(_connectionString))
@@ -221,7 +222,7 @@ namespace vnenterprises.Support
                 cmd.CommandType = CommandType.StoredProcedure;
                 cmd.Parameters.AddWithValue("@PlatformId", PlatformId);
                 cmd.Parameters.AddWithValue("@UserId", UserId);
-                cmd.Parameters.AddWithValue("@FlagType", 2);
+                cmd.Parameters.AddWithValue("@FlagType", flagtype);
                 con.Open();
                 using (SqlDataReader dr = cmd.ExecuteReader())
                 {
@@ -231,6 +232,7 @@ namespace vnenterprises.Support
                         {
                             Id = Convert.ToInt32(dr["Id"]),
                             Name = dr["Name"].ToString(),
+                            PlatformId = Convert.ToInt32(dr["PlatformId"]),
                             Charge = Convert.ToDecimal(dr["Charge"])
                         });
                     }
@@ -313,6 +315,106 @@ namespace vnenterprises.Support
 
             return result;
         }
+        public (List<GetEmployeeModelList> data, int totalCount) getEmployeeDetail(GetEmployeeModel model)
+        {
+            int totalCount = 0;
+            List<GetEmployeeModelList> result = new();
+            
+            using SqlConnection con = new SqlConnection(_connectionString);
+            using SqlCommand cmd = new SqlCommand("usp_fn_GetUserDetails", con);
+
+            cmd.CommandType = CommandType.StoredProcedure;
+            cmd.Parameters.AddWithValue("@BranchIds", model.BranchIds);
+            cmd.Parameters.AddWithValue("@UserId", model.UserId);
+            cmd.Parameters.AddWithValue("@RoleIds", model.RoleIds);
+            cmd.Parameters.AddWithValue("@Kyc", model.Kyc);
+            cmd.Parameters.AddWithValue("@SearchText", model.SearchText ?? "");
+            cmd.Parameters.AddWithValue("@PageNo", model.page);
+            cmd.Parameters.AddWithValue("@PageSize", model.pageSize);
+
+            con.Open();
+
+            using (SqlDataReader dr = cmd.ExecuteReader())
+            {
+                while (dr.Read())
+                {
+                    result.Add(new GetEmployeeModelList
+                    {
+                        UserId = Convert.ToInt32(dr["UserId"]),
+                        MobileNumber = dr["MobileNumber"].ToString(),
+                        EmployeeName = dr["EmployeeName"].ToString(),
+                        AadharNumber = dr["AadharNumber"].ToString(),
+                        PanNumber = dr["PanNumber"].ToString(),
+                        UserRoleId = Convert.ToInt32(dr["UserRoleId"]),
+                        //BranchId = Convert.ToInt32(dr["BranchId"]),
+                        AccessName = dr["AccessName"].ToString(),
+                        IsKycApproveAccess = Convert.ToBoolean(dr["IsKycApproveAccess"]),
+                        IsActive = Convert.ToBoolean(dr["IsActive"]),
+                        KYCStatus = dr["KYCStatus"].ToString(),
+                        KYCApprovedOn = Convert.ToDateTime(dr["KYCApprovedOn"]),
+                        CreatedOn = Convert.ToDateTime(dr["CreatedOn"]).ToString("yyyy-MM-dd HH:mm:ss"),
+                        CreatedBy = dr["CreatedBy"].ToString()
+                    });
+                }
+
+                if (dr.NextResult() && dr.Read())
+                    totalCount = Convert.ToInt32(dr["TotalCount"]);
+            }
+
+            return (result, totalCount);
+        }
+        public ResultResponse UpdateorInsertEmployee(EmployeeModel model, int UserId)
+        {
+            var response = new ResultResponse();
+            try
+            {
+                using (SqlConnection con = new SqlConnection(_connectionString))
+                using (SqlCommand cmd = new SqlCommand("vn_InsertorupdateEmployee", con))
+                {
+                    cmd.CommandType = CommandType.StoredProcedure;
+
+                    cmd.Parameters.AddWithValue("@EmployeeId", model.EmployeeId);
+                    cmd.Parameters.AddWithValue("@UserFirstName", model.FirstName);
+                    cmd.Parameters.AddWithValue("@UserLastName", model.LastName);
+                    cmd.Parameters.AddWithValue("@MobileNumber", model.MobileNumber);
+                    cmd.Parameters.AddWithValue("@Password", model.Password);
+                    cmd.Parameters.AddWithValue("@MPIN", model.MPIN);
+                    cmd.Parameters.AddWithValue("@AadhaarNumber", model.AadhaarNumber);
+                    cmd.Parameters.AddWithValue("@PanNumber", model.PanNumber);
+                    cmd.Parameters.AddWithValue("@AadhaarFrontImage", model.aadharfrontpath);
+                    cmd.Parameters.AddWithValue("@AadhaarBackImage", model.aadharbackpath);
+                    cmd.Parameters.AddWithValue("@PanFrontImage", model.panfrontpath);
+                    cmd.Parameters.AddWithValue("@PanBackImage", model.panbackpath ?? "");
+                    cmd.Parameters.AddWithValue("@KycStatus", model.KycStatus ?? "");
+                    cmd.Parameters.Add(new SqlParameter("@SelectedGateways", SqlDbType.Structured)
+                    {
+                        TypeName = "dbo.IntList",
+                        Value = ToIntListTable(model.SelectedGateways)
+                    });
+                    cmd.Parameters.Add(new SqlParameter("@SelectedBranches", SqlDbType.Structured)
+                    {
+                        TypeName = "dbo.IntList",
+                        Value = ToIntListTable(model.SelectedBranches)
+                    });
+                    cmd.Parameters.AddWithValue("@UserId", UserId);
+
+                    con.Open();
+                    using SqlDataReader dr = cmd.ExecuteReader();
+                    if (dr.Read())
+                    {
+                        response.result = Convert.ToInt32(dr["Result"]);
+                        response.StatusMessage = dr["Status"].ToString();
+                    }
+                }
+
+            }
+            catch (Exception e)
+            {
+                response.result = 0; ;
+                response.StatusMessage = "Something Wrong. Please Try again.";
+            }
+            return response;
+        }
         private DataTable ToIntListTable(List<CreditCardModel> list)
         {
             DataTable dt = new DataTable();
@@ -374,6 +476,16 @@ namespace vnenterprises.Support
             
 
             return dt;//test
+        }
+        private DataTable ToIntListTable(List<int> list)
+        {
+            DataTable dt = new DataTable();
+            dt.Columns.Add("Id", typeof(int));
+
+            foreach (var item in list)
+                dt.Rows.Add(item);
+
+            return dt;
         }
         public (List<TransactionListModel> data, int totalCount) GetTransactions(TransactionviewModel model)
         {
@@ -686,6 +798,85 @@ namespace vnenterprises.Support
                 }
                 return list;
             }
+        }
+        public PlatformGatewayViewModel GetPlatformGatewayList()
+        {
+            var viewModel = new PlatformGatewayViewModel
+            {
+                Platforms = new List<Platforms>(),
+                Gateways = new List<Gateway>()
+            };
+
+            using (SqlConnection conn = new SqlConnection(_connectionString))
+            {
+                conn.Open();
+                using (SqlCommand cmd = new SqlCommand("vn_GetPlatfotmGateway", conn))
+                {
+                    cmd.CommandType = CommandType.StoredProcedure;
+                    cmd.Parameters.AddWithValue("@PlatformId", 0);
+                    cmd.Parameters.AddWithValue("@FlagType", 1);
+                    using (SqlDataReader reader = cmd.ExecuteReader())
+                    {
+                        // Read Platforms
+                        while (reader.Read())
+                        {
+                            viewModel.Platforms.Add(new Platforms
+                            {
+                                Id = reader.GetInt32(reader.GetOrdinal("Id")),
+                                Name = reader.GetString(reader.GetOrdinal("Name")),
+                                Charge = reader.GetDecimal(reader.GetOrdinal("Charge")),
+                                Status = reader.GetString(reader.GetOrdinal("Status"))
+                            });
+                        }
+
+                        // Move to next result set (Gateways)
+                        if (reader.NextResult())
+                        {
+                            while (reader.Read())
+                            {
+                                viewModel.Gateways.Add(new Gateway
+                                {
+                                    Id = reader.GetInt32(reader.GetOrdinal("Id")),
+                                    Name = reader.GetString(reader.GetOrdinal("Name")),
+                                    PlatformName = reader.GetString(reader.GetOrdinal("PlatformName")),
+                                    Charge = reader.GetDecimal(reader.GetOrdinal("Charge")),
+                                    Status = reader.GetString(reader.GetOrdinal("Status"))
+                                });
+                            }
+                        }
+                    }
+                }
+            }
+
+            return viewModel;
+        }
+        public List<Branches> GetBranchList()
+        {
+            var branchList = new List<Branches>();
+
+            using (SqlConnection conn = new SqlConnection(_connectionString))
+            {
+                using (SqlCommand cmd = new SqlCommand("vn_GetBranch", conn))
+                {
+                    cmd.CommandType = CommandType.StoredProcedure;
+
+                    conn.Open();
+                    using (SqlDataReader reader = cmd.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            branchList.Add(new Branches
+                            {
+                                BranchId = reader.GetInt32(reader.GetOrdinal("BranchId")),
+                                BranchName = reader.GetString(reader.GetOrdinal("BranchName")),
+                                IsActive = reader.GetBoolean(reader.GetOrdinal("IsActive"))
+                            });
+                        }
+                    }
+                }
+            }
+
+            return branchList;
         }
     }
     }
