@@ -1,3 +1,744 @@
 ﻿@{
     Layout = "~/Views/Shared/_SharedLayout_Admin.cshtml";
 }
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels"></script>
+
+<style>
+
+    :root {
+        --bg-base: #081e1b;
+        --bg-surface: #0d2b27;
+        --bg-card: #102e2a;
+        --border: rgba(217,183,108,0.30);
+        --border-bright: rgba(217,183,108,0.65);
+        --gold: #d9b76c;
+        --gold-light: #f0d08a;
+        --green-accent: #3ecf8e;
+        --text-primary: #f0ede6;
+        --text-muted: rgba(240,237,230,0.50);
+    }
+
+    * {
+        box-sizing: border-box;
+    }
+
+    body {
+        background: var(--bg-base);
+        color: var(--text-primary);
+        font-family: 'DM Sans', sans-serif;
+        font-size: 14px;
+        min-height: 100vh;
+    }
+
+        /* subtle dot-grid texture */
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background-image: radial-gradient(rgba(217,183,108,0.07) 1px, transparent 1px);
+            background-size: 28px 28px;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+    .container-fluid {
+        position: relative;
+        z-index: 1;
+    }
+
+    /* ── PAGE HEADER ─────────────────────────── */
+    .page-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 24px;
+        padding-bottom: 16px;
+        border-bottom: 1px solid var(--border);
+    }
+
+    .page-header-title {
+        font-family: 'Syne', sans-serif;
+        font-size: 22px;
+        font-weight: 800;
+        color: var(--gold-light);
+        letter-spacing: -0.3px;
+        margin: 0;
+    }
+
+    .page-header-sub {
+        font-size: 12px;
+        color: var(--text-muted);
+        margin-top: 3px;
+    }
+
+    /* ── FILTER BAR ──────────────────────────── */
+    .filter-bar {
+        display: flex;
+        gap: 5px;
+        background: var(--bg-surface);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        padding: 4px;
+    }
+
+    .filter-btn {
+        background: transparent;
+        border: none;
+        color: var(--text-muted);
+        padding: 7px 22px;
+        border-radius: 7px;
+        cursor: pointer;
+        font-family: 'DM Sans', sans-serif;
+        font-size: 13px;
+        font-weight: 500;
+        transition: all 0.2s;
+    }
+
+        .filter-btn:hover {
+            color: var(--text-primary);
+            background: rgba(217,183,108,0.08);
+        }
+
+        .filter-btn.active {
+            background: var(--gold);
+            color: #081e1b;
+            font-weight: 700;
+        }
+
+    /* ── STAT CARDS ──────────────────────────── */
+    .stat-card {
+        background: var(--bg-card);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 20px 22px;
+        position: relative;
+        overflow: hidden;
+        transition: border-color 0.2s, transform 0.2s;
+    }
+
+        .stat-card::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 3px;
+            height: 100%;
+            background: linear-gradient(180deg, var(--gold) 0%, transparent 100%);
+            border-radius: 12px 0 0 12px;
+        }
+
+        .stat-card:hover {
+            border-color: var(--border-bright);
+            transform: translateY(-2px);
+        }
+
+    .stat-icon {
+        width: 34px;
+        height: 34px;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 15px;
+        margin-bottom: 12px;
+        background: rgba(217,183,108,0.10);
+    }
+
+    .stat-title {
+        font-size: 10px;
+        color: var(--gold);
+        font-weight: 700;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        margin-bottom: 7px;
+    }
+
+    .stat-value {
+        font-family: 'Syne', sans-serif;
+        font-size: 28px;
+        font-weight: 800;
+        color: var(--text-primary);
+        line-height: 1;
+    }
+
+    /* ── DASHBOARD BOX ───────────────────────── */
+    .dashboard-box {
+        background: var(--bg-card);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 20px 22px;
+        margin-top: 18px;
+        transition: border-color 0.2s;
+    }
+
+        .dashboard-box:hover {
+            border-color: var(--border-bright);
+        }
+
+    .box-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 14px;
+        padding-bottom: 12px;
+        border-bottom: 1px solid var(--border);
+    }
+
+    .box-title {
+        font-family: 'Syne', sans-serif;
+        font-size: 14px;
+        font-weight: 700;
+        color: var(--gold-light);
+        margin: 0;
+    }
+
+    .box-badge {
+        font-size: 10px;
+        padding: 3px 9px;
+        border-radius: 20px;
+        background: rgba(217,183,108,0.10);
+        color: var(--gold);
+        border: 1px solid var(--border);
+        font-weight: 700;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+    }
+
+    /* ── CHART WRAPPER ───────────────────────── */
+    .chart-box {
+        position: relative;
+        height: 320px;
+    }
+
+    /* ── EMPLOYEE TABLE ──────────────────────── */
+    .emp-table {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0;
+    }
+
+        .emp-table thead th {
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            color: var(--gold);
+            padding: 10px 14px;
+            background: rgba(217,183,108,0.06);
+            border-bottom: 1px solid var(--border);
+        }
+
+            .emp-table thead th:first-child {
+                border-radius: 8px 0 0 0;
+            }
+
+            .emp-table thead th:last-child {
+                border-radius: 0 8px 0 0;
+            }
+
+        .emp-table tbody tr {
+            transition: background 0.15s;
+        }
+
+            .emp-table tbody tr:hover td {
+                background: rgba(217,183,108,0.04);
+            }
+
+        .emp-table tbody td {
+            padding: 11px 14px;
+            border-bottom: 1px solid rgba(217,183,108,0.08);
+            color: var(--text-primary);
+            font-size: 13px;
+            vertical-align: middle;
+        }
+
+        .emp-table tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+    .emp-rank {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 22px;
+        height: 22px;
+        border-radius: 50%;
+        font-size: 11px;
+        font-weight: 700;
+        margin-right: 8px;
+        background: rgba(217,183,108,0.12);
+        color: var(--gold);
+        flex-shrink: 0;
+    }
+
+    .emp-name-cell {
+        display: flex;
+        align-items: center;
+    }
+
+    .profit-badge {
+        display: inline-block;
+        padding: 3px 10px;
+        border-radius: 6px;
+        background: rgba(62,207,142,0.12);
+        color: #4dffaf;
+        font-weight: 600;
+        font-size: 13px;
+    }
+
+</style>
+
+
+<div class="container-fluid mt-4 pb-4">
+
+    <!-- PAGE HEADER -->
+    <div class="page-header">
+        
+        
+        <div class="filter-bar">
+            <div class="filter-btn" onclick="setFilter('weekly', this)">Week</div>
+            <div class="filter-btn active" onclick="setFilter('monthly', this)">Month</div>
+            <div class="filter-btn" onclick="setFilter('yearly', this)">Year</div>
+
+            </div>
+        <div class ="filter-bar">
+            <input type="date" id="customStartDate" class="form-control" style="width:140px; margin-left:10px;">
+            <input type="date" id="customEndDate" class="form-control" style="width:140px; margin-left:5px;">
+
+            <button class="btn btn-warning" onclick="runCustomReport()" style="margin-left:5px;">Run Report</button>
+
+
+        </div>
+    </div>
+
+
+    <!-- STAT CARDS -->
+    <div class="row g-3">
+
+        <div class="col-md-3">
+            <div class="stat-card">
+                <div class="stat-icon">🔄</div>
+                <div class="stat-title">Total Transactions</div>
+                <div class="stat-value" id="totalTransactions">—</div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="stat-card">
+                <div class="stat-icon">💳</div>
+                <div class="stat-title">Payments</div>
+                <div class="stat-value" id="totalPayments">—</div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="stat-card">
+                <div class="stat-icon">📤</div>
+                <div class="stat-title">Withdrawals</div>
+                <div class="stat-value" id="totalWithdrawals">—</div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="stat-card">
+                <div class="stat-icon">📈</div>
+                <div class="stat-title">Profit</div>
+                <div class="stat-value" id="totalProfit">—</div>
+            </div>
+        </div>
+
+    </div>
+
+
+    <!-- ROW 1: Branch Pie + Trend Line -->
+    <div class="row">
+
+        <div class="col-md-4">
+            <div class="dashboard-box">
+                <div class="box-header">
+                    <h6 class="box-title">Branch Analysis</h6>
+                    <span class="box-badge">Distribution</span>
+                </div>
+                <div class="chart-box">
+                    <canvas id="branchChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-8">
+            <div class="dashboard-box">
+                <div class="box-header">
+                    <h6 class="box-title">Transaction Analysis</h6>
+                    <span class="box-badge">Over Time</span>
+                </div>
+                <div class="chart-box">
+                    <canvas id="trendChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+
+    <!-- ROW 2: Gateway Doughnut + Top Bar -->
+    <div class="row">
+
+        <div class="col-md-6">
+            <div class="dashboard-box">
+                <div class="box-header">
+                    <h6 class="box-title">Platforms Analysis</h6>
+                    <span class="box-badge">Platforms</span>
+                </div>
+                <div class="chart-box">
+                    <canvas id="gatewayChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="dashboard-box">
+                <div class="box-header">
+                    <h6 class="box-title">Retailer Analysis</h6>
+                    <span class="box-badge">Retailers</span>
+                </div>
+                <div class="chart-box">
+                    <canvas id="topTransactionChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+
+    <!-- EMPLOYEE TABLE -->
+    <div class="dashboard-box">
+        <div class="box-header">
+            <h6 class="box-title">Top Performing Employees</h6>
+            <span class="box-badge">Leaderboard</span>
+        </div>
+        <table class="emp-table">
+            <thead>
+                <tr>
+                    <th>Employee</th>
+                    <th>Total Transactions</th>
+                    <th>Transaction Amount</th>
+                    <th>Profit</th>
+                </tr>
+            </thead>
+            <tbody id="employeeTable"></tbody>
+        </table>
+    </div>
+
+</div>
+
+
+<script>
+    Chart.register(ChartDataLabels)
+
+    let branchChart
+    let trendChart
+    let gatewayChart
+    let topTransactionChart
+
+    let currentFilter = "weekly"
+
+    // Utility function to format date as yyyy-mm-dd
+    function formatDate(date) {
+        let d = new Date(date),
+            month = '' + (d.getMonth() + 1),
+            day = '' + d.getDate(),
+            year = d.getFullYear();
+        if (month.length < 2) month = '0' + month;
+        if (day.length < 2) day = '0' + day;
+        return [year, month, day].join('-');
+    }
+
+    /* ── Palette ─────────────────────────────── */
+    const palette = [
+        "#d9b76c",
+        "#3ecf8e",
+        "#60a5fa",
+        "#f472b6",
+        "#a78bfa",
+        "#34d399",
+        "#fb923c",
+        "#e879f9"
+    ]
+
+    function generateColors(count) {
+        return Array.from({ length: count }, (_, i) => palette[i % palette.length])
+    }
+
+    /* ── Shared axis/label colours ───────────── */
+    const gridColor  = "rgba(217,183,108,0.08)"
+    const tickColor  = "#f0ede6"
+    const labelColor = "#f0ede6"
+
+    /* ── Filter ──────────────────────────────── */
+    function setFilter(type, el) {
+        currentFilter = type
+        document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'))
+        el.classList.add('active')
+        loadDashboard()
+    }
+
+    /* ── Calculate start/end date based on filter ── */
+    function getDateRange() {
+        let today = new Date()
+        let startDate, endDate
+
+        endDate = formatDate(today)
+
+        if (currentFilter === 'weekly') {
+            let pastWeek = new Date()
+            pastWeek.setDate(today.getDate() - 7)
+            startDate = formatDate(pastWeek)
+        } else if (currentFilter === 'monthly') {
+            let firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1)
+            startDate = formatDate(firstDayOfMonth)
+        } else if (currentFilter === 'yearly') {
+            let lastYear = new Date(today.getFullYear() - 1, today.getMonth(), today.getDate())
+            startDate = formatDate(lastYear)
+        }
+
+        return { startDate, endDate }
+    }
+
+    /* ── Fetch ───────────────────────────────── */
+    function loadDashboard() {
+        let { startDate, endDate } = getDateRange()
+        fetch(`/Admin/GetDashboardData?startDate=${startDate}&endDate=${endDate}`)
+            .then(r => r.json())
+            .then(data => renderDashboard(data))
+    }
+
+    /* ── Render ──────────────────────────────── */
+    function renderDashboard(data) {
+        // Update summary
+        document.getElementById("totalTransactions").innerText = data.totalTransactions
+        document.getElementById("totalPayments").innerText     = data.totalPayments
+        document.getElementById("totalWithdrawals").innerText  = data.totalWithdrawals
+        document.getElementById("totalProfit").innerText       = data.totalProfit
+
+        // Employee Table
+        let rows = ""
+        data.topEmployees.forEach(function(e, i) {
+            rows += `
+            <tr>
+                <td><span class="emp-name-cell"><span class="emp-rank">${i + 1}</span>${e.name}</span></td>
+                <td style="color:rgba(240,237,230,0.5)">${e.transactions}</td>
+                <td>${e.transactionsamount}</td>
+                <td><span class="profit-badge">&#8377; ${e.profit}</span></td>
+            </tr>`
+        })
+        document.getElementById("employeeTable").innerHTML = rows
+
+        // Branch Pie Chart
+        let blabels = data.branchAnalysis.map(x => x.branch)
+        let bvalues = data.branchAnalysis.map(x => x.value)
+
+        if (branchChart) branchChart.destroy()
+
+        branchChart = new Chart(document.getElementById("branchChart"), {
+            type: "pie",
+            data: {
+                labels: blabels,
+                datasets: [{
+                    data: bvalues,
+                    backgroundColor: generateColors(blabels.length),
+                    borderColor: "#102e2a",
+                    borderWidth: 3
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: "bottom",
+                        labels: { color: labelColor, padding: 14, font: { size: 12, family: "'DM Sans'" }, boxWidth: 12, boxHeight: 12 }
+                    },
+                    datalabels: {
+                        color: "#ffffff",
+                        font: { weight: "bold", size: 12, family: "'DM Sans'" },
+                        formatter: (v, c) => {
+                            let total = c.chart.data.datasets[0].data.reduce((a, b) => a + b, 0)
+        if (total === 0) return "0%"   // <-- avoid NaN
+        return ((v / total) * 100).toFixed(0) + "%"
+                        },
+                        textShadowColor: "rgba(0,0,0,0.55)",
+                        textShadowBlur: 5
+                    }
+                }
+            }
+        })
+
+        // Trend Line
+        let tlabels = data.trend.map(x => x.label)
+        let tvalues = data.trend.map(x => x.value)
+
+        if (trendChart) trendChart.destroy()
+
+        trendChart = new Chart(document.getElementById("trendChart"), {
+            type: "line",
+            data: {
+                labels: tlabels,
+                datasets: [{
+                    data: tvalues,
+                    borderColor: "#d9b76c",
+                    backgroundColor: "rgba(217,183,108,0.08)",
+                    fill: true,
+                    tension: 0.4,
+                    pointBackgroundColor: "#d9b76c",
+                    pointBorderColor: "#081e1b",
+                    pointBorderWidth: 2,
+                    pointRadius: 6,
+                    pointHoverRadius: 8
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false }, datalabels: { display: false } },
+                scales: {
+                    x: { ticks: { color: tickColor, font: { size: 12 } }, grid: { color: gridColor }, border: { color: gridColor } },
+                    y: { ticks: { color: tickColor, font: { size: 12 } }, grid: { color: gridColor }, border: { color: gridColor } }
+                }
+            }
+        })
+
+        // Gateway Doughnut
+        let glabels = data.gatewayAnalysis.map(x => x.gateway)
+        let gvalues = data.gatewayAnalysis.map(x => x.count)
+
+        if (gatewayChart) gatewayChart.destroy()
+
+        gatewayChart = new Chart(document.getElementById("gatewayChart"), {
+            type: "doughnut",
+            data: { labels: glabels, datasets: [{ data: gvalues, backgroundColor: generateColors(glabels.length), borderColor: "#102e2a", borderWidth: 3 }] },
+            options: {
+                cutout: "60%",
+                radius: "90%",
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { position: "right", labels: { color: labelColor, padding: 16, font: { size: 12, family: "'DM Sans'" }, boxWidth: 12, boxHeight: 12 } },
+                    datalabels: {
+                        color: "#ffffff",
+                        font: { weight: "bold", size: 12, family: "'DM Sans'" },
+                        formatter: (value, ctx) => {
+                            let total = ctx.chart.data.datasets[0].data.reduce((a,b)=>a+b,0)
+                            if (total === 0) return "0%"
+                            return ((value/total)*100).toFixed(1)+"%"
+                        },
+                        textShadowColor: "rgba(0,0,0,0.6)",
+                        textShadowBlur: 6
+                    }
+                }
+            }
+        })
+
+        // Top Transaction Bar
+        let tl = data.topTransactions.map(x => x.name)
+        let tv = data.topTransactions.map(x => x.count)
+        let colors = generateColors(tl.length)
+
+        if (topTransactionChart) topTransactionChart.destroy()
+
+        topTransactionChart = new Chart(document.getElementById("topTransactionChart"), {
+            type: "bar",
+            data: { labels: tl, datasets: [{ label: "Transactions", data: tv, backgroundColor: colors.map(c=>c+"bb"), borderColor: colors, borderWidth: 1, borderRadius: 8, borderSkipped: false, barThickness: 20 }] },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    datalabels: { color: "#ffffff", anchor: "end", align: "top", font: { weight: "bold", size: 12, family: "'DM Sans'" }, textShadowColor: "rgba(0,0,0,0.5)", textShadowBlur: 4 }
+                },
+                scales: {
+                    x: { ticks: { color: tickColor, font: { size: 12 } }, grid: { display: false }, border: { color: gridColor } },
+                    y: { ticks: { color: tickColor, font: { size: 12 } }, grid: { color: gridColor }, border: { color: gridColor } }
+                }
+            }
+        })
+    }
+
+    // Load dashboard on page load
+    document.addEventListener("DOMContentLoaded", function() {
+        setFilter('monthly', document.querySelector('.filter-btn.active'))
+    })
+
+        // Modified getDateRange to optionally read custom dates
+    function getDateRange() {
+        let today = new Date()
+        let startDate, endDate
+
+        // Check if user entered custom dates
+        const customStart = document.getElementById("customStartDate").value
+        const customEnd = document.getElementById("customEndDate").value
+
+        if(customStart && customEnd) {
+            startDate = customStart
+            endDate = customEnd
+        } else {
+            endDate = formatDate(today)
+
+            if (currentFilter === 'weekly') {
+                let pastWeek = new Date()
+                pastWeek.setDate(today.getDate() - 7)
+                startDate = formatDate(pastWeek)
+            } else if (currentFilter === 'monthly') {
+                let firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1)
+                startDate = formatDate(firstDayOfMonth)
+            } else if (currentFilter === 'yearly') {
+                let lastYear = new Date(today.getFullYear() - 1, today.getMonth(), today.getDate())
+                startDate = formatDate(lastYear)
+            }
+        }
+
+        return { startDate, endDate }
+    }
+        // New function for Run Report button
+    function runCustomReport() {
+        const customStartInput = document.getElementById("customStartDate")
+        const customEndInput = document.getElementById("customEndDate")
+        const customStart = customStartInput.value
+        const customEnd = customEndInput.value
+        const today = new Date()
+
+        // Validate mandatory dates
+        if (!customStart || !customEnd) {
+            alert("Please select both Start Date and End Date before running the report.")
+            return
+        }
+
+        const startDate = new Date(customStart)
+        const endDate = new Date(customEnd)
+
+        // Check that start date is not after end date
+        if (startDate > endDate) {
+            alert("Start Date cannot be later than End Date.")
+            return
+        }
+
+        // Check that neither date is in the future
+        if (startDate > today || endDate > today) {
+            alert("Dates cannot be later than today.")
+            return
+        }
+
+        // Set filter to null so custom dates are used
+        currentFilter = null
+        loadDashboard()
+
+        // Clear the date inputs after running the report
+        customStartInput.value = ''
+        customEndInput.value = ''
+    }
+</script>

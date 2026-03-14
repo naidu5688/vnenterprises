@@ -576,8 +576,12 @@ namespace vnenterprises.Controllers
                 ViewBag.EmployeeName = user.UserName;
             }
         }
+        public JsonResult GetDashboardData(string StartDate, string EndDate)
+        {
+            var data = _adminsupport.GetDahsBoardData(1, StartDate, EndDate);
 
-
+            return Json(data);
+        }
     }
 
 }

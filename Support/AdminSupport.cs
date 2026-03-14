@@ -979,5 +979,123 @@ namespace vnenterprises.Support
 
             return result;
         }
+
+        public object GetDahsBoardData(int type, string StartDate, string EndDate)
+        {
+
+            decimal totalTransactions = 0;
+            decimal totalPayments = 0;
+            decimal totalWithdrawals = 0;
+            decimal totalProfit = 0;
+
+            var branchAnalysis = new List<object>();
+            var gatewayAnalysis = new List<object>();
+            var topEmployees = new List<object>();
+            var trend = new List<object>();
+            var topTransactions = new List<object>();
+
+            using (SqlConnection con = new SqlConnection(_connectionString))
+            {
+                using (SqlCommand cmd = new SqlCommand("vn_GetDashboardReports", con))
+                {
+                    cmd.CommandType = CommandType.StoredProcedure;
+
+                    cmd.Parameters.AddWithValue("@Type", type);
+                    cmd.Parameters.AddWithValue("@StartDate", StartDate);
+                    cmd.Parameters.AddWithValue("@EndDate", EndDate);
+
+                    con.Open();
+
+                    using (SqlDataReader reader = cmd.ExecuteReader())
+                    {
+                        // 1️⃣ Totals
+                        if (reader.Read())
+                        {
+                            totalTransactions = reader["TotalTransactionsAmount"] != DBNull.Value ? Convert.ToInt32(reader["TotalTransactionsAmount"]) : 0;
+                            totalPayments = reader["PaymentsAmount"] != DBNull.Value ? Convert.ToInt32(reader["PaymentsAmount"]) : 0;
+                            totalWithdrawals = reader["WithdrawalsAmount"] != DBNull.Value ? Convert.ToInt32(reader["WithdrawalsAmount"]) : 0;
+                            totalProfit = reader["ProfitAmount"] != DBNull.Value ? Convert.ToInt32(reader["ProfitAmount"]) : 0;
+                            
+                        }
+
+                        // 2️⃣ Branch Analysis
+                        reader.NextResult();
+                        while (reader.Read())
+                        {
+                            branchAnalysis.Add(new
+                            {
+                                branch = reader["BranchName"].ToString(),
+                                value = Convert.ToInt32(reader["TransactionCount"])
+                            });
+                        }
+
+                        // 3️⃣ Gateway Analysis
+                        reader.NextResult();
+                        while (reader.Read())
+                        {
+                            gatewayAnalysis.Add(new
+                            {
+                                gateway = reader["PlatformName"].ToString(),
+                                count = Convert.ToInt32(reader["TransactionCount"])
+                            });
+                        }
+
+                        // 4️⃣ Top Employees
+                        reader.NextResult();
+                        while (reader.Read())
+                        {
+                            topEmployees.Add(new
+                            {
+                                name = reader["EmployeeName"].ToString(),
+                                transactions = Convert.ToInt32(reader["TotalTransactions"]),
+                                transactionsamount = Convert.ToInt32(reader["TotalTransactionAmount"]),
+                                profit = Convert.ToDecimal(reader["ProfitAmount"])
+                            });
+                        }
+
+                        // 5️⃣ Trend
+                        reader.NextResult();
+                        while (reader.Read())
+                        {
+                            trend.Add(new
+                            {
+                                label = reader["Label"].ToString(),
+                                value = Convert.ToDecimal(reader["Value"])
+                            });
+                        }
+
+                        reader.NextResult();
+                        while (reader.Read())
+                        {
+                            topTransactions.Add(new
+                            {
+                                name = reader["RetailerName"].ToString(),
+                                count = Convert.ToDecimal(reader["TotalTransactions"])
+                            });
+                        }
+                    }
+                }
+            }
+
+            var data = new
+            {
+                totalTransactions,
+                totalPayments,
+                totalWithdrawals,
+                totalProfit,
+
+                branchAnalysis,
+
+                trend,
+
+                gatewayAnalysis,
+
+                topEmployees,
+
+                topTransactions
+            };
+
+            return data;
+        }
     }
 }
