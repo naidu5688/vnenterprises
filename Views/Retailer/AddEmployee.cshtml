@@ -328,14 +328,14 @@
             <div>
                 <label>Mobile Number</label>
                 <input asp-for="MobileNumber" class="form-control"
-                       maxlength="10"
-                       oninput="this.value=this.value.replace(/[^0-9]/g,'')" required placeholder="Enter Mobile Number" />
+                       maxlength="10" onkeypress="return event.charCode != 32;"
+                       oninput="this.value = this.value.replace(/[^0-9]/g, '').replace(/\s/g, '');" required placeholder="Enter Mobile Number" />
             </div>
             <div>
                 <label>MPIN</label>
                 <input asp-for="MPIN" class="form-control"
-                       maxlength="4"
-                       oninput="this.value=this.value.replace(/[^0-9]/g,'')" required placeholder="Enter MPIN" />
+                       maxlength="4" onkeypress="return event.charCode != 32;"
+                       oninput="this.value = this.value.replace(/[^0-9]/g, '').replace(/\s/g, '');" required placeholder="Enter MPIN" />
             </div>
             <div>
                 <label>Password</label>
@@ -349,8 +349,8 @@
             </div>
             <div>
                 <label>Aadhar Number</label>
-                <input asp-for="AadhaarNumber" class="form-control" required maxlength="12"
-                       oninput="this.value=this.value.replace(/[^0-9]/g,'')" placeholder="Enter Aadhar Number" />
+                <input asp-for="AadhaarNumber" class="form-control" required maxlength="12" onkeypress="return event.charCode != 32;"
+                       oninput="this.value = this.value.replace(/[^0-9]/g, '').replace(/\s/g, '');" placeholder="Enter Aadhar Number" />
             </div>
             <div>
                 <label>PAN Number</label>

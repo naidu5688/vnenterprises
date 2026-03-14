@@ -313,6 +313,16 @@ namespace vnenterprises.Controllers
                 ViewBag.EmployeeName = user.UserName;
             }
         }
-
+        [HttpPost]
+        public IActionResult UpdateTransaction([FromBody] UpdateTransactionModel model)
+        {
+            model.ChangedBy = Convert.ToInt32(Request.Cookies["UserId"]); 
+            var result = _employeesupport.UpdateTransaction(model);
+            return Json(new
+            {
+                success = result.result == 1,
+                message = result.StatusMessage
+            });
+        }
     }
 }

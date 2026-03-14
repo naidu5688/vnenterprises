@@ -1089,5 +1089,41 @@ AND CAST(LoginTime AS DATE)=CAST(@Today AS DATE)";
 
             return list;
         }
+        public ResultResponse UpdateTransaction(UpdateTransactionModel model)
+        {
+            ResultResponse result = new ResultResponse();
+            using SqlConnection con = new SqlConnection(_connectionString);
+            con.Open();
+            using SqlCommand cmd = new SqlCommand("usp_UpdateTransaction", con);
+            cmd.CommandType = CommandType.StoredProcedure;
+            cmd.Parameters.AddWithValue("@TransactionId", model.TransactionId);
+            cmd.Parameters.AddWithValue("@TransactionAmount", model.TransactionAmount);
+            cmd.Parameters.AddWithValue("@BillAmount", model.BillAmount);
+            cmd.Parameters.AddWithValue("@EmployeeChargePercent", model.EmployeeChargePercent);
+            cmd.Parameters.AddWithValue("@PlatformChargeAmount", model.PlatformChargeAmount);
+            cmd.Parameters.AddWithValue("@ProfitAmount", model.ProfitAmount);
+            cmd.Parameters.AddWithValue("@PayOut", model.PayOut);
+            cmd.Parameters.AddWithValue("@FinalAmount", model.FinalAmount);
+            cmd.Parameters.AddWithValue("@WalletAmount", model.WalletAmount);
+            cmd.Parameters.AddWithValue("@ToBePaidByCustomer", model.ToBePaidByCustomer);
+            cmd.Parameters.AddWithValue("@AccountAmountTransfer", model.AccountAmountTransfer);
+            cmd.Parameters.AddWithValue("@CardAmountTransfer", model.CardAmountTransfer);
+            cmd.Parameters.AddWithValue("@QrPayAmountTransfer", model.QrPayAmountTransfer);
+            cmd.Parameters.AddWithValue("@AccountPayAmountTransfer", model.AccountPayAmountTransfer);
+            cmd.Parameters.AddWithValue("@UpiPayAmountTransfer", model.UpiPayAmountTransfer);
+            cmd.Parameters.AddWithValue("@OthersAmountTransfer", model.OthersAmountTransfer);
+            cmd.Parameters.AddWithValue("@Difference", model.Difference);
+            cmd.Parameters.AddWithValue("@Remarks", model.Remarks ?? "");
+            cmd.Parameters.AddWithValue("@ChangedBy", model.ChangedBy);
+
+            SqlParameter resultParam = new SqlParameter("@Result", SqlDbType.Int) { Direction = ParameterDirection.Output };
+            SqlParameter msgParam = new SqlParameter("@StatusMessage", SqlDbType.NVarChar, 500) { Direction = ParameterDirection.Output };
+            cmd.Parameters.Add(resultParam);
+            cmd.Parameters.Add(msgParam);
+            cmd.ExecuteNonQuery();
+            result.result = Convert.ToInt32(resultParam.Value);
+            result.StatusMessage = msgParam.Value?.ToString();
+            return result;
+        }
     }
     }

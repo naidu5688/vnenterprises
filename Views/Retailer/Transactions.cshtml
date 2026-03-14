@@ -277,7 +277,26 @@
 
     </div>
 </div>
+<!-- EDIT Button -->
+<div class="modal-overlay" id="editModal">
+    <div class="modal-box" style="width:900px;">
+        <div class="modal-header">
+            <h4>Edit Transaction</h4>
+            <button class="close-btn" onclick="closeEdit()">✕</button>
+        </div>
 
+        <div class="transaction-body" id="editTransactionBody" style="overflow-y:auto;max-height:70vh;">
+        </div>
+
+        <input type="hidden" id="editTransactionId" />
+        <input type="hidden" id="editIncentiveId" />
+
+        <div class="modal-footer">
+            <button class="btn-primary" onclick="saveEditTransaction()">Save</button>
+            <button class="btn-primary" style="background:#555;margin-left:8px;" onclick="closeEdit()">Cancel</button>
+        </div>
+    </div>
+</div>
 
 
 
@@ -285,9 +304,12 @@
 <script>
     const userId = @userId;
     let xlsxPromise = null;
-    const pageSize = 10;
+    let pageSize = 10;
+    //     document.addEventListener('keydown', e => {
+    //     if (e.key === "Escape") closeView();
+    // });
         document.addEventListener('keydown', e => {
-        if (e.key === "Escape") closeView();
+        if (e.key === "Escape") { closeView(); closeEdit(); }
     });
     function ensureXlsxLoaded() {
         if (typeof XLSX !== 'undefined') return Promise.resolve();
@@ -393,10 +415,13 @@
     <td>₹${t.transactionAmount}</td>
     <td>₹${t.finalAmount}</td>
     <td>${new Date(t.createdOn).toLocaleString()}</td>
-    <td><button class="btn-primary" onclick="viewTransaction(${t.transactionId})">View</button></td>
+           <td style="display:flex;gap:6px;justify-content:center;">
+      <button class="btn-primary" onclick="viewTransaction(${t.transactionId})">View</button>
+      <button class="btn-primary" style="background:#3e806f;" onclick="editTransaction(${t.transactionId})">Edit</button>
+    </td>
     </tr>`;
     });
-
+    //<td><button class="btn-primary" onclick="viewTransaction(${t.transactionId})">View</button></td>
     renderPagination(res.totalCount, pageNo);
     });
     }
@@ -977,5 +1002,207 @@
         .finally(() => {
             resetExport(btn, originalText, originalPageSize);
         });
+    }
+        function editTransaction(id) {
+        fetch('/Employee/GetTransactionById?transactionid=' + id)
+            .then(r => r.json())
+            .then(d => {
+                if (!d) { alert("No data found"); return; }
+
+                document.getElementById("editTransactionId").value = d.transactionId;
+                document.getElementById("editIncentiveId").value = d.incentiveId;
+
+                const isPayment = d.incentiveId === 2;
+                const body = document.getElementById("editTransactionBody");
+
+                // Helper: readonly field
+                const ro = (label, value) => `
+                    <div class="detail-box">
+                        <label>${label}</label>
+                        <input value="${value ?? ''}" readonly>
+                    </div>`;
+
+                // Helper: editable field
+                const ed = (label, id, value) => `
+                    <div class="detail-box">
+                        <label>${label}</label>
+                        <input id="${id}" value="${value ?? ''}" style="background:#fff;" oninput="this.value=this.value.replace(/[^0-9.]/g,''); editCalculate();">
+                    </div>`;
+
+                let html = `<div class="detail-grid">`;
+
+                // ── READ-ONLY INFO ──
+                html += ro('Transaction ID', d.transactionId);
+                html += ro('Customer Name', d.customerName);
+                html += ro('Platform', d.platformName);
+                html += ro('Gateway', d.gatewayName);
+                html += ro('Platform Charge (%)', d.gatewayCharge + '%');
+                html += ro('Transaction Type', d.incentiveName);
+
+                // ── CARD / BANK INFO (readonly, fetched) ──
+                html += ro('Withdraw Card Number', d.withdrawCardNumber);
+                html += ro('Card Holder Name', d.withdrawNameOnCard);
+                html += ro('Card Type', d.withdrawCardType);
+                html += ro('Card CVV', d.withdrawCardCVV);
+                html += ro('Card Expiry Date', d.withdrawCardExpiryDate);
+                html += ro('Withdraw Bank Number', d.withdrawBankNumber);
+                html += ro('Withdraw Bank Name', d.withdrawBankName);
+                html += ro('Withdraw Bank IFSC', d.withdrawBankIFSC);
+
+                // ── EDITABLE AMOUNTS ──
+                html += ed('Transaction Amount', 'eAmount', d.transactionAmount);
+
+                if (isPayment) {
+                    html += ed('Bill Amount', 'eBillAmount', d.billAmount);
+                }
+
+                // Platform Charge Amount — auto-calc, readonly
+                html += `<div class="detail-box"><label>Platform Charge Amount</label><input id="ePlatformCharge" value="${d.platformChargeAmount ?? ''}" readonly></div>`;
+
+                html += ed('Employee Charge (%)', 'eEmpPercent', d.employeeChargePercent);
+
+                // Profit — auto-calc, readonly
+                html += `<div class="detail-box"><label>Profit Amount</label><input id="eProfit" value="${d.profitAmount ?? ''}" readonly></div>`;
+
+                html += ed('Pay Out', 'ePayout', d.payOut);
+
+                // Final Amount — auto-calc, readonly
+                html += `<div class="detail-box"><label>Final Amount</label><input id="eFinalAmount" value="${d.finalAmount ?? ''}" readonly></div>`;
+
+                if (isPayment) {
+                    // Wallet Amount — auto-calc, readonly
+                    html += `<div class="detail-box"><label>Wallet Amount</label><input id="eWalletAmount" value="${d.walletAmount ?? ''}" readonly></div>`;
+                    html += ed('To Be Paid By Customer', 'eToBePaid', d.tobePaidByCustomer);
+                }
+
+                // ── SWIPED BANK ──
+                html += ro('Swiped Bank Number', d.swipedBankNumber);
+                html += ro('Swiped Bank Name', d.swipedBankName);
+                html += ro('Swiped Bank IFSC', d.swipedBankIFSC);
+                html += ed('Bank Transfer Amount', 'eBankTransfer', d.accountAmountTransfer);
+
+                // ── SWIPED CARD ──
+                html += ro('Swiped Card Number', d.swipedCardNumber);
+                html += ro('Swiped Card Holder', d.swipedNameOnCard);
+                html += ro('Swiped Card Type', d.swipedCardType);
+                html += ro('Swiped Card CVV', d.swipedCardCVV);
+                html += ro('Swiped Card Expiry', d.swipedCardExpiryDate);
+                html += ed('Card Transfer Amount', 'eCardTransfer', d.cardAmountTransfer);
+
+                if (isPayment) {
+                    html += ed('QR Pay', 'eQrPay', d.qrPayAmountTransfer);
+                    html += ed('Account Transfer', 'eAccTransfer', d.accountPayAmountTransfer);
+                    html += ed('UPI Pay', 'eUpiPay', d.upiPayAmountTransfer);
+                    html += ed('Others', 'eOthers', d.othersAmountTransfer);
+
+                    // Difference — auto-calc, readonly
+                    html += `<div class="detail-box"><label>Difference</label><input id="eDifference" value="${d.difference ?? ''}" readonly></div>`;
+                }
+
+                html += `</div>`;
+
+                // Remarks — full width outside grid
+                html += `
+                    <div class="detail-box" style="margin-top:12px;">
+                        <label>Remarks</label>
+                        <input id="eRemarks" value="${d.remarks ?? ''}" style="background:#fff;width:100%;">
+                    </div>`;
+
+                body.innerHTML = html;
+
+                // Store gateway charge % for recalc
+                body.dataset.gatewayCharge = d.gatewayCharge ?? 0;
+                body.dataset.incentiveId = d.incentiveId;
+
+                document.getElementById("editModal").style.display = "flex";
+            });
+    }
+
+    function editCalculate() {
+        const body = document.getElementById("editTransactionBody");
+        const gatewayCharge = parseFloat(body.dataset.gatewayCharge || 0);
+        const incentiveId = parseInt(body.dataset.incentiveId || 0);
+
+        const txnAmount   = parseFloat(document.getElementById("eAmount")?.value || 0);
+        const billAmount  = parseFloat(document.getElementById("eBillAmount")?.value || 0);
+        const empPercent  = parseFloat(document.getElementById("eEmpPercent")?.value || 0);
+        const payout      = parseFloat(document.getElementById("ePayout")?.value || 0);
+        const qrPay       = parseFloat(document.getElementById("eQrPay")?.value || 0);
+        const accTrans    = parseFloat(document.getElementById("eAccTransfer")?.value || 0);
+        const upiPay      = parseFloat(document.getElementById("eUpiPay")?.value || 0);
+        const others      = parseFloat(document.getElementById("eOthers")?.value || 0);
+
+        const platformCharge = txnAmount * (gatewayCharge / 100);
+        const employeeCharge = txnAmount * (empPercent / 100);
+        const profit = employeeCharge - platformCharge - payout;
+
+        let finalAmount = 0;
+        if (incentiveId === 2) finalAmount = txnAmount + employeeCharge;
+        else if (incentiveId === 3) finalAmount = txnAmount - employeeCharge;
+
+        const remaining   = billAmount - txnAmount;
+        const walletAmt   = employeeCharge - remaining;
+        const difference  = (qrPay + accTrans + upiPay + others) - walletAmt;
+
+        const set = (id, val) => { const el = document.getElementById(id); if (el) el.value = val.toFixed(2); };
+
+        set("ePlatformCharge", platformCharge);
+        set("eProfit", profit);
+        set("eFinalAmount", finalAmount);
+        if (incentiveId === 2) {
+            set("eWalletAmount", walletAmt);
+            set("eDifference", difference);
+        }
+    }
+
+    function closeEdit() {
+        document.getElementById("editModal").style.display = "none";
+    }
+
+    function saveEditTransaction() {
+        const id = parseInt(document.getElementById("editTransactionId").value);
+        const incentiveId = parseInt(document.getElementById("editIncentiveId").value);
+        const isPayment = incentiveId === 2;
+
+        const g = (elId) => parseFloat(document.getElementById(elId)?.value || 0);
+        const gs = (elId) => document.getElementById(elId)?.value || '';
+
+        const payload = {
+            TransactionId:          id,
+            TransactionAmount:      g("eAmount"),
+            BillAmount:             isPayment ? g("eBillAmount") : 0,
+            EmployeeChargePercent:  g("eEmpPercent"),
+            PlatformChargeAmount:   g("ePlatformCharge"),
+            ProfitAmount:           g("eProfit"),
+            PayOut:                 g("ePayout"),
+            FinalAmount:            g("eFinalAmount"),
+            WalletAmount:           isPayment ? g("eWalletAmount") : 0,
+            ToBePaidByCustomer:     isPayment ? g("eToBePaid") : 0,
+            AccountAmountTransfer:  g("eBankTransfer"),
+            CardAmountTransfer:     g("eCardTransfer"),
+            QrPayAmountTransfer:    isPayment ? g("eQrPay") : 0,
+            AccountPayAmountTransfer: isPayment ? g("eAccTransfer") : 0,
+            UpiPayAmountTransfer:   isPayment ? g("eUpiPay") : 0,
+            OthersAmountTransfer:   isPayment ? g("eOthers") : 0,
+            Difference:             isPayment ? g("eDifference") : 0,
+            Remarks:                gs("eRemarks")
+        };
+
+        fetch('/Retailer/UpdateTransaction', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        })
+        .then(r => r.json())
+        .then(res => {
+            if (res.success) {
+                alert(res.message || "Transaction updated successfully");
+                closeEdit();
+                loadTransactions(1);
+            } else {
+                alert(res.message || "Update failed");
+            }
+        })
+        .catch(() => alert("Error updating transaction"));
     }
 </script>

@@ -265,4 +265,26 @@ namespace vnenterprises.Models
         public string cardcvv { get; set; }
         public string expirydate { get; set; }
     }
+    public class UpdateTransactionModel
+    {
+        public int TransactionId { get; set; }
+        public decimal TransactionAmount { get; set; }
+        public decimal BillAmount { get; set; }
+        public decimal EmployeeChargePercent { get; set; }
+        public decimal PlatformChargeAmount { get; set; }
+        public decimal ProfitAmount { get; set; }
+        public decimal PayOut { get; set; }
+        public decimal FinalAmount { get; set; }
+        public decimal WalletAmount { get; set; }
+        public decimal ToBePaidByCustomer { get; set; }
+        public decimal AccountAmountTransfer { get; set; }
+        public decimal CardAmountTransfer { get; set; }
+        public decimal QrPayAmountTransfer { get; set; }
+        public decimal AccountPayAmountTransfer { get; set; }
+        public decimal UpiPayAmountTransfer { get; set; }
+        public decimal OthersAmountTransfer { get; set; }
+        public decimal Difference { get; set; }
+        public string Remarks { get; set; }
+        public int ChangedBy { get; set; }
+    }
 }
